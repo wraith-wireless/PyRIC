@@ -132,14 +132,14 @@ Under the root /pyric directory
  - README.md            this file
  - LICENSE              GPLv3 License
  - pyric                package directory
-  * \_\_init\_\_.py     initialize pyric module
-  * pyw.py              wireless nic functionality
-  * radio.py            consolidate pyw in a class
-  * channels.py         802.11 ISM/UNII freqs. & channels
-  * device.py           device/chipset utility functions
-  * TODO                todos for PyRIC
-  * RFI                 comments and observations
-  * net                 linux header ports
+  + \_\_init\_\_.py     initialize pyric module
+  + pyw.py              wireless nic functionality
+  + radio.py            consolidate pyw in a class
+  + channels.py         802.11 ISM/UNII freqs. & channels
+  + device.py           device/chipset utility functions
+  + TODO                todos for PyRIC
+  + RFI                 comments and observations
+  + net                 linux header ports
     + \_\_init\_\_.py   initialize net subpackage
     + if_h.py           inet/ifreq definition
     + sockios_h.py      socket-level I/O control calls
