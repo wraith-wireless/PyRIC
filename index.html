@@ -1,0 +1,265 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>PyRIC by wraith-wireless</title>
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/github-dark.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+    <script src="javascripts/respond.js"></script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <!--[if lt IE 8]>
+    <link rel="stylesheet" href="stylesheets/ie.css">
+    <![endif]-->
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+  </head>
+  <body>
+      <div id="header">
+        <nav>
+          <li class="fork"><a href="https://github.com/wraith-wireless/PyRIC">View On GitHub</a></li>
+          <li class="downloads"><a href="https://github.com/wraith-wireless/PyRIC/zipball/master">ZIP</a></li>
+          <li class="downloads"><a href="https://github.com/wraith-wireless/PyRIC/tarball/master">TAR</a></li>
+          <li class="title">DOWNLOADS</li>
+        </nav>
+      </div><!-- end header -->
+
+    <div class="wrapper">
+
+      <section>
+        <div id="title">
+          <h1>PyRIC</h1>
+          <p>Pythonic iw</p>
+          <hr>
+          <span class="credits left">Project maintained by <a href="https://github.com/wraith-wireless">wraith-wireless</a></span>
+          <span class="credits right">Hosted on GitHub Pages &mdash; Theme by <a href="https://twitter.com/michigangraham">mattgraham</a></span>
+        </div>
+
+        <h1>
+<a id="pyric-python-radio-interface-controller" class="anchor" href="#pyric-python-radio-interface-controller" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>PyRIC: Python Radio Interface Controller</h1>
+
+<h2>
+<a id="1-description" class="anchor" href="#1-description" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>1 DESCRIPTION:</h2>
+
+<p>BLUF: Stop using subprocess.Popen, regular expressions and str.find. PyRIC
+is a python port of a subset of iw and python port of netlink (w.r.t nl80211
+functions). It arose out of a need in Wraith (<a href="https://github.com/wraith-wireless/wraith">https://github.com/wraith-wireless/wraith</a>)
+for Python nl80211/netlink and ioctl functionality in Python. Originally, Wraith
+used ifconfig, iwconfig and iw via subprocess.Popen and parsed the output. There
+are obvious shortfalls with this method, especially in terms of iw that is actively
+changing (revisions break the parser) and I started looking for open source
+alternatives. There are several open source projects out there like pyroute, pymnl
+(and the python files included in the libnl source) but they generally have either
+not been maintained recently or come with warnings. I desired a simple interface
+to the underlying nl80211 kernel support that handles the complex operations of
+netlink seamlessy while maintaining a minimum of "code walking" to understand,
+modify and add future operations. I decided to write my own because I do not need
+complete netlink functionality, only that provided by generic netlink and within
+the nl80221 family. Additionally, for Wraith, I do not need a full blown port of
+iw (and ifconfig, iwconfig) functionality to Python but only require the ability
+to turn a wireless nic on/off, get/set the hwaddr, get/set the channel, determine
+some properties of the card and add/delete interfaces.</p>
+
+<p>So, why did I do this? When I first started to explore the idea of moving away
+from iw output parsing, I looked at the source for iw, and existing Python ports.
+Just to figure out how to get the family id for nl80211 required reading through
+five different source files with no comments. To that extent, I have attempted to
+keep subclassing to a minimum, the total number of classes to a minimum, combine
+files where possible and where it makes since and keep the number of files required
+to be open simulateneously in order to understand the methodology and follow the
+program to a minimum. One can understand the PyRIC program flow with only two files
+open at any time namely, pyw and libnl. In fact, only an understanding of pyw is
+required to add additional commands although an understanding of libnl is helpful
+especially, if for example, the code is to be extended to handle multicast or
+callbacks.</p>
+
+<p>In addition to providing some ifconfig functionality, I have also added several
+"extensions" to iw:</p>
+
+<ul>
+<li>Persistent sockets: PyRIC provides gives the caller with functions &amp; ability to
+pass their own netlink (or ioctl socket) to pyw functions;</li>
+<li>One-time request for the nl80211 family id.
+While minimal, they will slightly improve the performance of any programs that
+needs to access the wireless network interface repeatedly.</li>
+</ul>
+
+<p>ATT, PyRIC accomplish my core needs but it is still a work in progress. It provides
+the following:</p>
+
+<ul>
+<li>enumerate interfaces and wireless interfaces</li>
+<li>identify a cards chipset and driver</li>
+<li>get/set hardware address</li>
+<li>turn card on/off</li>
+<li>get supported standards</li>
+<li>get/set regulatory domain</li>
+<li>get info on a device</li>
+<li>add/delete interfaces
+Before adding any other commands, I want to write a search program for nl80211
+commands and attributes instead of having to search the header files for values
+and descriptions.</li>
+</ul>
+
+<h3>
+<a id="a-pyric-functionality" class="anchor" href="#a-pyric-functionality" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>a. PyRIC Functionality</h3>
+
+<p>What it does - defines programmatic access to a small subset of iw and ifconfig.</p>
+
+<p>What it does not do - handle multicast messages, callbacks or dumps, attributes
+or non nl80211 funtionality.</p>
+
+<h3>
+<a id="b-a-word-about-porting" class="anchor" href="#b-a-word-about-porting" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>b. A word about porting</h3>
+
+<p>When porting the C header files to python I use constants to define the C 'enum'
+and '#define' statements. For C structs I use the following:</p>
+
+<ul>
+<li>a format string for packing,</li>
+<li>a constant calculating the length of the format string, and</li>
+<li>a function taking the attributes of the struct as arguments and returning the
+packed byte string</li>
+</ul>
+
+<p>For example netlink.h defines the netlink message header as:</p>
+
+<div class="highlight highlight-source-c"><pre><span class="pl-k">struct</span> nlmsghdr {
+    __u32 nlmsg_len;
+    __u16 nlmsg_type;
+    __u16 nlmsg_flags;
+    __u32 nlmsg_seq;
+    __u32 nlmsg_pid;
+};</pre></div>
+
+<p>whereas in netlink_h.py I define it thus:</p>
+
+<div class="highlight highlight-source-python"><pre>nl_nlmsghdr <span class="pl-k">=</span> <span class="pl-s"><span class="pl-pds">"</span>IHHII<span class="pl-pds">"</span></span>
+<span class="pl-c1">NLMSGHDRLEN</span> <span class="pl-k">=</span> struct.calcsize(nl_nlmsghdr)
+<span class="pl-k">def</span> <span class="pl-en">nlmsghdr</span>(<span class="pl-smi">mlen</span>,<span class="pl-smi">nltype</span>,<span class="pl-smi">flags</span>,<span class="pl-smi">seq</span>,<span class="pl-smi">pid</span>):
+    <span class="pl-s"><span class="pl-pds">"""</span> <span class="pl-k">... </span>comments go here <span class="pl-pds">"""</span></span>
+    <span class="pl-k">return</span> struct.pack(nl_nlmsghdr,<span class="pl-c1">NLMSGHDRLEN</span><span class="pl-k">+</span>mlen,nltype,flags,seq,pid)</pre></div>
+
+<h2>
+<a id="2-installing" class="anchor" href="#2-installing" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>2. INSTALLING:</h2>
+
+<p>The best way to install PyRIC is through PyPI:</p>
+
+<pre><code>sudo pip install --pre PyRIC
+</code></pre>
+
+<p>Note the use of the '--pre' flag. Without it, pip will not install PyRIC since it
+is still in the developmental stage</p>
+
+<p>If, however, you just want to test it out, download the latest tarball from
+<a href="https://github.com/wraith-wireless/pyric/releases/">https://github.com/wraith-wireless/pyric/releases/</a> or <a href="https://pypi.python.org/pypi/PyRIC/">https://pypi.python.org/pypi/PyRIC/</a>
+untar and run from the downloaded package directory (pyric/pyric.</p>
+
+<p>If you download only and try to run PyRIC outside of the local directory, you
+will get errors. Just create a pyric.pth file in  /usr/lib/python2.7/dist-packages
+and add the path to pyric/pyric in this file and you will be able to run it from
+anywhere.</p>
+
+<p>Once installed, see examples/pentest.py which covers most pyw functions.</p>
+
+<h3>
+<a id="a-requirements" class="anchor" href="#a-requirements" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>a. Requirements</h3>
+
+<ul>
+<li>Python</li>
+<li>linux (kernel v 3.13.x)
+PyRIC requires Python 2.7 and has not been tested on Python 3. It has been tested
+on kernel 3.13.x but should work on kernel 4.x.x</li>
+</ul>
+
+<p>** 3. EXTENDING:</p>
+
+<p>Extending PyRIC is fun and easy too. ...documentation in progress...</p>
+
+<h2>
+<a id="4-architectureheirarchy-brief-overview-of-the-project-file-structure" class="anchor" href="#4-architectureheirarchy-brief-overview-of-the-project-file-structure" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>4. ARCHITECTURE/HEIRARCHY: Brief Overview of the project file structure</h2>
+
+<ul>
+<li>pyric                   root Distribution directory
+
+<ul>
+<li>__init__.py       initialize 'outer' pyric module</li>
+<li>examples              example folder
+
+<ul>
+<li>pentest.py          create wireless pentest environment example</li>
+</ul>
+</li>
+<li>setup.py              install file</li>
+<li>setup.cfg             used by setup.py</li>
+<li>MANIFEST.in           used by setup.py</li>
+<li>README.md             this file</li>
+<li>LICENSE               GPLv3 License</li>
+<li>PyRIC.pdf             User Guide</li>
+<li>pyric                 package directory
+
+<ul>
+<li>__init__.py     initialize pyric module</li>
+<li>pyw.py              wireless nic functionality</li>
+<li>radio.py            consolidate pyw in a class</li>
+<li>channels.py         802.11 ISM/UNII freqs. &amp; channels</li>
+<li>device.py           device/chipset utility functions</li>
+<li>TODO                todos for PyRIC</li>
+<li>RFI                 comments and observations</li>
+<li>net                 linux header ports
+
+<ul>
+<li>__init__.py   initialize net subpackage</li>
+<li>if_h.py           inet/ifreq definition</li>
+<li>sockios_h.py      socket-level I/O control calls</li>
+<li>genetlink_h.py    port of genetlink.h</li>
+<li>netlink_h.py      port of netlink.h</li>
+<li>policy.py         defines attribute datatypes</li>
+<li>wireless          wireless subpackage
+
+<ul>
+<li>__init__.py initialize wireless subpackage</li>
+<li>nl80211_h.py    nl80211 constants</li>
+<li>nl80211_c.py    nl80211 attribute policies</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>lib                 library subpackages
+
+<ul>
+<li>__init__.py   initialize lib subpackage</li>
+<li>libnl.py          netlink helper functions</li>
+<li>libio.py          sockios helper functions</li>
+</ul>
+</li>
+<li>docs                netlinke documentation/help
+
+<ul>
+<li>nlhelp.py         nl80211 search</li>
+<li>commands.help     nl80211 commands help data</li>
+<li>attributes.help   nl80211 attributes help data</li>
+<li>res               User Guide resources
+
+<ul>
+<li>PyRIC.tex       User Guide LaTex</li>
+<li>PyRIC.bib       User Guide bibliography</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+      </section>
+
+    </div>
+    <!--[if !IE]><script>fixScale(document);</script><![endif]-->
+    
+  </body>
+</html>
