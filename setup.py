@@ -32,11 +32,10 @@ __email__ = 'wraith.wireless@yandex.com'
 __status__ = 'Development'
 
 from setuptools import setup, find_packages
-from codecs import open
-from os import path
+#from codecs import open
+#from os import path
 import pyric
 
-here = path.abspath(path.dirname(__file__))
 
 long_desc = """
 A simple interface to the underlying nl80211 kernel support that handles the
@@ -68,5 +67,6 @@ setup(name='PyRIC',
                    'Programming Language :: Python'
                    ],
     keywords='nl80211 iw developement wireless pentest',
-    packages=find_packages()
+    packages=find_packages(),
+    package_data={'pyric':['docs/*.help']}
 )
