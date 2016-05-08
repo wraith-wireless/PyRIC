@@ -125,13 +125,13 @@ Under the root /pyric directory
 * pyric                 root Distribution directory
  - \_\_init\_\_.py      initialize 'outer' pyric module
  - examples             example folder
-  * pentest.py          create wireless pentest environment example
+  + pentest.py          create wireless pentest environment example
  - setup.py             install file
  - setup.cfg            used by setup.py
  - MANIFEST.in          used by setup.py
  - README.md            this file
  - LICENSE              GPLv3 License
- - pyric
+ - pyric                package directory
   * \_\_init\_\_.py     initialize pyric module
   * pyw.py              wireless nic functionality
   * radio.py            consolidate pyw in a class
