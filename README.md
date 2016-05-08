@@ -140,25 +140,25 @@ Under the root /pyric directory
   + TODO                todos for PyRIC
   + RFI                 comments and observations
   + net                 linux header ports
-    + \_\_init\_\_.py   initialize net subpackage
-    + if_h.py           inet/ifreq definition
-    + sockios_h.py      socket-level I/O control calls
-    + genetlink_h.py    port of genetlink.h
-    + netlink_h.py      port of netlink.h
-    + policy.py         defines attribute datatypes
-    + wireless          wireless subpackage
+    * \_\_init\_\_.py   initialize net subpackage
+    * if_h.py           inet/ifreq definition
+    * sockios_h.py      socket-level I/O control calls
+    * genetlink_h.py    port of genetlink.h
+    * netlink_h.py      port of netlink.h
+    * policy.py         defines attribute datatypes
+    * wireless          wireless subpackage
       - \_\_init\_\_.py initialize wireless subpackage
       - nl80211_h.py    nl80211 constants
       - nl80211_c.py    nl80211 attribute policies
-  * lib                 lib subpackages
-    - \_\_init\_\_.py   initialize lib subpackage  
-    - libnl.py          netlink helper functions
-    - libio.py          sockios helper functions
-  * docs                documentation
-    - nlhelp.py         nl80211 search
-    - commands.help     nl80211 commands help data
-    - attributes.help   nl80211 attributes help data
-    - PyRIC.pdf         User Guide
+  + lib                 lib subpackages
+    * \_\_init\_\_.py   initialize lib subpackage
+    * libnl.py          netlink helper functions
+    * libio.py          sockios helper functions
+  + docs                documentation
+    * nlhelp.py         nl80211 search
+    * commands.help     nl80211 commands help data
+    * attributes.help   nl80211 attributes help data
+    * PyRIC.pdf         User Guide
     * res               User Guide resources
       - PyRIC.tex       User Guide LaTex
       - PyRIC.bib       User Guide bibliography
