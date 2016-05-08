@@ -131,7 +131,7 @@ Under the root /pyric directory
  - MANIFEST.in          used by setup.py
  - README.md            this file
  - LICENSE              GPLv3 License
- + pyric                package directory
+ - pyric                package directory
   * \_\_init\_\_.py     initialize pyric module
   * pyw.py              wireless nic functionality
   * radio.py            consolidate pyw in a class
