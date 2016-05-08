@@ -97,15 +97,19 @@ def nlmsghdr(mlen,nltype,flags,seq,pid):
 
 The best way to install PyRIC is through PyPI:
 
-    sudo pip install Flask
+    sudo pip install --pre PyRIC
+
+Note the use of the '--pre' flag. Without it, pip will not install PyRIC since it
+is still in the developmental stage
 
 If, however, you just want to test it out, download the latest tarball from
 https://github.com/wraith-wireless/pyric/releases/ or https://pypi.python.org/pypi/PyRIC/
-untar and run from the downloaded directory.
+untar and run from the downloaded package directory (pyric/pyric.
 
 If you download only and try to run PyRIC outside of the local directory, you
 will get errors. Just create a pyric.pth file in  /usr/lib/python2.7/dist-packages
-and add the path PyRIC and you will be able to run it from anywhere.
+and add the path to pyric/pyric in this file and you will be able to run it from
+anywhere.
 
 Once installed, see examples/pentest.py which covers most pyw functions.
 
