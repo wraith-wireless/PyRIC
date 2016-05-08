@@ -1,1 +1,1 @@
-# root folde aka the Distribution
+# root Distribution directory
