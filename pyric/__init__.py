@@ -78,11 +78,19 @@ Requires:
    o added partial phyinfo handles all but supported channels/bands
    o fixed bugs in devinfo and phyinfo
    o added setup.py and required files
+
+ pyric 0.0.6
+  desc: Pythonic iw - wireless nic (radio) manipulation, enumeration, and attribute
+  enumeration
+  includes:  /docs /examples /lib /net pyw 0.1.2 device 0.0.3 channels 0.0.1
+  changes:
+   o move pyric under pyric to facilitate setuptools and packaging
+    - moved LICENSE, MANIFEST.in README.md setup.cfg setup.py to outer pyric
 """
 
 __name__ = 'pyric'
-__license__ = 'GPL v3.0'
-__version__ = '0.0.5'
+__license__ = 'GPLv3'
+__version__ = '0.0.6'
 __date__ = 'April 2016'
 __author__ = 'Dale Patterson'
 __maintainer__ = 'Dale Patterson'

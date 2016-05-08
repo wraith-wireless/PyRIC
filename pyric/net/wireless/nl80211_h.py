@@ -51,7 +51,7 @@ NOTE:
 """
 
 __name__ = 'nl80211_h'
-__license__ = 'GPL v3.0'
+__license__ = 'GPLv3'
 __version__ = '0.0.3'
 __date__ = 'April 2016'
 __author__ = 'Dale Patterson'

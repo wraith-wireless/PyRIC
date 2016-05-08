@@ -39,7 +39,7 @@ A port of netlink.h, netlink/attr.h netlink/errno.h to python
 #  import struct
 # unless I comment out the name
 #__name__ = 'netlink_h.py'
-__license__ = 'GPL v3.0'
+__license__ = 'GPLv3'
 __version__ = '0.0.3'
 __date__ = 'March 2016'
 __author__ = 'Dale Patterson'

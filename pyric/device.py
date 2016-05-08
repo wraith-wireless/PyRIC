@@ -25,7 +25,7 @@ hex string to here?
 """
 
 __name__ = 'device'
-__license__ = 'GPL v3.0'
+__license__ = 'GPLv3'
 __version__ = '0.0.3'
 __date__ = 'August 2014'
 __author__ = 'Dale Patterson'

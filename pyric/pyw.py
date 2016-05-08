@@ -101,7 +101,7 @@ Additional changes in pyw v 0.1.*
 """
 
 __name__ = 'pyw'
-__license__ = 'GPL v3.0'
+__license__ = 'GPLv3'
 __version__ = '0.1.2'
 __date__ = 'May 2016'
 __author__ = 'Dale Patterson'

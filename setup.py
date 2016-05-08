@@ -23,7 +23,7 @@ are permitted provided that the following conditions are met:
 """
 
 #__name__ = 'setup'
-__license__ = 'GPL v3.0'
+__license__ = 'GPLv3'
 __version__ = '0.0.2'
 __date__ = 'May 2016'
 __author__ = 'Dale Patterson'
@@ -46,16 +46,16 @@ of iw (and ifconfig, iwconfig) functionality to Python but sufficient to
 programmatically create a wireless pentest environment"""
 
 setup(name='PyRIC',
-      version=pyric.__version__+"-a",
+      version=pyric.__version__,
       description="PyRIC: python port of a subset of iw",
       long_description=long_desc,
       url='http://wraith-wireless.github.io/pyric',
       download_url="https://github.com/wraith-wireless/pyric/archive/"+pyric.__version__+".tar.gz",
-      author='Dale Patterson',
-      author_email='wraith.wireless@yandex.com',
-      maintainer='Dale Patterson',
-      maintainer_email='wraith.wireless@yandex.com',
-      license='GPLv3',
+      author=pyric.__author__,
+      author_email=pyric.__email__,
+      maintainer=pyric.__maintainer__,
+      maintainer_email=pyric.__email__,
+      license=pyric.__license__,
       classifiers=['Development Status :: 4 - Beta',
                    'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
                    'Intended Audience :: Developers',
@@ -68,9 +68,5 @@ setup(name='PyRIC',
                    'Programming Language :: Python'
                    ],
     keywords='nl80211 iw developement wireless pentest',
-    packages=['docs',
-              'lib',
-              'net',
-              'net.wireless'
-              ],
+    packages=find_packages()
 )

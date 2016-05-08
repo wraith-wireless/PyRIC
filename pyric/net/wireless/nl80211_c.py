@@ -25,7 +25,7 @@ A port of nla_policy definitions found in nl80211.c to python
 """
 
 __name__ = 'nl80211_c'
-__license__ = 'GPL v3.0'
+__license__ = 'GPLv3'
 __version__ = '0.0.3'
 __date__ = 'April 2016'
 __author__ = 'Dale Patterson'

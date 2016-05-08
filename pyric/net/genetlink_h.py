@@ -33,7 +33,7 @@ netlink attributes.
 """
 
 #__name__ = 'genetlink_h.py'
-__license__ = 'GPL v3.0'
+__license__ = 'GPLv3'
 __version__ = '0.0.1'
 __date__ = 'March 2016'
 __author__ = 'Dale Patterson'
