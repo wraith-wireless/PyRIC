@@ -85,7 +85,8 @@ Requires:
   includes:  /docs /examples /lib /net pyw 0.1.2 device 0.0.3 channels 0.0.1
   changes:
    o move pyric under pyric to facilitate setuptools and packaging
-    - moved LICENSE, MANIFEST.in README.md setup.cfg setup.py to outer pyric
+    - moved LICENSE, MANIFEST.in README.md setup.cfg setup.py examples/ PyRIC.pdf
+      to outer pyric
 """
 
 __name__ = 'pyric'
