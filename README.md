@@ -122,19 +122,22 @@ Extending PyRIC is fun and easy too. ...documentation in progress...
 ## 4. ARCHITECTURE/HEIRARCHY: Brief Overview of the project file structure
 
 Under the root /pyric directory
-* pyric 
+* pyric                 root Distribution directory
+ - examples             example folder
+  * pentest.py          create wireless pentest environment example
+ - setup.py             install file
+ - setup.cfg            used by setup.py
+ - MANIFEST.in          used by setup.py
+ - README.md            this file
+ - LICENSE              GPLv3 License
+* pyric
   - \_\_init\_\_.py     initialize pyric module
   - pyw.py              wireless nic functionality
   - radio.py            consolidate pyw in a class
   - channels.py         802.11 ISM/UNII freqs. & channels
-  - device              device/chipset utility functions
+  - device.py           device/chipset utility functions
   - TODO                todos for PyRIC
-  - README.md           this file
   - RFI                 comments and observations
-  - setup.py            install file
-  - setup.cfg           used by setup.py
-  - MANIFEST.in         used by setup.py
-  - wraith.wireless.key public key
   * net                 linux header ports
     - \_\_init\_\_.py   initialize net subpackage
     - if_h.py           inet/ifreq definition
