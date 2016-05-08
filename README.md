@@ -122,16 +122,17 @@ Extending PyRIC is fun and easy too. ...documentation in progress...
 ## 4. ARCHITECTURE/HEIRARCHY: Brief Overview of the project file structure
 
 Under the root /pyric directory
-* pyric                 root Distribution directory
-  - \_\_init\_\_.py      initialize 'outer' pyric module
-  - examples             example folder
+* pyric                   root Distribution directory
+  - \_\_init\_\_.py       initialize 'outer' pyric module
+  - examples              example folder
     + pentest.py          create wireless pentest environment example
-  - setup.py             install file
-  - setup.cfg            used by setup.py
-  - MANIFEST.in          used by setup.py
-  - README.md            this file
-  - LICENSE              GPLv3 License
-  - pyric                package directory
+  - setup.py              install file
+  - setup.cfg             used by setup.py
+  - MANIFEST.in           used by setup.py
+  - README.md             this file
+  - LICENSE               GPLv3 License
+  * PyRIC.pdf             User Guide
+  - pyric                 package directory
     + \_\_init\_\_.py     initialize pyric module
     + pyw.py              wireless nic functionality
     + radio.py            consolidate pyw in a class
@@ -150,15 +151,14 @@ Under the root /pyric directory
         - \_\_init\_\_.py initialize wireless subpackage
         - nl80211_h.py    nl80211 constants
         - nl80211_c.py    nl80211 attribute policies
-  + lib                 library subpackages
-    * \_\_init\_\_.py   initialize lib subpackage
-    * libnl.py          netlink helper functions
-    * libio.py          sockios helper functions
-  + docs                documentation
-    * nlhelp.py         nl80211 search
-    * commands.help     nl80211 commands help data
-    * attributes.help   nl80211 attributes help data
-    * PyRIC.pdf         User Guide
-    * res               User Guide resources
-      - PyRIC.tex       User Guide LaTex
-      - PyRIC.bib       User Guide bibliography
+    + lib                 library subpackages
+      * \_\_init\_\_.py   initialize lib subpackage
+      * libnl.py          netlink helper functions
+      * libio.py          sockios helper functions
+    + docs                netlinke documentation/help
+      * nlhelp.py         nl80211 search
+      * commands.help     nl80211 commands help data
+      * attributes.help   nl80211 attributes help data
+      * res               User Guide resources
+        - PyRIC.tex       User Guide LaTex
+        - PyRIC.bib       User Guide bibliography
