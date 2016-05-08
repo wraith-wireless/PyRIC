@@ -121,7 +121,6 @@ Extending PyRIC is fun and easy too. ...documentation in progress...
 
 ## 4. ARCHITECTURE/HEIRARCHY: Brief Overview of the project file structure
 
-Under the root /pyric directory
 * pyric                   root Distribution directory
   - \_\_init\_\_.py       initialize 'outer' pyric module
   - examples              example folder
