@@ -547,17 +547,20 @@ def phyinfo(card,*argv):
     info['rts_thresh'] = rmsg.nla_find(nl80211h.NL80211_ATTR_WIPHY_RTS_THRESHOLD)
     info['cov_class'] = rmsg.nla_find(nl80211h.NL80211_ATTR_WIPHY_COVERAGE_CLASS)
     info['scan_ssids'] = rmsg.nla_find(nl80211h.NL80211_ATTR_MAX_NUM_SCAN_SSIDS)
-    # nested attributes
+    # nested attributes (for whatever reason, these use big-endian)
     modes = rmsg.nla_find(nl80211h.NL80211_ATTR_SUPPORTED_IFTYPES)
-    info['modes'] = [IFTYPES[struct.unpack('>H', mode)[0]] for mode in modes]
+    info['modes'] = [_iftypes_(struct.unpack('>H',mode)[0]) for mode in modes]
     modes = rmsg.nla_find(nl80211h.NL80211_ATTR_SOFTWARE_IFTYPES)
-    info['swmodes'] = [IFTYPES[struct.unpack('>H', mode)[0]] for mode in modes]
+    info['swmodes'] = [_iftypes_(struct.unpack('>H', mode)[0]) for mode in modes]
     cmds = rmsg.nla_find(nl80211h.NL80211_ATTR_SUPPORTED_COMMANDS)
     info['commands'] = []
     for cmd in cmds:
-        cmd = cmdbynum(struct.unpack_from('>HH',cmd,0)[1])
-        if type(cmd) is type([]): cmd = cmd[0]
-        info['commands'].append(cmd[13:].lower())
+        try:
+            cmd = cmdbynum(struct.unpack_from('>HH',cmd,0)[1])
+            if type(cmd) is type([]): cmd = cmd[0]
+            info['commands'].append(cmd[13:].lower())
+        except KeyError:
+            info['commands'].append("unknown cmd ({0})".format(cmd))
     return info
 
 def ifaces(card,*argv):
@@ -813,6 +816,17 @@ def _flagsset_(dev,flags,*argv):
         raise pyric.error(errno.EINVAL,"Invalid parameter {0}".format(e))
     except struct.error as e:
         raise pyric.error(pyric.EUNDEF,"error parsing results {0}".format(e))
+
+def _iftypes_(i):
+    """
+     wraps the IFTYPES list to handle index errors
+     :param i:
+     :returns: the string IFTYPE corresponding to i
+    """
+    try:
+        return IFTYPES[i]
+    except IndexError:
+        return 'Unknown mode ({0})' % i
 
 #### TRANSLATION FUNCTIONS ####
 

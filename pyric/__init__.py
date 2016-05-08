@@ -87,6 +87,8 @@ Requires:
    o move pyric under pyric to facilitate setuptools and packaging
     - moved LICENSE, MANIFEST.in README.md setup.cfg setup.py examples/ PyRIC.pdf
       to outer pyric
+   o at least one card (ath9k_htc) has an unknown supported command, added a
+    wrapper around the list IFTYPES to handle commands not listed
 """
 
 __name__ = 'pyric'

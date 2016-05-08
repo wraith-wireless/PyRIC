@@ -45,7 +45,7 @@ fpath = os.path.dirname(os.path.realpath(__file__))
 # read in the files here
 cmdpath = os.path.join(fpath,'commands.help')
 commands = None   # cmd -> desc,attributes used dict
-cmdloojup = None  # reverse lookup for command constants
+cmdlookup = None  # reverse lookup for command constants
 cin = None
 try:
     # first two lines are comments, 3rd line is empty
