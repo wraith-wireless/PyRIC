@@ -1,4 +1,5 @@
 # PyRIC: Python Radio Interface Controller
+## Pythonic iw
 
 ## 1 DESCRIPTION:
 BLUF: Stop using subprocess.Popen, regular expressions and str.find. PyRIC
