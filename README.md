@@ -98,32 +98,64 @@ def nlmsghdr(mlen,nltype,flags,seq,pid):
     return struct.pack(nl_nlmsghdr,NLMSGHDRLEN+mlen,nltype,flags,seq,pid)
 ```
 
-## 2. INSTALLING:
+## 2. INSTALLING/USING:
 
-Starting with version 0.0.6, the structure (see below) 
-The best way to install PyRIC is through PyPI:
+Starting with version 0.0.6, the structure (see Section 4) has changed to facilitate 
+packaging on PyPI. This restructing has of course led to some minor difficulties 
+especially when attempting to install (or even just test) outside of a pip installation.
+
+### a. Requirements
+PyRIC has only two requirements: Linux and Python. ATT however, there has been very
+little testing on kernel 4.x and Python 3 while working out the small bugs continues
+on Python 2.7 and kernel 3.13.x.
+
+### b. Install from Package Manager
+Obviously, the easiest way to install PyRIC is through PyPI:
 
     sudo pip install --pre PyRIC
 
 Note the use of the '--pre' flag. Without it, pip will not install PyRIC since it
-is still in the developmental stage
+is still in the developmental stage.
 
-If, however, you just want to test it out, download the latest tarball from
+### c. Install from Source
+The PyRIC source (tarball) can be downloaded from https://pypi.python.org/pypi/PyRIC or 
+http://wraith-wireless.github.io/PyRIC. Additionally, the source, as a zip file, can be 
+downloaded from https://github.com/wraith-wireless/PyRIC. Once downloaded, extract the 
+files and from the PyRIC directory run:
+
+    sudo python setup.py install
+
+### d. Test without Installing
+
+If you just want to test PyRIC out, download your choice from above. After extraction, move
+the pyric folder (the package directory) to your location of choice and from here start Python
+and import pyw. It is very important that you do not try and run it from PyRIC which is the 
+distribution directory. This will break the imports pyw uses.
+
+You will only be able to test PyRIC from the pyric directory but, if you want to, you can
+add it to your Python path and run it from any program or any location. To do so, assume you
+untared pyric to /home/bob/pyric. Create a text file named pyric.pth with one line
+
+    /home/bob/pyric
+
+save this file to /usr/lib/python2.7/dist-packages (or /usr/lib/python3/dist-packages if you
+want to try it in Python 3). 
+
 https://github.com/wraith-wireless/pyric/releases/ or https://pypi.python.org/pypi/PyRIC/
 untar and run from the downloaded package directory (pyric/pyric.
 
-If you download only and try to run PyRIC outside of the local directory, you
-will get errors. Just create a pyric.pth file in  /usr/lib/python2.7/dist-packages
-and add the path to pyric/pyric in this file and you will be able to run it from
-anywhere.
+### e. Stability vs Latest
 
+Keep in mind that the most stable version, easist install and oldest release is on PyPI (install 
+through pip or download through PyPI). The source on http://wraith-wireless.github.io/PyRIC tends 
+to be newer but may have some bugs and the most recent source, hardest to install is on
+https://github.com/wraith-wireless/pyric/releases/ but may not be stable and may in fact not run 
+at all.
+
+### f. Using
 Once installed, see examples/pentest.py which covers most pyw functions.
 
-### a. Requirements
-* Python
-* linux (kernel v 3.13.x)
-PyRIC requires Python 2.7 and has not been tested on Python 3. It has been tested
-on kernel 3.13.x but should work on kernel 4.x.x
+
 
 ** 3. EXTENDING:
 
