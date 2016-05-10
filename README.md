@@ -36,8 +36,8 @@ callbacks.
 
 In addition to providing some ifconfig functionality, I have also added several
 "extensions" to iw:
-* Persistent sockets: PyRIC provides gives the caller with functions & ability to
-pass their own netlink (or ioctl socket) to pyw functions;
+* Persistent sockets: PyRIC provides the caller with functions & ability to pass 
+their own netlink (or ioctl socket) to pyw functions;
 * One-time request for the nl80211 family id.
 While minimal, they will slightly improve the performance of any programs that
 needs to access the wireless network interface repeatedly.
@@ -49,12 +49,16 @@ the following:
 * get/set hardware address
 * turn card on/off
 * get supported standards
+* get supported commands
+* get supported modes
+* get dev info
+* get phy info (does not currently process the bands)
 * get/set regulatory domain
 * get info on a device
 * add/delete interfaces
-Before adding any other commands, I want to write a search program for nl80211
-commands and attributes instead of having to search the header files for values
-and descriptions.
+
+It also provides limited help functionality concerning nl80211 commands/attributes.
+However, it pulls directly from the nl80211 header file.
 
 ### a. PyRIC Functionality
 
@@ -96,6 +100,7 @@ def nlmsghdr(mlen,nltype,flags,seq,pid):
 
 ## 2. INSTALLING:
 
+Starting with version 0.0.6, the structure (see below) 
 The best way to install PyRIC is through PyPI:
 
     sudo pip install --pre PyRIC
