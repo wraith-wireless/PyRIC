@@ -67,37 +67,6 @@ What it does - defines programmatic access to a small subset of iw and ifconfig.
 What it does not do - handle multicast messages, callbacks or dumps, attributes
 or non nl80211 funtionality.
 
-### b. A word about porting
-
-When porting the C header files to python I use constants to define the C 'enum'
-and '#define' statements. For C structs I use the following:
-* a format string for packing,
-* a constant calculating the length of the format string, and
-* a function taking the attributes of the struct as arguments and returning the
-packed byte string
-
-For example netlink.h defines the netlink message header as:
-
-```c
-struct nlmsghdr {
-    __u32 nlmsg_len;
-    __u16 nlmsg_type;
-    __u16 nlmsg_flags;
-    __u32 nlmsg_seq;
-    __u32 nlmsg_pid;
-};
-```
-
-whereas in netlink_h.py I define it thus:
-
-```python
-nl_nlmsghdr = "IHHII"
-NLMSGHDRLEN = struct.calcsize(nl_nlmsghdr)
-def nlmsghdr(mlen,nltype,flags,seq,pid):
-    """ ... comments go here """
-    return struct.pack(nl_nlmsghdr,NLMSGHDRLEN+mlen,nltype,flags,seq,pid)
-```
-
 ## 2. INSTALLING/USING:
 
 Starting with version 0.0.6, the structure (see Section 4) has changed to facilitate 
@@ -153,13 +122,17 @@ https://github.com/wraith-wireless/pyric/releases/ but may not be stable and may
 at all.
 
 ### f. Using
-Once installed, see examples/pentest.py which covers most pyw functions.
+Once installed, see examples/pentest.py which covers most pyw functions or read PyRIC.pdf. However, 
+for those impatient types:
 
-
+```python
+import pyric
+from pyric import pyw
+```
 
 ** 3. EXTENDING:
 
-Extending PyRIC is fun and easy too. ...documentation in progress...
+Extending PyRIC is fun and easy too, see the user guide PyRIC.pdf.
 
 ## 4. ARCHITECTURE/HEIRARCHY: Brief Overview of the project file structure
 
