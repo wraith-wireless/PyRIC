@@ -164,24 +164,110 @@ pyw.isinterface('eth0') # check eth0 for wireless
 pyw.iswinterface('wlan0')
 => True
 
-pyw.regget() 
+pyw.regget() # get the regulatory domain
 => 'US'
 
-pyw.regset('BO')
+pyw.regset('BO') # set the regulatory domain
 
 pyw.regget()
 => 'BO'
 ```
 
+### b. Interface Specific
+Recall that PyRIC utilizes a Card object - this removes the necessity of having  to
+remember what to pass each function i.e. whether it is a device name, physical index
+or ifindex.
 
-** 4. EXTENDING:
+```python
+w0 = pyw.getcard('wlan0') # get a card for wlan0
+
+w0
+=> Card(phy=0,dev='wlan0',ifindex=2) 
+```
+
+You can also use pyw.devinfo to get a Card object and pyw.devadd will return a card
+object for the newly created virtual interface. The card, w0, will be used throughout 
+the remainder of the examples.
+
+#### i. Setting The Mac Address
+
+```python
+mac = pyw.macget(w0) # get the hw addr
+
+mac
+=> 'a0:b1:c2:d3:e4:f5'
+
+pyw.down(w0) # turn the card off to set the mac
+
+pyw.macset(w0,'00:1F:32:00:01:00') # lets be a nintendo device
+
+pyw.up(w0) # bring wlan0 back up
+
+pyw.macget(w0) # see if it worked
+=> '00:1F:32:00:01:00'
+```
+#### ii. Getting Info On Your Card
+
+```python
+TBD
+```
+
+#### iii. Virtual Interfaces
+In my experience, virtual interfaces are primarily used to recon, attack or some 
+other tomfoolery but can also be used to analyze your wireless network. In either
+case, it is generally advised to create a virtual monitor interface and delete
+all others (on the same phy) - this makes sure that some external process like
+NetworkManager does not interfere with your shenanigans. In the below example, 
+in addition to creating an interface in monitor mode, we find all interfaces 
+on the same physical index and delete them. You may not need to do this.
+
+NOTE: When creating a device in monitor mode, you can also set flags (see 
+NL80211_MNTR_FLAGS in nl80211_h), although some cards (usually atheros) do not 
+always obey these requests.
+
+```python
+'monitor' in pyw.devmodes(w0) # make sure we can set wlan0 to monitor
+=> True
+
+m0 = pyw.devadd(w0,'mon0','monitor') # create mon0 in monitor mode
+
+for iface in pyw.ifaces(w0): # delete all interfaces 
+    pyw.devdel(iface[0])     # on the this phy
+
+pyw.up(m0) # bring the new card up to use
+
+pyw.chset(m0,6,None) # and set the card to channel 6
+=> True
+
+m0
+=> Card(phy=0,dev='mon0',ifindex=3) 
+```
+
+Of course, once your done, you will probably want to restore your original set 
+up.
+
+```python
+w0 = pyw.devadd(m0,'wlan0','managed') # restore wlan0 in managed mode
+
+pyw.devdel(m0) # delete the monitor interface
+
+pyw.setmac(w0,mac) # restore the original mac address
+
+pyw.up(w0) # and bring the card up
+
+w0
+=> Card(phy0,dev='wlan0',ifindex=4)
+
+```
+
+## 4. EXTENDING:
 
 Extending PyRIC is fun and easy too, see the user guide PyRIC.pdf.
 
 ## 5. ARCHITECTURE/HEIRARCHY: Brief Overview of the project file structure
 
 * pyric                   root Distribution directory
-  - \_\_init\_\_.py       initialize 'outer' pyric module
+  - \_\_init\_\_.py       initialize distrubution PyRIC module
   - examples              example folder
     + pentest.py          create wireless pentest environment example
   - setup.py              install file
