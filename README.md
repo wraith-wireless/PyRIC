@@ -46,9 +46,10 @@ their own netlink (or ioctl socket) to pyw functions;
 global variable
 * Consolidating different "reference" values to wireless NICs in one class 
 (Cards are tuples t=(dev,phy #,ifindex)
-While minimal, they will slightly improve the performance of any programs that
-needs to access the wireless network interface repeatedly.
+These are minimal changes but they can improve the performance of any progams
+that need to access the wireless nic repeatedly.
 
+### c. Current State
 ATT, PyRIC accomplish my core needs but it is still a work in progress. It provides
 the following:
 * enumerate interfaces and wireless interfaces
@@ -61,18 +62,18 @@ the following:
 * get dev info
 * get phy info (does not currently process the bands)
 * get/set regulatory domain
-* get info on a device
 * add/delete interfaces
 
-It also provides limited help functionality concerning nl80211 commands/attributes.
-However, it pulls directly from the nl80211 header file.
+It also provides limited help functionality concerning nl80211 commands/attributes
+(for those who wish to add additional commands). However, it pulls directly from 
+the nl80211 header file and may be vague.
 
-### a. PyRIC Functionality
+### d. What is PyRIC?
 
 What it does - defines programmatic access to a small subset of iw and ifconfig.
 
-What it does not do - handle multicast messages, callbacks or dumps, attributes
-or non nl80211 funtionality.
+What it does not do - handle multicast messages, callbacks or dumps or non nl80211 
+funtionality.
 
 ## 2. INSTALLING/USING:
 
@@ -81,9 +82,9 @@ packaging on PyPI. This restructing has of course led to some minor difficulties
 especially when attempting to install (or even just test) outside of a pip installation.
 
 ### a. Requirements
-PyRIC has only two requirements: Linux and Python. ATT however, there has been very
-little testing on kernel 4.x and Python 3 while working out the small bugs continues
-on Python 2.7 and kernel 3.13.x.
+PyRIC has only two requirements: Linux and Python. There has been very little testing
+(on my side) on kernel 4.x and Python 3 but working out the small bugs continues on 
+Python 2.7 and kernel 3.13.x.
 
 ### b. Install from Package Manager
 Obviously, the easiest way to install PyRIC is through PyPI:
@@ -104,7 +105,7 @@ files and from the PyRIC directory run:
 ### d. Test without Installing
 
 If you just want to test PyRIC out, download your choice from above. After extraction, move
-the pyric folder (the package directory) to your location of choice and from here start Python
+the pyric folder (the package directory) to your location of choice and from there start Python
 and import pyw. It is very important that you do not try and run it from PyRIC which is the 
 distribution directory. This will break the imports pyw uses.
 
@@ -114,28 +115,30 @@ untared pyric to /home/bob/pyric. Create a text file named pyric.pth with one li
 
     /home/bob/pyric
 
-save this file to /usr/lib/python2.7/dist-packages (or /usr/lib/python3/dist-packages if you
-want to try it in Python 3). 
-
-https://github.com/wraith-wireless/pyric/releases/ or https://pypi.python.org/pypi/PyRIC/
-untar and run from the downloaded package directory (pyric/pyric.
+and save this file to /usr/lib/python2.7/dist-packages (or /usr/lib/python3/dist-packages if 
+you want to try it in Python 3). 
 
 ### e. Stability vs Latest
 
-Keep in mind that the most stable version, easist install and oldest release is on PyPI (install 
-through pip or download through PyPI). The source on http://wraith-wireless.github.io/PyRIC tends 
-to be newer but may have some bugs and the most recent source, hardest to install is on
-https://github.com/wraith-wireless/pyric/releases/ but may not be stable and may in fact not run 
-at all.
+Keep in mind that the most stable version and easist installallation but oldest release is on 
+PyPI (installed through pip). The source on http://wraith-wireless.github.io/PyRIC tends to be 
+newer but may have some bugs. The most recent source but hardest to install is on
+https://github.com/wraith-wireless/pyric/releases/ It is not guaranteed to be stable (as I tend 
+to commit changes periodically while working on the code) and may in fact not run at all.
 
 ### f. Using
-Once installed, see examples/pentest.py which covers most pyw functions or read PyRIC.pdf. However, 
-for those impatient types:
+Once installed, see examples/pentest.py which covers most pyw functions or read throuhg PyRIC.pdf. 
+However, for those impatient types:
 
 ```python
 import pyric
 from pyric import pyw
 ```
+
+will import the basic requirments. You need pyric for the pyric.error class and the undefined 
+error EUNDEF and of course pyw for all the functions.
+
+
 
 ** 3. EXTENDING:
 
