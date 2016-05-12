@@ -137,20 +137,40 @@ from pyric import channels # channels, freqs, widths and conversions
 from pyric import pyw      # iw functionality
 ```
 
-will import the basic requirements and is assumed for the examples below. It is also assumed that 
-the system is in the US and has three devices lo, eth0 and wlan0 (only wlan0 of course being 
-wireless).
+will import the basic requirements and is assumed for the examples below. It is also assumed 
+that the system is in the US and has three devices lo, eth0 and wlan0 (only wlan0 of course 
+being wireless). Keep in mind that these examples use one-time sockets.
 
 ### a. Wireless Core Functionality
 These functions do not work with a specific device rather with the system.
 
 ```python
 
-pyw.interfaces()
+pyw.interfaces() # get all system interfaces
 => ['lo','eth0','wlan']
 
-pyw.isinterface()
+pyw.isinterface('eth0') # deterimine if eth0 is an interface
+=> True
 
+pyw.isinterface('bob0')
+=> False
+
+pyw.winterfaces() # get all system wireless interfaces
+=> ['wlan0']
+
+pyw.isinterface('eth0') # check eth0 for wireless 
+=> False
+
+pyw.iswinterface('wlan0')
+=> True
+
+pyw.regget() 
+=> 'US'
+
+pyw.regset('BO')
+
+pyw.regget()
+=> 'BO'
 ```
 
 
