@@ -126,25 +126,39 @@ newer but may have some bugs. The most recent source but hardest to install is o
 https://github.com/wraith-wireless/pyric/releases/ It is not guaranteed to be stable (as I tend 
 to commit changes periodically while working on the code) and may in fact not run at all.
 
-### f. Using
+## 3. USING
 Once installed, see examples/pentest.py which covers most pyw functions or read throuhg PyRIC.pdf. 
 However, for those impatient types:
 
 ```python
-import pyric
-from pyric import pyw
+import pyric               # pyric error and EUNDEF error code
+from pyric import device   # driver and chipset lookup
+from pyric import channels # channels, freqs, widths and conversions
+from pyric import pyw      # iw functionality
 ```
 
-will import the basic requirments. You need pyric for the pyric.error class and the undefined 
-error EUNDEF and of course pyw for all the functions.
+will import the basic requirements and is assumed for the examples below. It is also assumed that 
+the system is in the US and has three devices lo, eth0 and wlan0 (only wlan0 of course being 
+wireless).
+
+### a. Wireless Core Functionality
+These functions do not work with a specific device rather with the system.
+
+```python
+
+pyw.interfaces()
+=> ['lo','eth0','wlan']
+
+pyw.isinterface()
+
+```
 
 
-
-** 3. EXTENDING:
+** 4. EXTENDING:
 
 Extending PyRIC is fun and easy too, see the user guide PyRIC.pdf.
 
-## 4. ARCHITECTURE/HEIRARCHY: Brief Overview of the project file structure
+## 5. ARCHITECTURE/HEIRARCHY: Brief Overview of the project file structure
 
 * pyric                   root Distribution directory
   - \_\_init\_\_.py       initialize 'outer' pyric module
