@@ -20,22 +20,22 @@ handles the complex operations of netlink seamlessy while maintaining a minimum
 of "code walking" to understand, modify and extend. I decided to write my own 
 because I do not need complete netlink functionality, only that provided by 
 generic netlink and within the nl80221 family. Additionally, for Wraith, I do 
-not need a full blown port of iw et. al. functionality to Python but only require 
-the ability to turn a wireless nic on/off, get/set the hwaddr, get/set the channel, 
-determine some properties of the card and add/delete interfaces.
+not need a full blown port of iw et. al. functionality to Python but only 
+require the ability to turn a wireless nic on/off, get/set the hwaddr, get/set 
+the channel, determine some properties of the card and add/delete interfaces.
 
-So, why did I do this and why is done "this" way? When I first started to explore 
-the idea of moving away from iw output parsing, I looked at the source for iw, and 
-existing Python ports. Just to figure out how to get the family id for nl80211 
-required reading through five different source files with no comments. To that 
-extent, I have attempted to keep subclassing to a minimum, the total number of 
-classes to a minimum, combine files where possible and where it makes since and 
-keep the number of files required to be open simulateneously in order to understand 
-the methodology and follow the program to a minimum. One can understand the PyRIC 
-program flow with only two files open at any time namely, pyw and libnl. In fact, 
-only an understanding of pyw is required to add additional commands although an 
-understanding of libnl(.py) is helpful especially, if for example, the code is to 
-be extended to handle multicast or callbacks.
+So, why did I do this and why is it done "this" way? When I first started to 
+explore the idea of moving away from iw output parsing, I looked at the source 
+for iw, and existing Python ports. Just to figure out how to get the family id 
+for nl80211 required reading through five different source files with no 
+comments. To that extent, I have attempted to keep subclassing to a minimum, 
+the total number of classes to a minimum, combine files where possible and where 
+it makes since and keep the number of files required to be open simulateneously 
+in order to understand the methodology and follow the program to a minimum. One 
+can understand the PyRIC program flow with only two files open at any time namely, 
+pyw and libnl. In fact, only an understanding of pyw is required to add additional 
+commands although an understanding of libnl(.py) is helpful especially, if for 
+example, the code is to be extended to handle multicast or callbacks.
 
 ### b. Additions to iw
 In addition to providing some ifconfig functionality, I have also added several
