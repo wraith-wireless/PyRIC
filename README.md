@@ -46,6 +46,7 @@ their own netlink (or ioctl socket) to pyw functions;
 global variable
 * Consolidating different "reference" values to wireless NICs in one class 
 (Cards are tuples t=(dev,phy #,ifindex)
+
 These are minimal changes but they can improve the performance of any progams
 that need to access the wireless nic repeatedly.
 
