@@ -243,7 +243,7 @@ m0
 => Card(phy=0,dev='mon0',ifindex=3) 
 ```
 
-Of course, once your done, you will probably want to restore your original set 
+Of course, once you are done, you will probably want to restore your original set 
 up.
 
 ```python
