@@ -474,7 +474,7 @@ def nla_parse(msg,l,mtype,stream,idx):
 
             # Note: we use unpack_from which will ignore the null bytes in numeric
             # datatypes & for strings & unspec we just strip trailing null bytes
-            if dt == nlh.NLA_STRING or dt == nlh.NLA_UNSPEC: a = _nla_strip(a)
+            if dt == nlh.NLA_STRING or dt == nlh.NLA_UNSPEC: a = _nla_strip_(a)
             if dt == nlh.NLA_NESTED: a = nla_parse_nested(a)
             elif dt == nlh.NLA_U8: a = struct.unpack_from("B",a,0)[0]
             elif dt == nlh.NLA_U16: a = struct.unpack_from("H",a,0)[0]
@@ -485,7 +485,7 @@ def nla_parse(msg,l,mtype,stream,idx):
             nla_put(msg,a,atype,dt)
         except struct.error:
             # append as Error, stripping null bytes
-            nla_put(msg,_nla_strip(a),atype,nlh.NLA_ERROR)
+            nla_put(msg,_nla_strip_(a),atype,nlh.NLA_ERROR)
         idx = nlh.NLMSG_ALIGN(idx + alen)  # move index to next attr
 
 def nla_parse_nested(nested):
@@ -530,20 +530,6 @@ def nla_parse_nested(nested):
         ns.append(nested[idx+1:idx+(alen-1)])
         idx = nlh.NLMSG_ALIGN(idx + alen)
     return ns
-
-def _nla_strip(v):
-    """
-     strips padding from v
-     :param v: value to strip
-     :returns: v w/o padding
-     **NOTE: Do not use on numeric attributes
-    """
-    try:
-        for i,e in reversed(list(enumerate(v))):
-            if e != '\x00': return v[:i+1]
-        return v
-    except IndexError:
-        return v
 
 def nla_put(msg,v,a,d):
     """
@@ -616,6 +602,21 @@ def nla_get(msg,i,value=True):
     else: return attr
 
 #### FILE PRIVATE ####
+
+def _nla_strip_(v):
+    """
+     strips padding from v
+     :param v: value to strip
+     :returns: v w/o padding
+     **NOTE: Do not use on numeric attributes
+    """
+    try:
+        for i,e in reversed(list(enumerate(v))):
+            if e != '\x00': return v[:i+1]
+        return v
+    except IndexError:
+        return v
+
 
 def _attrpack_(a,v,d):
     """

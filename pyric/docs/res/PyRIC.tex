@@ -72,7 +72,7 @@
     basicstyle=\footnotesize
 }
 
-\title{PyRIC v0.0.5: User Manual}
+\title{PyRIC v0.0.7: User Manual}
 \author{Dale V. Patterson\\ wraith.wireless@yandex.com}
 
 \begin{document}
@@ -96,12 +96,15 @@ Netlink knowledge or experience. \\
 At this time, PyRIC (through pyw functions) can:
 \begin{itemize}
 \item enumerate interfaces and wireless interfaces,
+\item get/set regulatory domain,
 \item get/set hw address,
 \item identify a radio's chipset and driver,
 \item turn device on/off,
 \item get supported standards,
-\item get/set regulatory domain,
-\item get info on device,
+\item get supported commands,
+\item get supported modes,
+\item get dev/phy info on device,
+\item get/set mode, and
 \item add/delete interfaces. 
 \end{itemize}
 It also provides users with the ability, through libnl(.py) to extend the above 
@@ -154,10 +157,23 @@ ifindex will be different.
 PyRIC's hierarchy is briefly discussed next.
 
 \begin{enumerate}
-\item \textbf{\_\_init\_\_.py}: Initialize PyRIC, defines the EUNDEF error code 
-(PyRIC uses errno for all errorcodes adding EUNDEF) and PyRIC's common exception 
-class, 'error' - all submodules use this class for any exceptions.  
+\item \textbf{\_\_init\_\_.py}: Initialize PyRIC, the root distribution directory
+use for PyPI packaging 
 \item \textbf{README.md}: self-descriptive
+\item \textbf{setup.py}: install file
+\item \textbf{setup.cfg}: used by setup.py
+\item \textbf{MANIFEST.in}: used by setup.py
+\item \textbf{LICENSE}: GPLv3 License
+\item \textbf{PyRIC.pdf}: this file
+\item \textbf{examples}: examples directory
+\begin{enumerate}
+\item \textbf{pentest.py}: create wireless pentest environment
+\end{enumerate}
+\item \textbf{pyric} package directory
+\begin{enumerate}
+\item \textbf{\_\_init\_\_.py}: Initialize pyric defines the EUNDEF error code 
+(PyRIC uses errno for all errorcodes adding EUNDEF) and the common exception 
+class, 'error' - all submodules use this class for any exceptions.  
 \item \textbf{TODO}: lists any outstanding TODOs, ideas for future revisions
 \item \textbf{RFI}: comments and observations about netlinks, nl80211 etc
 \item \textbf{channels.py}: ISM and UNII frequencies and channels, with conversion functions
@@ -189,36 +205,85 @@ class, 'error' - all submodules use this class for any exceptions.
 \item \textbf{nlhelp.py}: functions to search display nl80211 constants
 \item \textbf{commands.help}: nl80211 commands help data (json)
 \item \textbf{attributes.help}: nl80211 attributes help data (json)
-\item \textbf{PyRIC.pdf}: this file
 \item \textbf{res}:resource subpackage
 \begin{enumerate}
 \item \textbf{PyRIC.tex}: LaTeX for user guide
 \item \textbf{PyRIC.bib}: bibliography for user guide
 \end{enumerate}
 \end{enumerate}
+\end{enumerate}
 
 \section{Installing PyRIC}\label{sec:installing}
-PyRIC is self-sufficient in that there are no third-party/external dependencies 
-and can be run out of the box. To install, from a terminal type 'pip install 
---pre PyRIC' as root. This is my first attempt at packaging and it has not been
-currently tested. The latest PyRIC release can be downloaded as a tarball on PyPI
-at https://pypi.python.org/pypi?name=PyRIC or github at 
-https://github.com/wraith-wireless/pyric/releases/latest. If you decide to download
-the tarball and run PyRIC outside of it's directory or from another program, you 
-should put it on your Python path. Use Google for directions on doing so. Note:
-put /yourpath/pyric/pyric in the .pth file, not the outer pyric directory.
+Starting with version 0.0.6, the structure (see Section \ref{sec:About} has 
+changed to facilitate packaging on PyPI. This restructing has of course led 
+to some minor difficulties especially when attempting to install (or even 
+just test) outside of a pip installation. \\
+
+Obviously, the easiest way to install PyRIC is through PyPI:\\
+
+    \texttt{sudo pip install --pre PyRIC}\\
+
+Note the use of the '--pre' flag. Without it, pip will not install PyRIC since
+it is still in the developmental stage.\\
+
+You can also install PyRIC from source. The tarball can be downloaded from:
+
+\begin{itemize}
+\item PyPi: https://pypi.python.org/pypi/PyRIC,
+\item PyRIC Web: http://wraith-wireless.github.io/PyRIC, or
+\item Github: https://github.com/wraith-wireless/PyRIC.
+\end{itemize}
+
+After downloading, extract and run:\\
+
+	\texttt{sudo python setup.py install}\\
+
+If you just want to test PyRIC out, download your choice from above. After 
+extraction, move the pyric folder (the package directory) to your location of 
+choice and from there start Python and import pyw. It is very important that you
+do not try and run it from PyRIC which is the distribution directory. This will 
+break the imports pyw.py uses. \\
+
+You will only be able to test PyRIC from the pyric directory but, if you want to,
+you can add it to your Python path and run it from any program or any location.
+To do so, assume you untared PyRIC to /home/bob/PyRIC. Create a text file named
+pyric.pth with one line
+
+    /home/bob/PyRIC
+
+and save this file to /usr/lib/python2.7/dist-packages (or 
+/usr/lib/python3/dist-packages if you want to try it in Python 3).
+
+\begin{table}
+\begin{center}
+\begin{tabular}{| l | r | r | r | }
+\hline
+Source & Stability & Recency & Installation \\
+\hline
+pip & 5 & 3 & 5\\
+\hline
+PyPI & 5 & 3 & 4\\
+\hline
+PyRIC Web & 4 & 4 & 4\\
+\hline
+Github & 3 & 5 & 3\\
+\hline
+\end{tabular}
+\caption{Stability vs Recency vs Installation}
+\end{center}
+\label{tab:install}
+\end{table}
 
 \section{Using PyRIC}\label{sec:using}
 As stated previously, PyRIC provides a set of functions to interact with your 
 system's radio(s) and the ability to interact directly with the kernel through
 netlink and ioctl sockets. \\
 
-It is expected that the reader has a basic knowledge of netlinks. For a 
-review see Graf\cite{libnl}. 
+It is helpful if the reader has a basic knowledge of netlinks. For a review, see "Communicating between the kernel and user-space in Linux using Netlink sockets". 
 
 \subsection{Interacting with the Wireless Core and Wireless NICs: pyw.py}
-If you can use iw, you can use pyw. The easist way to explain how to use pyw is 
-with an example. Imagine your wireless network on ch 6 has been experiencing 
+If you can use iw, you can use pyw.py. The easist way to explain how to use pyw 
+is with an example. Imagine your wireless network is on ch 6 has been experiencing 
 difficulites lately and you want to capture some traffic to analyse it. Listing 
 \ref{lst:pentest} shows how to set up a wireless pentest environment. \\
 
@@ -230,74 +295,85 @@ difficulites lately and you want to capture some traffic to analyse it. Listing
  3: from pyric import device         # for chipset/driver
  4: from pyric.channels import rf2ch # rf to channel conversion
  5:
- 6: # list interfaces, wireless interfaces
- 7: print "Interfaces: ", pyw.interfaces()
- 8: print "Wireless Interfaces: ", pyw.winterfaces()
- 9:
-10: # get a Card & info for alfa0 & print a description
-11: info = pyw.devinfo('alfa0') 
-12: card = info['card']
-13: driver = device.ifdriver(card.dev)
-14: chipset = device.ifchipset(driver)
-15: msg = "{Using {0} in mode: {1}".format(card,info['mode'])
-16: if info['mode'] == 'managed':
-17:    msg += " currently on channel {0} width {1}".format(rf2ch(info['RF']),
-18:                                                        info['CHW'])
-19: msg += " driver: {0}, chipset: {1}".format(driver,chipset)
-20: print msg
+ 6: dev = 'wlan0'
+ 7: ifaces = pyw.interfaces()
+ 8: wifaces = pyw.winterfaces()
+ 9: if dev not in ifaces:
+10:     print "Device {0} is not valid, use one of {1}".format(dev,ifaces)
+11:     return
+12: elif dev not in wifaces:
+13:     print "Device {0} is not wireless, use one of {1}".format(dev,wifaces)
+14:
+15: print "Regulatory Domain currently: ", pyw.regget()
+16: dinfo = pyw.devinfo(dev)
+17: card = dinfo['card']
+18: pinfo = pyw.phyinfo(card)
+19: driver = device.ifdriver(card.dev)
+20: chipset = device.ifchipset(driver)
 21:
-22: # prepare a virtual interface named pent0 in monitor mode
-23: pdev = 'pent0'
-24: pcard = pyw.devadd(card,pdev,'monitor')
-25: for iface in pyw.ifaces(card):
-26:    if iface[0].dev != pdev:
-27:        msg = "deleting {0} in mode {1}".format(iface[0],iface[1])
-28:        print msg
-29:        pyw.devdel(iface[0])
-30: pyw.macset(pcard,'00:03:93:57:54:46')
-31: pyw.up(pcard)
-32: pyw.chset(pcard,6,None)
-33: msg = "Virtual interface {0} in monitor mode on ch 6".format(pcard)
-34: print msg + ", using hwaddr: {0}".format(pyw.macget(pcard)
-35: 
-36: # DO stuff here
-37:
-38: # restore original
-39: print "deleting ", pcard
-40: pyw.devdel(pcard)
-41: card = pyw.devadd(card,card.dev,info['mode'])
-42: pyw.up(card)
-43: print "card ", card, " restored"   
+22: pyw.down(card)
+23: pyw.macset(card,'00:03:93:57:54:46')
+24:
+25: msg = "Using {0} currently in mode: {1}\n".format(card,dinfo['mode'])
+26: msg += "\tDriver: {0} Chipset: {1}\n".format(driver,chipset)
+27: if dinfo['mode'] == 'managed':
+28:     msg += "\ton channel {0} width {1}\n".format(rf2ch(dinfo['RF']),
+29:                                                  dinfo['CHW'])
+30: msg += "\tSupports modes {0}\n".format(pinfo['modes'])
+31: msg += "\tSupports commands {0}".format(pinfo['commands'])
+32: msg += "\thw addr {0}".format(pyw.macget(card))
+33: print msg
+34:
+35: pdev = 'pent0'
+36: for iface in pyw.ifaces(card):
+37:     pyw.devdel(iface[0])
+38: pcard = pyw.devadd(card, pdev, 'monitor')
+39: pyw.up(pcard)
+40: pyw.chset(pcard,6,None)
+41: 
+42: # DO STUFF HERE 
+43:
+44: pyw.devdel(pcard)
+45:
+46: card = pyw.devadd(card,card.dev,dinfo['mode'])
+47: pyw.macset(card,dinfo['mac'])
+48: pyw.up(card)
 \end{lstlisting}
 
 Listing \ref{lst:pentest} attempts to show most of the available pyw functions 
 in use and is the basic shell used in another project, Wraith\cite{wraith}, to 
-instantiate a wireless (802.11) sensor. Lines 1 and 2 should always be included 
-as they import the pyric error and pyw functions. Lines 3 and 4 import ifchipset, 
-ifdriver and rf2ch functions. In lines 10 through 20, a Card object for 'alfa0' 
-is created and details about the interface are printed. On line 24, a device named 
-'pent0' is created in monitor mode and in lines 25 through 29, all interfaces on 
-the same phy as the new device are deleted (we have found that it is better to 
-delete all interfaces on the same phy ensuring that processes like NetworkManager 
-for example, don't interfere with the new device). Then, the mac address is spoofed 
-and the device is set to listen on channel 6 NOHT. Starting on line 40, the system 
-is restored by deleting the monitor card and restoring the original device, 'alfa0'. 
-Note, only 'alfa0' is restored, and not any devices that may have been deleted on 
-line 29. Additionally, bringing the device up (line 43) will usually result in the 
-device reconnecting although in some situations, a manual reconnect to the AP is 
-required. Future versions of pyw will include "connect" functionality to rectify 
-this. 
+instantiate a wireless (802.11) sensor - (for a full listing of all pyw functions
+see Appendix \ref{sec:pywapi}) - with scanning capabilities. Lines 1 and 2 should 
+always be included as they import the pyric error and pyw functions. Line 3 
+imports device which provides the ifchipset and ifdriver functions and Line 4 
+imports the rf2ch conversion function. \\
+
+In lines 6 through 13, the device wlan0 is confirmed wireless and lines 16 through
+20 a Card object for 'wlan0' is created and details about the interface are printed. 
+Next, the mac address of wlan0 is changed on lines 23. Note, the device is brought
+down first. \\
+
+More information on the device is printed in lines 25 through 33. Starting on
+line 35, a device named 'pent0' is created in monitor mode. First in lines 36 
+and 37, all interfaces on the same phy are deleted \footnote{we have found that
+it is better to delete all interfaces on the same phy ensuring that external 
+processes don't interfere with the new device} before creating the new device, 
+bringing the card up and setting it to channel 6 NOHT.\\ 
+
+Restoring the device starts on line 45, where the virtual interface is deleted,
+the previous interface is restored and the mac address is reset.
 
 \subsubsection{One-time vs Persistent Sockets}
-The example Listing \ref{lst:pentest} uses one-time sockets (netlink and ioctl).
-When using iw, there are several things that occur prior to the actual command
-or request being submitted. First, iw creates a netlink socket. Then, iw will 
-request the family id for nl80211. The relative time spent doing this is neglible 
-but, it is redundant and it may become noticeable in programs that repeatedly 
-use the Netlink service. Once comlete, iw closes the socket. PyRIC eliminates 
-these redundancies by using a global variable in pyw that stores the family id 
-after the first time it is requested and by providing callers the option to use 
-persistent sockets. 
+The example in Listing \ref{lst:pentest} uses one-time sockets (netlink and 
+ioctl). When using iw, there are several things that occur prior to the actual 
+command or request being submitted. First, iw creates a netlink socket. Then, 
+iw will request the family id for nl80211. The relative time spent doing this 
+is neglible but, it is redundant and it may become noticeable in programs that
+repeatedly use the Netlink service. Once comlete, iw closes the socket. In some
+cases, the ifindex of the device is needed and iw will also initiate an ioctl 
+call to retrieve it. PyRIC eliminates these redundancies by using a global 
+variable in pyw that stores the family id after the first time it is requested 
+and by providing callers the option to use persistent sockets. 
 \begin{itemize}
 \item \textbf{One-time Sockets} Similar to iw. The command, creates the netlink 
 socket (or ioctl socket), composes the message, sends the message and receives 
@@ -316,7 +392,7 @@ NOTE: One must remember that there is an upper limit to the number of open netli
 sockets. It is advised to use one-time functions as much as possible and save the
 use of persistent sockets for use in code that repeatedly makes use of netlink. \\
 
-The latest version of pyw (v 0.1.*) implements this functionality through the 
+The latest version of pyw.py (v 0.1.*) implements this functionality through the 
 use of what I call templates\footnote{I use templates and stubs for the lack
 of any better naming convention}, Listing \ref{lst:template} and stubs Listing 
 \ref{lst:stub}.
@@ -365,65 +441,17 @@ the original (now with a netlink socket) and then destroys the netlink socket.\\
                    language=Python]
  1: import pyric                      # pyric error (and ecode EUNDEF)
  2: from pyric import pyw             # for iw functionality
- 3: from pyric import device          # for chipset/driver
- 4: from pyric.channels import rf2ch  # rf to channel conversion
- 5: from pyric.lib import libnl as nl # for netlink sockets
- 6: from pyric.lib import libio as io # for ioctl sockets 
- 7:
- 8: # create our sockets 
- 9: nlsock = nl.nl_socket_alloc(timeout=1)
-10: iosock = io.io_socket_alloc()
-11:
-12: # list interfaces, wireless interfaces
-13: print "Interfaces: ", pyw.interfaces()
-14: print "Wireless Interfaces: ", pyw.winterfaces(iosock):
-15:
-16: # get a Card & info for alfa0 & print a description
-17: info = pyw.devinfo('alfa0',nlsock) 
-18: card = info['card']
-19: driver = device.ifdriver(card.dev)
-20: chipset = device.ifchipset(driver)
-21: msg = "{Using {0} in mode: {1}".format(card,info['mode'])
-22: if info['mode'] == 'managed':
-23:    msg += " currently on channel {0} width {1}".format(rf2ch(info['RF']),
-24:                                                        info['CHW'])
-25: msg += " driver: {0}, chipset: {1}".format(driver,chipset)
-26: print msg
-27:
-28: # prepare a virtual interface named pent0 in monitor mode
-29: pdev = 'pent0'
-30: pcard = pyw.devadd(card,pdev,'monitor',nlsock)
-31: for iface in pyw.ifaces(card,nlsock):
-32:    if iface[0].dev != pdev:
-33:        msg = "deleting {0} in mode {1}".format(iface[0],iface[1])
-34:        print msg
-35:        pyw.devdel(iface[0],nlsock)
-36: pyw.macset(pcard,'00:03:93:57:54:46',iosock)
-37: pyw.up(pcard,ioctl)
-38: pyw.chset(pcard,6,None)
-39: msg = "Virtual interface {0} in monitor mode on ch 6".format(pcard)
-40: msg += ", using hwaddr: {0}".format(pyw.macget(pcard,iosock)
-41: 
-42: # DO stuff here
-43:
-44: # restore original
-45: print "deleting ", pcard
-46: pyw.devdel(pcard,nlsock)
-47: card = pyw.devadd(card,card.dev,info['mode'],nlsock)
-48: pyw.up(card,ioctl)
-49: print "card ", card, " restored"   
-50:
-51: # release the sockets
-52: nl.nl_socket_free(nlsock)
-53: io.io_socket_alloc(iosock)
+ 3: from pyric.lib import libnl as nl # for netlink sockets
+ 4:
+ 5: nlsock = nl.nl_socket_alloc(timeout=1)
+ 6: card = pyw.getcard('wlan0',nlsock)
+ 7: print pyw.devmodes(card,nlsock)
+ 8: nl.nl_socket_free(nlsock)
 \end{lstlisting}
 
-In Listing \ref{lst:persistent}, the wireless pentesting environment from Listing 
-\ref{lst:pentest} is repeated, this time using persistent sockets. Note the imports 
-at lines 5 and 6 for libnl and libio, socket creation at lines 9 and 10 and socket
-destructions at lines 52 and 53. Also, note the lack of a socket used in the 
-pyw.interfaces() call. This is due to the fact the function interfaces() reads
-from the file system and does not use netlink or ioctl. \\
+Listing \ref{lst:persistent}, shows the creation of a persistent netlink socket 
+that is used in the creation of a card and in retrieved the card's supported
+modes. \\
 
 Use Python's built in help features on pyw functions or see Appendex \ref{sec:pywapi} 
 to determine what type of 
@@ -434,17 +462,17 @@ The kernel interfaces, libnl.py and libio.py are located in the lib directory.
 They handle socket creation/deletion, message creation/parsing and kernel 
 communication. Aside from creating and deleting persistent sockets, there is 
 little need to access their functions unless you plan on extending pyw 
-functionality. As such, a further discussion of libnl.py and libio.py can be in
-the next section.   
+functionality. As such, a further discussion of libnl.py and libio.py can be 
+found in the next section.   
 
 \section{Extending PyRIC}\label{sec:extending}
 You may find that pyw does not offer some of the functionality you need. Using
 libnl.py and/or libnl.io, additional functionality can be added to your program. 
 
 \subsection{Porting C}
-All Python ports of C header files can be found in the net directory. C Enums and 
-\#defines are ported using constants. C structs are ported using three Python 
-structures and the Python struct package:
+All Python ports of C header files can be found in the net directory. C Enums 
+and \#defines are ported using constants. C structs are ported using three 
+Python structures and the Python struct package:
 \begin{enumerate}
 \item a format string for packing and unpacking the struct
 \item a constant specifying the size of the struct in bytes
@@ -494,9 +522,131 @@ appropriate structure and add it's definitions to ifreq.
 Documentation on Netlink, and nl80211 in particular, is so minimal as to be 
 neglible. The clusterfuck of code and lack of comments in the iw source tree 
 make it impossible to use as any sort of roadmap. Fortunately Thomas Graf's 
-site\cite{libnl} has excellent coverage of the libnl, the Netlink library.
-Using this as a reference, a simple Netlink parser was put together. With 
-strace and the parser, Netlink messages could be dissected and analyzed. \\
+site\cite{libnl} has excellent coverage of libnl, the Netlink library. Using 
+this as a reference, a simple Netlink parser was put together which later became
+libnl.py. Using the command line tool strace and libnl.py, Netlink messages could
+be dissected and analyzed.\\
+
+Let us consider adding a virtual interface with the command:\\
+
+    \texttt{sudo iw phy0 interface add test0 type monitor}\\
+    
+First, we need to see what is going on under the covers. Using strace:\\
+
+    \texttt{strace -f -x -s 4096 iw phy0 interface add test0 type monitor}\\  
+
+from a terminal will give a you a lot of output, most irrelevant (to us). Scroll
+through this until the netlink socket creation as highlighted in Figure
+\ref{fig:nlsock}. You can see that a socket of type PF\_NETLINK is created and
+the send/receive buffers are set to 32768.
+\begin{center}
+\begin{figure}[h]
+\includegraphics{nlsock}
+\caption{Netlink socket creation}
+\label{fig:nlsock}
+\end{figure}
+\end{center} 
+What we want to analyze are the messages sent and received over the netlink 
+socket. In Figure \ref{fig:nlsock}, iw is requesting the family id for nl80211. 
+This id will be used in subsequent requests related to nl80211 as we will see 
+shortly. The return message gives the nl80211 family id as 26 and returns other
+nl80211 attributes. This is handled by the private function \_familyid\_ in 
+pyw.py.
+
+Figure \ref{fig:nlsend} shows the add interface message being sent to the kernel.
+\begin{center}
+\begin{figure}[h]
+\includegraphics{nlsend}
+\caption{Netlink sendmsg}
+\label{fig:nlsend}
+\end{figure}
+\end{center} 
+We are interested in the byte sequence following msg\_iov(1). Copy this and paste
+into in a python variable as in Listing \ref{lst:nlparse} and pass it to the
+function nlmsg\_fromstream which parses the byte stream and returns the GENLMsg.\\
+
+\begin{lstlisting}[caption={Parsing netlink messages},
+                   label={lst:nlparse},
+                   language=Python]
+>>> from pyric.lib import libnl as nl
+>>> sent = "\x30\x00\x00\x00\x1a...\x00\x00"
+>>> msg = nlmsg_fromstream(sent)
+>>> msg
+nlmsghdr(len=48,type=26,flags=5,seq=1463268720,pid=10982)
+genlmsghdr(cmd=7)
+attributes:
+	0: type=1,datatype=3
+	value=0
+	1: type=4,datatype=5
+	value=test0
+	2: type=5,datatype=3
+	value=6
+\end{lstlisting}
+
+The first thing to notice is nlmsghdr type = 26, which of course is nl80211 family
+id. The rest of the nlmsghdr components len, flags, seq, and pid are handled by
+libnl.py although you can supply your own flags if desired. At this time, you can
+manually look up what values the cmd, type and datatype correspond to in 
+nl80211\_h.py and netlink\_h.py or you can use the tools provided in nlhelp.py.\\
+
+\begin{lstlisting}[caption={Parsing netlink messages continued},
+                   label={lst:nlparse2},
+                   language=Python]
+>>> from pyric.net.netlink_h import NLA_DATATYPES
+>>> from pyric.docs import nlhelp
+>>> nlhelp.cmdbynum(7)
+u'@NL80211_CMD_NEW_INTERFACE'
+>>>
+>>> for attr in msg.attrs:
+...     print nlhelp.attrbynum(attr[0]), NLA_DATATYPES[attr[2]], attr[1]
+... 
+@NL80211_ATTR_WIPHY u32 0
+@NL80211_ATTR_IFNAME string test0
+@NL80211_ATTR_IFTYPE u32 6
+>>>
+>>> from pyric.net.wireless.nl80211_h import NL80211_IFTYPES
+>>> NL80211_IFTYPES[6]
+'monitor'
+\end{lstlisting}
+
+In Listing \ref{lst:nlparse2} command number 7 corresponds to 
+NL80211\_CMD\_NEW\_INTERFACE and the attributes that need to be passed to the
+kernel are NL80211\_ATTR\_WIPHY, NL80211\_ATTR\_IFNAME and NL80211\_ATTR\_IFTYPE.
+The IFTYPE is also known as the mode i.e. 'monitor' which can be found in
+nl80211\_h.py NL80211\_IFTYPES. We don't parse the return message from the kernel
+but, it follows the same SOP. In this case, it returns the attributes of the new
+virtual interface. \\
+
+With this information, we can now code our function. Recall the fcttemplate as
+defined in Listing \ref{lst:template} and fill in the command execution as shown 
+in Listing \ref{lst:coding}. \\
+
+\begin{lstlisting}[caption={Coding the function},
+                   label={lst:coding},
+                   language=Python]
+# construct the message
+msg = nl.nlmsg_new(nltype=_familyid_(nlsock),
+                   cmd=nl80211h.NL80211_CMD_NEW_INTERFACE,
+                   flags=nlh.NLM_F_REQUEST | nlh.NLM_F_ACK)
+nl.nla_put_u32(msg,card.phy,nl80211h.NL80211_ATTR_WIPHY)
+nl.nla_put_string(msg,vdev,nl80211h.NL80211_ATTR_IFNAME)
+nl.nla_put_u32(msg,IFTYPES.index(mode),nl80211h.NL80211_ATTR_IFTYPE)
+
+# send, receive and parse return results, returning the new Card
+nl.nl_sendmsg(nlsock,msg)
+rmsg = nl.nl_recvmsg(nlsock) # success returns new device attributes
+return Card(card.phy,vdev,nl.nla_find(rmsg,nl80211h.NL80211_ATTR_IFINDEX))
+\end{lstlisting}
+
+We construct a new GENLMsg passing the nl80211 family id, the command we got
+earlier and flags specifying that this is a request and we want to get an ACK
+back\footnote{libnl.py always forces an ACK and handles the underlying process 
+of receiving it}. Now, add each attribute to the message. Note the order: value, 
+then attribute. With the message constructed, send it to the kernel, get the 
+results, parse and return them.\\
+
+Rather simple, in fact the hardest part is figuring out what to send to the kernel.
+Everything else is handled behind the scenes by libnl.py.
 
 \begin{appendices}
 \section{API: pyw.py}\label{sec:pywapi}
@@ -523,17 +673,17 @@ object. This allows callers to use pyw functions without having to remember whic
 identifier the function requires. However, in some cases the function requires 
 a dev or accepts both. See the next section on functions.\\
 
-While callers could create their own Cards, it is recommend to use one of the following
+While callers could create their own Cards, it is recommend to use one of the 
+following
 \begin{itemize}
 \item \textbf{pyw.getcard} returns a Card object from a given dev
 \item \textbf{pyw.devinfo} returns the dict info where info['card'] is the Card 
 object. This function will take either a card or a dev
 \item \textbf{pyw.devadd} returns a new Card object
 \item \textbf{pyw.ifaces} returns a list of tuples t = (Card,mode) sharing the 
-same phy as a given dev
-to do so. It is also recommended to periodically validate the Card. On some 
-cheaper usb wireless nics, there are periodic disconnects which results in a new 
-phy and ifindex.
+same phy as a given device to do so. It is also recommended to periodically 
+validate the Card. On some cheaper usb wireless nics, there are periodic 
+disconnects which results in a new phy and ifindex.
 \end{itemize}
 
 \subsection{Functions}
@@ -548,19 +698,23 @@ wireless interface
 to rd
 \item getcard(dev,[nlsock]) (N/A), type: hybrid netlink and ioctl: get a Card 
 object for dev
+\item validcard(card,[nlsock]): (N/A), type: (hyrbrid netlink and ioctl), verify
+card is still valid
 \item macget(card,[iosock]): (ifconfig card.<dev>), type: ioctl get card's hw
 address
 \item macset(card,mac,[iosock]): (ifconfig card.<dev> hw ether <mac>), type: 
 ioctl, set card's hw address to mac
-\item txget(card,[iosock]): (iwconfig card.<dev> | grep Tx-Power card), type: 
-ioctl, get card's transmission power
 \item up(card,[iosock]) (ifconfig card.<dev> up), type: ioctl, bring card up
 \item down(card,[iosock]): (ifconfig card.<dev> down), type: ioctl, bring card 
 down
+\item txget(card,[iosock]): (iwconfig card.<dev> | grep Tx-Power card), type: 
+ioctl, get card's transmission power
 \item devstds(card,[iosock]): (iwconfig card.<dev> | grep IEEE), type: ioctl, get
 list of card's 802.11 supported standards
-\item validcard(card,[nlsock]): (N/A), type: (hyrbrid netlink and ioctl), verify
-card is still valid
+\item devmodes(card,[nlsock]): (iw phy card.phy info | grep interface), type:
+netlink, get card's supported modes
+\item devcmds(card,[nlsock]): (iw phy card.phy info | grep commands), type:
+netlink, get card's supported commands
 \item devinfo(card,[nlsock]): (iw dev card.<dev> info), type: netlink, get info 
 for dev 
 \item phyinfo(card,[nlsock]): (iw phy card.<phy> info), type: netlink, get info
@@ -571,8 +725,14 @@ cards (w/ modes) of interfaces sharing the same phy as card
 netlink, get card's current channel (only works for cards in mode managed)
 \item chset(card,ch,chw,[nlsock]): iw phy <card.phy> set channel <ch> <chw>), 
 type: netlink, set card's current channel to ch with width chw
+\item freqset(card,rf,chw,[nlsock]): iw phy <card.phy> set freq <rf> <chw>), 
+type: netlink, set card's current frequency to rf with width chw
 \item devmodes(card,[iosock]): (iw phy card.<phy>), type: netlink, get modes 
 supported by card
+\item modeset(card,mode,[flags],[nlsock]): (iw dev card.<dev> set type <mode> 
+[flags]), type: netlink, set card's mode to mode with flags (if mode is monitor)
+\item modeget(card[nlsock]): (iw dev card.<dev> info | grep mode), type: netlink,
+get card's mode
 \item devadd(card,vnic,mode,[flags],[nlsock]): (iw phy card.<phy> interface add
 <vnic> type <mode> flags <flags>), type: netlink, creates a new virtual interface
 on card's phy with dev vdev, in mode and using flags. Note: flags are only supported
@@ -677,23 +837,10 @@ GENLMsg has the following methods:
 \begin{itemize}
 \item \_\_repr\_\_(): returns a string representation useful for debugging
 \item tostream(): returns a packed netlink message
-\item nla\_put(v,a,t): appends the attribute a, with value v and datatype t to
-the attribute list
-\item nla\_put\_<DATATYPE>(v,a): eight specialize functions that append attribute
-a with value v and type <DATATYPE> to the attribute list
-\item nla\_putat(i,v,a,d): puts attribute a, with value v and datatype d at
-index i in the attribute list.
-\item nla\_pop(i): removes the attribute tuple at index i, returning the popped
-tuple
-\item nla\_find(a,value=True): returns the first attribute a. If value returns only
-the value otherwise returns the attribute tuple
-\item nla\_get(i,value=True): returns the attribute at index i. If value returns only
-the value otherwise returns the attribute tuple
-\item \_attrpack(a,v,d): (private) packs the attribute tuple 
-\end{itemize}
 
-There are two methods of creating a GENLMsg. Create a new message (to send) with nlmsg\_new and create a message from a received packet with nlmsg\_fromstream. These
-are discussed below.
+There are two methods of creating a GENLMsg. Create a new message (to send) with 
+nlmsg\_new and create a message from a received packet with nlmsg\_fromstream. 
+These are discussed below.
 
 \subsection{Functions}\label{sec:libnlfct}
 \begin{itemize}
@@ -720,14 +867,28 @@ new GENLMsg with zero or more attributes defined.
 \item nlmsg\_fromstream(stream): parses the message in stream returning the
 corresponding GENLMsg
 \item nla\_parse(msg,l,mtype,stream,idx): parses the attributes in stream appending
-them to the attribute list of message where msg = the GENLMsg, l = the total length
-of the message, mtype = the message content (i.e. netlink type) stream is the
-original byte stream and idx is the index of the start of the attribute list
+them to the attribute list of message where msg = the GENLMsg, l = the total 
+length of the message, mtype = the message content (i.e. netlink type) stream is
+the original byte stream and idx is the index of the start of the attribute list
 \item nla\_parse\_nested(nested): returns the list of packed nested attributes 
 extracted from the stream nested. Callers must unpack and parse the returned 
 attributes themselves
+\item nla\_put(msg,v,a,t): appends the attribute a, with value v and datatype t 
+to the msg's attribute list
+\item nla\_put\_<DATATYPE>(msg,v,a): eight specialized functions that append 
+attribute a with the value v and type <DATATYPE> to msg's attribute list
+\item nla\_putat(msg,i,v,a,d): puts attribute a, with value v and datatype d at
+index i in msg's attribute list.
+\item nla\_pop(msg,i): removes the attribute tuple at index i, returning the popped
+tuple
+\item nla\_find(msg,a,value=True): returns the first attribute a in msg's attribute
+list. If value returns only the value otherwise returns the attribute tuple
+\item nla\_get(msg,i,value=True): returns the attribute at index i. If value returns 
+only the value otherwise returns the attribute tuple
 \item \_nla\_strip(v): (private) strips padding bytes from the end of v
-\item \_maxbufsz\_(): returns the maximum allowable socket buffer size
+\item \_attrpack(a,v,d): (private) packs the attribute tuple 
+\end{itemize}
+\item \_maxbufsz\_(): (private) returns the maximum allowable socket buffer size
 \end{itemize}
 \end{itemize}
 

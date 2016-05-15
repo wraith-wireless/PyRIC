@@ -315,7 +315,7 @@ Extending PyRIC is fun and easy too, see the user guide PyRIC.pdf.
 
 ## 5. ARCHITECTURE/HEIRARCHY: Brief Overview of the project file structure
 
-* pyric                   root Distribution directory
+* PyRIC                   root Distribution directory
   - \_\_init\_\_.py       initialize distrubution PyRIC module
   - examples              example folder
     + pentest.py          create wireless pentest environment example
@@ -324,7 +324,7 @@ Extending PyRIC is fun and easy too, see the user guide PyRIC.pdf.
   - MANIFEST.in           used by setup.py
   - README.md             this file
   - LICENSE               GPLv3 License
-  * PyRIC.pdf             User Guide
+  - PyRIC.pdf             User Guide
   - pyric                 package directory
     + \_\_init\_\_.py     initialize pyric module
     + pyw.py              wireless nic functionality

@@ -11,8 +11,5 @@
    o see (1) in RFI
    o define attr_ops and attr_mcast_groups in nla_policy_attr
   4) pyw
-   o add txget from iw perspective
-   o figure out why txset doesn't work
+   o add txget from iw i.e. netlink perspective
    o devstds sucks, find a better way to find the supported standards of a card
-   5) User Guide
-    o finish it

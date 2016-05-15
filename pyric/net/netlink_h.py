@@ -268,6 +268,7 @@ NETLINK_CONNECTED   = 1
 """
 
 # Attribute Datatypes
+NLA_DATATYPES = ['unspec','u8','u16','u32','u64','string','flag','msecs','nested']
 NLA_ERROR      = -1 # my own -> failed to unpack attribute, treat as unspec
 NLA_UNSPEC     =  0	# Unspecified type, binary data chunk
 NLA_U8         =  1  # 8 bit integer
