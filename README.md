@@ -63,7 +63,7 @@ PyRIC is faster than using Popen to execute iw. Using one-time sockets, there is
 a difference of 28 seconds over Popen and iw with a small decrease in the average
 hoptime. Not a big difference. However, the performance increase dramatically
 when persistent netlink sockets are used with the total time and average hop
-time effectvely halved.
+time nearly halved.
 
 ### c. Current State
 ATT, PyRIC accomplish my core needs but it is still a work in progress. It provides
