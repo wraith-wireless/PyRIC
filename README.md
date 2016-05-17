@@ -61,7 +61,7 @@ channel on a Alfa AWUS036NH 10000 times. Note that there is no implication
 (explicit or implicit) that PyRIC is faster than iw. Rather, the table shows that
 PyRIC is faster than using Popen to execute iw. Using one-time sockets, there is
 a difference of 28 seconds over Popen and iw with a small decrease in the average
-hoptime. Not a big difference. However, the performance increase dramatically
+hoptime. Not a big difference. However, the performance increased dramatically
 when persistent netlink sockets are used with the total time and average hop
 time nearly halved.
 
