@@ -661,7 +661,7 @@ def chset(card,ch,chw,*argv):
         device's channels to be changed
     """
     if ch not in channels.channels(): raise pyric.error(errno.EINVAL,"Invalid channel")
-    if chw not in channels.CHWIDTHS: raise pyric.error(errno.EINVAL,"Invalid channel width")
+    if chw not in channels.CHWIDTHS: raise pyric.error(errno.EINVAL,"Invalid width")
     try:
         nlsock = argv[0]
     except IndexError:
