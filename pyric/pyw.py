@@ -923,7 +923,7 @@ def _iftypes_(i):
     try:
         return IFTYPES[i]
     except IndexError:
-        return 'Unknown mode ({0})' % i
+        return "Unknown mode ({0})".format(i)
 
 #### TRANSLATION FUNCTIONS ####
 
