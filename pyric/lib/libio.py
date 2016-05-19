@@ -48,10 +48,7 @@ def io_socket_alloc():
 
 def io_socket_free(sock):
     """ close the socket """
-    try:
-        sock.close()
-    except Exception: # ignore all
-        pass
+    if sock: sock.close()
     return None
 
 def io_transfer(iosock,flag,ifreq):

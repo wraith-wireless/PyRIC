@@ -570,7 +570,7 @@ function nlmsg\_fromstream which parses the byte stream and returns the GENLMsg.
                    language=Python]
 >>> from pyric.lib import libnl as nl
 >>> sent = "\x30\x00\x00\x00\x1a...\x00\x00"
->>> msg = nlmsg_fromstream(sent)
+>>> msg = nl.nlmsg_fromstream(sent)
 >>> msg
 nlmsghdr(len=48,type=26,flags=5,seq=1463268720,pid=10982)
 genlmsghdr(cmd=7)

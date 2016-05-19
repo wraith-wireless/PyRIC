@@ -197,9 +197,12 @@ IF_LINK_MODE_DORMANT = 1 # limit upward transition to dormant
  they can be used to get/set properties.
 """
 # SOCKADDR DEFINITION
-ARPHRD_ETHER = 1  # from net/if_arp.h sa_family ethernet
-AF_UNSPEC = 0     # from socket.h sa_family unspecified
-sa_addr = 'H6B'   # sockaddr is {unsigned short sa_family,char [14] address}
+AF_UNSPEC    = 0  # from socket.h sa_family unspecified
+ARPHRD_ETHER = 1  # from net/if_arp.h sa_family ethernet a.k.a AF_LOCAL
+AF_INET      = 2  # from socket.h ip address (ip4)
+# sa_addr # sockaddr is {unsigned short sa_family,char [14] address}
+sa_addrhw = 'H6B'   # hw addr
+sa_addrip = 'H4B'   # ip addr
 def sockaddr(sa_family,sa_data):
     """
      create a sockaddr
@@ -211,7 +214,11 @@ def sockaddr(sa_family,sa_data):
     if sa_family == ARPHRD_ETHER:
         vs = [sa_family]
         vs.extend([int(x,16) for x in sa_data.split(':')])
-        return struct.pack(sa_addr,*vs) # struct error caught at libio level
+        return struct.pack(sa_addrhw,*vs) # struct error caught at libio level
+    elif sa_family == AF_INET:
+        vs = [sa_family]
+        vs.extend([int(x) for x in sa_data.split('.')])
+        return struct.pack(sa_addrip,*vs)
     else:
         raise AttributeError("sa_family {0} not supported".format(sa_family))
 
@@ -222,7 +229,8 @@ ifr_ifindex = 'i'
 ifr_iwname = '{0}s'.format(256-IFNAMSIZ)  # dirty hack to get an unknown string back
 ifr_iwtxpwr = 'iBBH'
 IFNAMELEN = struct.calcsize(ifr_name)     # lengths
-IFHWADDRLEN	= struct.calcsize(sa_addr)
+IFHWADDRLEN	= struct.calcsize(sa_addrhw)
+IFIPADDRLEN = struct.calcsize(sa_addrip)
 IFFLAGLEN = struct.calcsize(ifr_flags)
 IFIFINDEXLEN = struct.calcsize(ifr_ifindex)
 IWNAMELEN = struct.calcsize(ifr_iwname)
@@ -236,7 +244,8 @@ def ifreq(ifrn,ifru=None,param=None):
      :param ifru: from SOCKIOS_H, defines what type of ifreq struct to pack
      :param param: list of params If None, pad byes are added having the size of
       the appropriate param. If a hwaddr, must be a sockaddr family & string of
-      form "XX:XX:XX:XX:XX:XX", if flags must be an integer (c short) or (int)
+      form "XX:XX:XX:XX:XX:XX" and if an ipaddr must be a sockaddr family & string
+      form "XXX.XXX.XXX.XXX", if flags must be an integer (c short) or (int)
       respectively
      :returns: packed ifreq
     """
@@ -263,6 +272,8 @@ def ifreq(ifrn,ifru=None,param=None):
             ifr += struct.pack('{0}x'.format(IWNAMELEN))
         elif ifru == sioc.SIOCGIWTXPOW: # get tx pwr
             ifr += struct.pack('{0}x'.format(IWTXPWRLEN))
+        elif ifru == sioc.SIOCSIFADDR: # set ip address
+            ifr += sockaddr(param[0],param[1])
         else:
             raise AttributeError("ifru {0} not supported".format(ifru))
     except (TypeError,IndexError):

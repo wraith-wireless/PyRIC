@@ -13,3 +13,6 @@
   4) pyw
    o add txget from iw i.e. netlink perspective
    o devstds sucks, find a better way to find the supported standards of a card
+   o for now, using ioctl to set ip address
+    - use SIOCGIFADDR to get ip address
+    - move everything to netlink

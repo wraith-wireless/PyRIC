@@ -120,7 +120,7 @@ import pyric.net.wireless.nl80211_h as nl80211h # 802.11 definition
 import pyric.net.sockios_h as sioch             # sockios constants
 import pyric.net.if_h as ifh                    # ifreq structure
 import pyric.lib.libnl as nl                    # netlink functions
-import pyric.lib.libio as io                    # sockios functions
+import pyric.lib.libio as io                    # ioctl functions
 
 _FAM80211ID_ = None
 
@@ -329,7 +329,7 @@ def macget(card,*argv):
 def macset(card,mac,*argv):
     """
      REQUIRES ROOT PRIVILEGES/CARD DOWN
-     get/set nic's hwaddr (ifconfig <card.dev> hw ether <mac>)
+     set nic's hwaddr (ifconfig <card.dev> hw ether <mac>)
      :param card: Card object
      :param mac: macaddr to set
      :param argv: ioctl socket at argv[0] (or empty)
@@ -346,6 +346,38 @@ def macset(card,mac,*argv):
         params = [ifh.ARPHRD_ETHER,mac]
         ret = io.io_transfer(iosock,flag,ifh.ifreq(card.dev,flag,params))
         return _hex2mac_(ret[18:24])
+        # see macget
+        #fam = struct.unpack_from(ifh.sa_addr,ret,ifh.IFNAMELEN)[0]
+        #if fam == ifh.ARPHRD_ETHER or fam == ifh.AF_UNSPEC: # confirm we got a hwaddr back
+        #    return _hex2mac_(ret[18:24])
+        #else:
+        #    raise pyric.error(errno.EAFNOSUPPORT, "Invalid return addr family")
+    except AttributeError as e:
+        raise pyric.error(errno.EINVAL,"Invalid parameter {0}".format(e))
+    except struct.error as e:
+        raise pyric.error(pyric.EUNDEF,"error parsing results {0}".format(e))
+
+def ipset(card,ipaddr,*argv):
+    """
+     REQUIRES ROOT PRIVILEGES
+     set nic's hwaddr (ifconfig <card.dev> hw ether <mac>)
+     :param card: Card object
+     :param ipaddr: ip address to set
+     :param argv: ioctl socket at argv[0] (or empty)
+     :returns: True on success
+     TODO: add parameter check on ip address
+    """
+    ### DOESN"T WORK ###
+    try:
+        iosock = argv[0]
+    except IndexError:
+        return _iostub_(ipset,card,ipaddr)
+
+    try:
+        flag = sioch.SIOCSIFADDR
+        params = [ifh.AF_INET,ipaddr]
+        ret = io.io_transfer(iosock,flag,ifh.ifreq(card.dev,flag,params))
+        return ret #_hex2mac_(ret[18:24])
         # see macget
         #fam = struct.unpack_from(ifh.sa_addr,ret,ifh.IFNAMELEN)[0]
         #if fam == ifh.ARPHRD_ETHER or fam == ifh.AF_UNSPEC: # confirm we got a hwaddr back
