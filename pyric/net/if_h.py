@@ -201,9 +201,12 @@ AF_UNSPEC    = 0  # from socket.h sa_family unspecified
 ARPHRD_ETHER = 1  # from net/if_arp.h sa_family ethernet a.k.a AF_LOCAL
 AF_INET      = 2  # from socket.h ip address (ip4)
 # sa_addr # sockaddr is {unsigned short sa_family,char [14] address}
-sa_addrhw = 'H6B'   # hw addr
-sa_addrip = 'H4B'   # ip addr
-def sockaddr(sa_family,sa_data):
+# for our purposes, we use only characters, 6 octets for a hw addr and 4 octets
+# for an ip4 addr.
+# NOTE: For whatever reason, all ioctl calls accept and return ip4 addresses
+# prefixed by two null bytes
+sa_addr = 'H6B'
+def sockaddr(sa_family,sa_data=None):
     """
      create a sockaddr
     :param sa_family: address family
@@ -211,16 +214,16 @@ def sockaddr(sa_family,sa_data):
     :returns: packed sockaddr
     """
     # the address must be "prepended" with sa_family IOT follow the sockaddr struct
-    if sa_family == ARPHRD_ETHER:
-        vs = [sa_family]
-        vs.extend([int(x,16) for x in sa_data.split(':')])
-        return struct.pack(sa_addrhw,*vs) # struct error caught at libio level
-    elif sa_family == AF_INET:
-        vs = [sa_family]
-        vs.extend([int(x) for x in sa_data.split('.')])
-        return struct.pack(sa_addrip,*vs)
+    vs = [sa_family]
+    if sa_data is None: vs.extend([0] * 6) # send empty bytes for ioctl to fill in
     else:
-        raise AttributeError("sa_family {0} not supported".format(sa_family))
+        if sa_family == ARPHRD_ETHER:
+            vs.extend([int(x,16) for x in sa_data.split(':')])
+        elif sa_family == AF_INET:
+            vs.extend([int(x) for x in ('0.0.'+sa_data).split('.')])
+        else:
+            raise AttributeError("sa_family {0} not supported".format(sa_family))
+    return struct.pack(sa_addr,*vs)
 
 # IFREQ DEFINITION
 ifr_name = '{0}s'.format(IFNAMSIZ) # formats for ifreq struct
@@ -229,8 +232,7 @@ ifr_ifindex = 'i'
 ifr_iwname = '{0}s'.format(256-IFNAMSIZ)  # dirty hack to get an unknown string back
 ifr_iwtxpwr = 'iBBH'
 IFNAMELEN = struct.calcsize(ifr_name)     # lengths
-IFHWADDRLEN	= struct.calcsize(sa_addrhw)
-IFIPADDRLEN = struct.calcsize(sa_addrip)
+IFADDRLEN = struct.calcsize(sa_addr)      # length of both ip4 and mac
 IFFLAGLEN = struct.calcsize(ifr_flags)
 IFIFINDEXLEN = struct.calcsize(ifr_ifindex)
 IWNAMELEN = struct.calcsize(ifr_iwname)
@@ -259,7 +261,8 @@ def ifreq(ifrn,ifru=None,param=None):
     try:
         if not ifru: pass # only pass the device name
         elif ifru == sioc.SIOCGIFHWADDR: # get hwaddr
-            ifr += struct.pack('{0}x'.format(IFHWADDRLEN))
+            ifr += sockaddr(ARPHRD_ETHER,None)
+            #ifr += struct.pack('{0}x'.format(IFADDRLEN))
         elif ifru == sioc.SIOCSIFHWADDR: # set hwaddr
             ifr += sockaddr(param[0],param[1])
         elif ifru == sioc.SIOCGIFFLAGS: # get flags
@@ -272,7 +275,9 @@ def ifreq(ifrn,ifru=None,param=None):
             ifr += struct.pack('{0}x'.format(IWNAMELEN))
         elif ifru == sioc.SIOCGIWTXPOW: # get tx pwr
             ifr += struct.pack('{0}x'.format(IWTXPWRLEN))
-        elif ifru == sioc.SIOCSIFADDR: # set ip address
+        elif ifru == sioc.SIOCGIFADDR: # get ip4 address
+            ifr += sockaddr(AF_INET,None)
+        elif ifru == sioc.SIOCSIFADDR: # set ip4 address
             ifr += sockaddr(param[0],param[1])
         else:
             raise AttributeError("ifru {0} not supported".format(ifru))

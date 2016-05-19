@@ -70,6 +70,7 @@ the following:
 * enumerate interfaces and wireless interfaces
 * identify a cards chipset and driver
 * get/set hardware address
+* set ip4 address (working on get ip4)
 * turn card on/off
 * get supported standards
 * get supported commands

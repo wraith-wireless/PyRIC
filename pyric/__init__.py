@@ -102,6 +102,7 @@ Requires:
     - readded freqset in pyw
     - added devcmds in pyw
     - annotated (in comments) if fcts needed root privileges
+    - added ip4set
 """
 
 __name__ = 'pyric'

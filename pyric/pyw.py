@@ -111,6 +111,7 @@ __status__ = 'Development'
 
 import struct                                   # ioctl unpacking
 import pyric,errno                              # pyric exception & error codes
+import re                                       # check addr validity
 from pyric import device                        # device related
 from pyric import channels                      # channel related
 from pyric.docs.nlhelp import cmdbynum          # get command name
@@ -127,24 +128,6 @@ _FAM80211ID_ = None
 # redefine interface types and monitor flags
 IFTYPES = nl80211h.NL80211_IFTYPES
 MNTRFLAGS = nl80211h.NL80211_MNTR_FLAGS
-
-class Card(tuple):
-    """
-     Wrapper around a tuple t = (physical index,device name, interface index)
-     Exposes the following properties: (callable by '.'):
-      phy: physical index
-      dev: device name
-      idx: interface index (ifindex)
-    """
-    def __new__(cls,p,d,i): return super(Card,cls).__new__(cls,tuple((p,d,i)))
-    def __repr__(self):
-        return "Card(phy={0},dev={1},ifindex={2})".format(self.phy,self.dev,self.idx)
-    @property
-    def phy(self): return self[0]
-    @property
-    def dev(self): return self[1]
-    @property
-    def idx(self): return self[2]
 
 ################################################################################
 #### WIRELESS CORE                                                          ####
@@ -263,10 +246,27 @@ def regset(rd,*argv):
     nl.nl_recvmsg(nlsock) # throws exception on failure
     return True           # we got here-it worked (or there were no complaints)
 
-
 ################################################################################
 #### WIRELESS INTERFACE FUNCTIONS                                           ####
 ################################################################################
+
+class Card(tuple):
+    """
+     Wrapper around a tuple t = (physical index,device name, interface index)
+     Exposes the following properties: (callable by '.'):
+      phy: physical index
+      dev: device name
+      idx: interface index (ifindex)
+    """
+    def __new__(cls,p,d,i): return super(Card,cls).__new__(cls,tuple((p,d,i)))
+    def __repr__(self):
+        return "Card(phy={0},dev={1},ifindex={2})".format(self.phy,self.dev,self.idx)
+    @property
+    def phy(self): return self[0]
+    @property
+    def dev(self): return self[1]
+    @property
+    def idx(self): return self[2]
 
 def getcard(dev,*argv):
     """
@@ -313,14 +313,11 @@ def macget(card,*argv):
     try:
         flag = sioch.SIOCGIFHWADDR
         ret = io.io_transfer(iosock,flag,ifh.ifreq(card.dev,flag))
-        return _hex2mac_(ret[18:24])
-        # sometimes get value 803 as family, cannot find any reference to this
-        # until then, just hope we get a mac as we should
-        #fam = struct.unpack_from(ifh.sa_addr, ret, ifh.IFNAMELEN)[0]
-        #if fam == ifh.ARPHRD_ETHER or fam == ifh.AF_UNSPEC:  # confirm we got a hwaddr back
-        #    return _hex2mac_(ret[18:24])
-        #else:
-        #    raise pyric.error(errno.EAFNOSUPPORT, "Invalid return addr family {0}".format(fam))
+        fam = struct.unpack_from(ifh.sa_addr, ret, ifh.IFNAMELEN)[0]
+        if fam == ifh.ARPHRD_ETHER or fam == ifh.AF_UNSPEC:  # confirm we got a hwaddr back
+            return _hex2mac_(ret[18:24])
+        else:
+            raise pyric.error(errno.EAFNOSUPPORT,"Invalid return addr family {0}".format(fam))
     except AttributeError as e:
         raise pyric.error(errno.EINVAL,"Invalid parameter {0}".format(e))
     except struct.error as e:
@@ -336,6 +333,7 @@ def macset(card,mac,*argv):
      :returns: mac address after operation
      TODO: add parameter check on mac address
     """
+    if  not _validmac_(mac): raise pyric.error(errno.EINVAL,"Invalid mac address")
     try:
         iosock = argv[0]
     except IndexError:
@@ -345,45 +343,41 @@ def macset(card,mac,*argv):
         flag = sioch.SIOCSIFHWADDR
         params = [ifh.ARPHRD_ETHER,mac]
         ret = io.io_transfer(iosock,flag,ifh.ifreq(card.dev,flag,params))
-        return _hex2mac_(ret[18:24])
-        # see macget
-        #fam = struct.unpack_from(ifh.sa_addr,ret,ifh.IFNAMELEN)[0]
-        #if fam == ifh.ARPHRD_ETHER or fam == ifh.AF_UNSPEC: # confirm we got a hwaddr back
-        #    return _hex2mac_(ret[18:24])
-        #else:
-        #    raise pyric.error(errno.EAFNOSUPPORT, "Invalid return addr family")
+        fam = struct.unpack_from(ifh.sa_addr,ret,ifh.IFNAMELEN)[0]
+        if fam == ifh.ARPHRD_ETHER or fam == ifh.AF_UNSPEC: # confirm we got a hwaddr back
+            return _hex2mac_(ret[18:24])
+        else:
+            raise pyric.error(errno.EAFNOSUPPORT, "Invalid return addr family")
     except AttributeError as e:
         raise pyric.error(errno.EINVAL,"Invalid parameter {0}".format(e))
     except struct.error as e:
         raise pyric.error(pyric.EUNDEF,"error parsing results {0}".format(e))
 
-def ipset(card,ipaddr,*argv):
+def ip4set(card,ipaddr,*argv):
     """
      REQUIRES ROOT PRIVILEGES
-     set nic's hwaddr (ifconfig <card.dev> hw ether <mac>)
+     set nic's ip4 addr (ifconfig <card.dev> <ipaddr>)
      :param card: Card object
      :param ipaddr: ip address to set
      :param argv: ioctl socket at argv[0] (or empty)
      :returns: True on success
      TODO: add parameter check on ip address
     """
-    ### DOESN"T WORK ###
+    if not _validip4_(ipaddr): raise pyric.error(errno.EINVAL,"Invalid ip4 address")
     try:
         iosock = argv[0]
     except IndexError:
-        return _iostub_(ipset,card,ipaddr)
+        return _iostub_(ip4set,card,ipaddr)
 
     try:
         flag = sioch.SIOCSIFADDR
         params = [ifh.AF_INET,ipaddr]
         ret = io.io_transfer(iosock,flag,ifh.ifreq(card.dev,flag,params))
-        return ret #_hex2mac_(ret[18:24])
-        # see macget
-        #fam = struct.unpack_from(ifh.sa_addr,ret,ifh.IFNAMELEN)[0]
-        #if fam == ifh.ARPHRD_ETHER or fam == ifh.AF_UNSPEC: # confirm we got a hwaddr back
-        #    return _hex2mac_(ret[18:24])
-        #else:
-        #    raise pyric.error(errno.EAFNOSUPPORT, "Invalid return addr family")
+        fam = struct.unpack_from(ifh.sa_addr,ret,ifh.IFNAMELEN)[0]
+        if fam == ifh.AF_INET: # confirm we got a hwaddr back
+            return _hex2ip4_(ret[20:24])
+        else:
+            raise pyric.error(errno.EAFNOSUPPORT,"Invalid return addr family")
     except AttributeError as e:
         raise pyric.error(errno.EINVAL,"Invalid parameter {0}".format(e))
     except struct.error as e:
@@ -823,8 +817,33 @@ def devdel(card,*argv):
 ################################################################################
 
 def _hex2mac_(v):
-    """:returns: a ':' separated mac address from byte stream v"""
+    """ :returns: a ':' separated mac address from byte stream v """
     return ":".join(['{0:02x}'.format(ord(c)) for c in v])
+
+def _hex2ip4_(v):
+    """ :returns: a '.' separated ip4 address from byte stream v """
+    return '.'.join([str(ord(c)) for c in v])
+
+IPADDR = re.compile("^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$") # re for ip addr
+MACADDR = re.compile("^([0-9A-F]{2}:){5}([0-9A-F]{2})$")    # re for mac addr (capital letters only)
+
+def _validip4_(addr):
+    """
+     determines validity of ip4 address
+     :param addr: ip addr to check
+     :returns: True if addr is valid ip, False otherwise
+    """
+    if re.match(IPADDR,addr): return True
+    return False
+
+def _validmac_(addr):
+    """
+     determines validity of hw addr
+     :param addr: address to check
+     :returns: True if addr is valid hw address, False otherwise
+    """
+    if re.match(MACADDR,addr): return True
+    return False
 
 def _issetf_(flags,flag):
     """
@@ -1021,3 +1040,35 @@ def _fut_chset(card,ch,chw,*argv):
     nl.nl_sendmsg(nlsock,msg)
     nl.nl_recvmsg(nlsock)
     return True
+
+# [Errno 99] Cannot assign requested address
+def ip4get(card,*argv):
+    """
+     get nic's ipaddr
+     :param card: Card object
+     :param argv: ioctl socket at argv[0] (or empty)
+     :returns: True on success
+     TODO: add parameter check on ip address
+    """
+    ### DOESN"T WORK ###
+    try:
+        iosock = argv[0]
+    except IndexError:
+        return _iostub_(ip4get,card)
+
+    try:
+        flag = sioch.SIOCGIFADDR
+        ret = io.io_transfer(iosock,flag,ifh.ifreq(card.dev,flag))
+        fam = struct.unpack_from(ifh.sa_addr,ret,ifh.IFNAMELEN)[0]
+        print fam
+        return _hex2ip4_(ret[20:24])
+        # see macget
+        #fam = struct.unpack_from(ifh.sa_addr,ret,ifh.IFNAMELEN)[0]
+        #if fam == ifh.ARPHRD_ETHER or fam == ifh.AF_UNSPEC: # confirm we got a hwaddr back
+        #    return _hex2mac_(ret[18:24])
+        #else:
+        #    raise pyric.error(errno.EAFNOSUPPORT, "Invalid return addr family")
+    except AttributeError as e:
+        raise pyric.error(errno.EINVAL,"Invalid parameter {0}".format(e))
+    except struct.error as e:
+        raise pyric.error(pyric.EUNDEF,"error parsing results {0}".format(e))
