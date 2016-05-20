@@ -102,7 +102,7 @@ Requires:
     - readded freqset in pyw
     - added devcmds in pyw
     - annotated (in comments) if fcts needed root privileges
-    - added ip4set
+    - added functions to get/set ip address, netmask and broadcast
 """
 
 __name__ = 'pyric'
