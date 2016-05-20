@@ -3,7 +3,7 @@
 """ sockios_h.py: definitions for INET interface module
 
 /*
- * INET		An implementation of the TCP/IP protocol suite for the LINUX
+ * INET	An implementation of the TCP/IP protocol suite for the LINUX
  *		operating system.  INET is implemented using the  BSD Socket
  *		interface as the means of communication with the user level.
  *
@@ -39,7 +39,7 @@ are permitted provided that the following conditions are met:
    contributors may be used to endorse or promote products derived from this
    software without specific prior written permission.
 
-A port of if.h (and iw_param from wireless.h) to python
+A port of if.h, iw_param from wireless.h and sockaddr from socket.h to python
 
  Additionally
   1) imports definitions from wireless_h to check if a nic is wireless and get
@@ -50,7 +50,7 @@ A port of if.h (and iw_param from wireless.h) to python
 
 __name__ = 'if_h'
 __license__ = 'GPLv3'
-__version__ = '0.0.2'
+__version__ = '0.0.3'
 __date__ = 'February 2016'
 __author__ = 'Dale Patterson'
 __maintainer__ = 'Dale Patterson'
@@ -152,6 +152,39 @@ IF_OPER_UP              = 6
 IF_LINK_MODE_DEFAULT = 0
 IF_LINK_MODE_DORMANT = 1 # limit upward transition to dormant
 
+#struct sockaddr {
+#    sa_family_t     sa_family;      /* address family, AF_xxx       */
+#    char            sa_data[14];    /* 14 bytes of protocol address */
+#};
+# NOTE:
+#  1) for our purposes, we use only characters, 6 octets for a hw addr and 4
+# octets for an ip4 addr.
+#  2) For whatever reason, all ioctl calls accept and return ip4 addresses
+#  prefixed by two null bytes
+
+AF_UNSPEC    = 0  # from socket.h sa_family unspecified
+ARPHRD_ETHER = 1  # from net/if_arp.h sa_family ethernet a.k.a AF_LOCAL
+AF_INET      = 2  # from socket.h ip address (ip4)
+sa_addr = 'H6B'
+def sockaddr(sa_family,sa_data=None):
+    """
+     create a sockaddr
+     :param sa_family: address family
+     :param sa_data: protocal address (up to 14 bytes)
+     :returns: packed sockaddr
+    """
+    # the address must be "prepended" with sa_family IOT follow the sockaddr struct
+    vs = [sa_family]
+    if sa_data is None: vs.extend([0] * 6) # send empty bytes for ioctl to fill in
+    else:
+        if sa_family == ARPHRD_ETHER:
+            vs.extend([int(x,16) for x in sa_data.split(':')])
+        elif sa_family == AF_INET:
+            vs.extend([int(x) for x in ('0.0.'+sa_data).split('.')])
+        else:
+            raise AttributeError("sa_family {0} not supported".format(sa_family))
+    return struct.pack(sa_addr,*vs)
+
 #### Interface request structure used for socket
 # ioctl's.  All interface ioctl's must have parameter
 # definitions which begin with ifr_name.  The
@@ -184,48 +217,13 @@ IF_LINK_MODE_DORMANT = 1 # limit upward transition to dormant
 # from wireless.h we build
 #struct	iw_param
 #{
-#  __s32		value;		/* The value of the parameter itself */
+#  __s32	value;		/* The value of the parameter itself */
 #  __u8		fixed;		/* Hardware should not use auto select */
 #  __u8		disabled;	/* Disable the feature */
-#  __u16		flags;		/* Various specifc flags (if any) */
+#  __u16	flags;		/* Various specifc flags (if any) */
 # to get the txpower and verify the presense of wireless extensions
 #};
 
-"""
- We use packed strings to represent these stucts. The ifreq struct is defined by
- the SOCKIOS_H constants, format strings, lengths and the function ifreq. Together
- they can be used to get/set properties.
-"""
-# SOCKADDR DEFINITION
-AF_UNSPEC    = 0  # from socket.h sa_family unspecified
-ARPHRD_ETHER = 1  # from net/if_arp.h sa_family ethernet a.k.a AF_LOCAL
-AF_INET      = 2  # from socket.h ip address (ip4)
-# sa_addr # sockaddr is {unsigned short sa_family,char [14] address}
-# for our purposes, we use only characters, 6 octets for a hw addr and 4 octets
-# for an ip4 addr.
-# NOTE: For whatever reason, all ioctl calls accept and return ip4 addresses
-# prefixed by two null bytes
-sa_addr = 'H6B'
-def sockaddr(sa_family,sa_data=None):
-    """
-     create a sockaddr
-    :param sa_family: address family
-    :param sa_data: protocal address (up to 14 bytes)
-    :returns: packed sockaddr
-    """
-    # the address must be "prepended" with sa_family IOT follow the sockaddr struct
-    vs = [sa_family]
-    if sa_data is None: vs.extend([0] * 6) # send empty bytes for ioctl to fill in
-    else:
-        if sa_family == ARPHRD_ETHER:
-            vs.extend([int(x,16) for x in sa_data.split(':')])
-        elif sa_family == AF_INET:
-            vs.extend([int(x) for x in ('0.0.'+sa_data).split('.')])
-        else:
-            raise AttributeError("sa_family {0} not supported".format(sa_family))
-    return struct.pack(sa_addr,*vs)
-
-# IFREQ DEFINITION
 ifr_name = '{0}s'.format(IFNAMSIZ) # formats for ifreq struct
 ifr_flags = 'h'
 ifr_ifindex = 'i'
@@ -262,9 +260,16 @@ def ifreq(ifrn,ifru=None,param=None):
         if not ifru: pass # only pass the device name
         elif ifru == sioc.SIOCGIFHWADDR: # get hwaddr
             ifr += sockaddr(ARPHRD_ETHER,None)
-            #ifr += struct.pack('{0}x'.format(IFADDRLEN))
         elif ifru == sioc.SIOCSIFHWADDR: # set hwaddr
-            ifr += sockaddr(param[0],param[1])
+            ifr += sockaddr(ARPHRD_ETHER,param[0])
+        elif ifru == sioc.SIOCGIFADDR or \
+             ifru == sioc.SIOCGIFNETMASK or \
+             ifru == sioc.SIOCGIFBRDADDR: # get ip4, netmask or broadcast address
+            ifr += sockaddr(AF_INET,None)
+        elif ifru == sioc.SIOCSIFADDR or \
+             ifru == sioc.SIOCSIFNETMASK or \
+             ifru == sioc.SIOCSIFBRDADDR:  # set ip4, netmask or broadcast address
+            ifr += sockaddr(AF_INET,param[0])
         elif ifru == sioc.SIOCGIFFLAGS: # get flags
             ifr += struct.pack('{0}x'.format(IFFLAGLEN))
         elif ifru == sioc.SIOCSIFFLAGS: # set flags
@@ -275,10 +280,6 @@ def ifreq(ifrn,ifru=None,param=None):
             ifr += struct.pack('{0}x'.format(IWNAMELEN))
         elif ifru == sioc.SIOCGIWTXPOW: # get tx pwr
             ifr += struct.pack('{0}x'.format(IWTXPWRLEN))
-        elif ifru == sioc.SIOCGIFADDR: # get ip4 address
-            ifr += sockaddr(AF_INET,None)
-        elif ifru == sioc.SIOCSIFADDR: # set ip4 address
-            ifr += sockaddr(param[0],param[1])
         else:
             raise AttributeError("ifru {0} not supported".format(ifru))
     except (TypeError,IndexError):

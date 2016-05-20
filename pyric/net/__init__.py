@@ -23,7 +23,7 @@ Linux header ports for netlink et al.
 
  net 0.0.2
   desc: linux header ports
- includes: /wireless genetlink_h 0.0.1 if_h 0.0.2 netlink_h 0.0.3 sockios_h 0.0.2
+ includes: /wireless genetlink_h 0.0.1 if_h 0.0.3 netlink_h 0.0.3 sockios_h 0.0.2
   policy 0.0.2
  changes:
   o added attribute constants to nl80211_h

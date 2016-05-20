@@ -252,7 +252,8 @@ def regset(rd,*argv):
 
 class Card(tuple):
     """
-     Wrapper around a tuple t = (physical index,device name, interface index)
+     A wireless network interface card - Wrapper around a tuple
+      t = (physical index,device name, interface index)
      Exposes the following properties: (callable by '.'):
       phy: physical index
       dev: device name
@@ -303,7 +304,7 @@ def macget(card,*argv):
      gets the interface's hw address (APX ifconfig <card.dev> | grep HWaddr)
      :param card: Card object
      :param argv: ioctl socket at argv[0] (or empty)
-     :returns: device mac
+     :returns: device mac after operation
     """
     try:
         iosock = argv[0]
@@ -331,7 +332,6 @@ def macset(card,mac,*argv):
      :param mac: macaddr to set
      :param argv: ioctl socket at argv[0] (or empty)
      :returns: mac address after operation
-     TODO: add parameter check on mac address
     """
     if  not _validmac_(mac): raise pyric.error(errno.EINVAL,"Invalid mac address")
     try:
@@ -341,27 +341,77 @@ def macset(card,mac,*argv):
 
     try:
         flag = sioch.SIOCSIFHWADDR
-        params = [ifh.ARPHRD_ETHER,mac]
-        ret = io.io_transfer(iosock,flag,ifh.ifreq(card.dev,flag,params))
+        ret = io.io_transfer(iosock,flag,ifh.ifreq(card.dev,flag,[mac]))
         fam = struct.unpack_from(ifh.sa_addr,ret,ifh.IFNAMELEN)[0]
         if fam == ifh.ARPHRD_ETHER or fam == ifh.AF_UNSPEC: # confirm we got a hwaddr back
             return _hex2mac_(ret[18:24])
         else:
-            raise pyric.error(errno.EAFNOSUPPORT, "Invalid return addr family")
+            raise pyric.error(errno.EAFNOSUPPORT, "Returned hw address family is not valid")
     except AttributeError as e:
         raise pyric.error(errno.EINVAL,"Invalid parameter {0}".format(e))
     except struct.error as e:
         raise pyric.error(pyric.EUNDEF,"error parsing results {0}".format(e))
 
+def inetget(card,*argv):
+    """
+     get nic's ip, netmask and broadcast addresses
+     :param card: Card object
+     :param argv: ioctl socket at argv[0] (or empty)
+     :returns: the tuple t = (ip4,netmask,broadcast)
+    """
+    try:
+        iosock = argv[0]
+    except IndexError:
+        return _iostub_(inetget,card)
+
+    ip4 = netmask = brdaddr = None
+    try:
+        # ip
+        flag = sioch.SIOCGIFADDR
+        ret = io.io_transfer(iosock,flag,ifh.ifreq(card.dev,flag))
+        fam = struct.unpack_from(ifh.sa_addr,ret,ifh.IFNAMELEN)[0]
+        if fam == ifh.AF_INET:
+            ip4 = _hex2ip4_(ret[20:24])
+        else:
+            raise pyric.error(errno.EAFNOSUPPORT, "Returned ip family is not valid")
+
+        # netmask
+        flag = sioch.SIOCGIFNETMASK
+        ret = io.io_transfer(iosock,flag,ifh.ifreq(card.dev,flag))
+        fam = struct.unpack_from(ifh.sa_addr,ret,ifh.IFNAMELEN)[0]
+        if fam == ifh.AF_INET:
+            netmask = _hex2ip4_(ret[20:24])
+        else:
+            raise pyric.error(errno.EAFNOSUPPORT, "Returned netmask family is not valid")
+
+        # broadcast
+        flag = sioch.SIOCGIFBRDADDR
+        ret = io.io_transfer(iosock,flag,ifh.ifreq(card.dev,flag))
+        fam = struct.unpack_from(ifh.sa_addr,ret,ifh.IFNAMELEN)[0]
+        if fam == ifh.AF_INET:
+            brdaddr = _hex2ip4_(ret[20:24])
+        else:
+            raise pyric.error(errno.EAFNOSUPPORT, "Returned broadcast family is not valid")
+    except pyric.error as e:
+        # catch error where no addresses are assigned to card
+        if e.errno == errno.EADDRNOTAVAIL: return ip4,netmask,brdaddr
+        else: raise
+    except AttributeError as e:
+        raise pyric.error(errno.EINVAL,"Invalid parameter {0}".format(e))
+    except struct.error as e:
+        raise pyric.error(pyric.EUNDEF,"error parsing results {0}".format(e))
+
+    return ip4,netmask,brdaddr
+
 def ip4set(card,ipaddr,*argv):
     """
      REQUIRES ROOT PRIVILEGES
-     set nic's ip4 addr (ifconfig <card.dev> <ipaddr>)
+     set nic's ip4 addr  (ifconfig <card.dev> <ipaddr>
      :param card: Card object
      :param ipaddr: ip address to set
      :param argv: ioctl socket at argv[0] (or empty)
      :returns: True on success
-     TODO: add parameter check on ip address
+     NOTE: setting the ip will set netmask and broadcast accordingly
     """
     if not _validip4_(ipaddr): raise pyric.error(errno.EINVAL,"Invalid ip4 address")
     try:
@@ -369,19 +419,148 @@ def ip4set(card,ipaddr,*argv):
     except IndexError:
         return _iostub_(ip4set,card,ipaddr)
 
+    # we have to do one at a time
     try:
         flag = sioch.SIOCSIFADDR
-        params = [ifh.AF_INET,ipaddr]
-        ret = io.io_transfer(iosock,flag,ifh.ifreq(card.dev,flag,params))
+        ret = io.io_transfer(iosock,flag,ifh.ifreq(card.dev,flag,[ipaddr]))
         fam = struct.unpack_from(ifh.sa_addr,ret,ifh.IFNAMELEN)[0]
-        if fam == ifh.AF_INET: # confirm we got a hwaddr back
-            return _hex2ip4_(ret[20:24])
+        if fam == ifh.AF_INET: # confirm we got ip4 back
+            return _hex2ip4_(ipaddr)
         else:
-            raise pyric.error(errno.EAFNOSUPPORT,"Invalid return addr family")
+            raise pyric.error(errno.EAFNOSUPPORT,"Returned ip family is invalid")
     except AttributeError as e:
         raise pyric.error(errno.EINVAL,"Invalid parameter {0}".format(e))
     except struct.error as e:
-        raise pyric.error(pyric.EUNDEF,"error parsing results {0}".format(e))
+        raise pyric.error(pyric.EUNDEF,"ifreq error: {0}".format(e))
+
+def netmaskset(card,netmask,*argv):
+    """
+     REQUIRES ROOT PRIVILEGES
+     set nic's ip4 netmask (ifconfig <card.dev> netmask <netmask>
+     :param card: Card object
+     :param netmask: netmask to set
+     :param argv: ioctl socket at argv[0] (or empty)
+     :returns: True on success
+     NOTE:
+      1) throws error if netmask is set and card does not have an ip assigned
+    """
+    if not _validip4_(netmask): raise pyric.error(errno.EINVAL,"Invalid netmask")
+    try:
+        iosock = argv[0]
+    except IndexError:
+        return _iostub_(netmaskset,card,netmask)
+
+    # we have to do one at a time
+    try:
+        flag = sioch.SIOCGIFNETMASK
+        ret = io.io_transfer(iosock,flag,ifh.ifreq(card.dev,flag))
+        fam = struct.unpack_from(ifh.sa_addr,ret,ifh.IFNAMELEN)[0]
+        if fam == ifh.AF_INET:
+            return _hex2ip4_(ret[20:24])
+        else:
+            raise pyric.error(errno.EAFNOSUPPORT, "Returned netmask family is not valid")
+    except pyric.error as e:
+        # an ambiguous error is thrown if attempting to set netmask or broadcast
+        # without an ip address already set on the card
+        if e.errno == errno.EADDRNOTAVAIL:
+            raise pyric.error(errno.EINVAL,"Cannot set netmask. Set ip first")
+        else:
+            raise
+    except AttributeError as e:
+        raise pyric.error(errno.EINVAL,"Invalid parameter {0}".format(e))
+    except struct.error as e:
+        raise pyric.error(pyric.EUNDEF,"ifreq error: {0}".format(e))
+
+def broadcastset(card,broadcast,*argv):
+    """
+     REQUIRES ROOT PRIVILEGES
+     set nic's ip4 netmask (ifconfig <card.dev> broadcast <broadcast>
+     :param card: Card object
+     :param broadcast: netmask to set
+     :param argv: ioctl socket at argv[0] (or empty)
+     :returns: True on success
+     NOTE:
+      1) throws error if netmask is set and card does not have an ip assigned
+      2) can set broadcast to erroneous values i.e. ipaddr = 192.168.1.2 and
+      broadcast = 10.0.0.31.
+    """
+    if not _validip4_(broadcast): raise pyric.error(errno.EINVAL,"Invalid broadcast")
+    try:
+        iosock = argv[0]
+    except IndexError:
+        return _iostub_(netmaskset,card,broadcast)
+
+    # we have to do one at a time
+    try:
+        flag = sioch.SIOCGIFBRDADDR
+        ret = io.io_transfer(iosock,flag,ifh.ifreq(card.dev,flag))
+        fam = struct.unpack_from(ifh.sa_addr,ret,ifh.IFNAMELEN)[0]
+        if fam == ifh.AF_INET:
+            return _hex2ip4_(ret[20:24])
+        else:
+            raise pyric.error(errno.EAFNOSUPPORT, "Returned broadcast family is not valid")
+    except pyric.error as e:
+        # an ambiguous error is thrown if attempting to set netmask or broadcast
+        # without an ip address already set on the card
+        if e.errno == errno.EADDRNOTAVAIL:
+            raise pyric.error(errno.EINVAL,"Cannot set broadcast. Set ip first")
+        else:
+            raise
+    except AttributeError as e:
+        raise pyric.error(errno.EINVAL,"Invalid parameter {0}".format(e))
+    except struct.error as e:
+        raise pyric.error(pyric.EUNDEF,"ifreq error: {0}".format(e))
+
+def inetset(card,ipaddr,netmask,broadcast,*argv):
+    """
+     REQUIRES ROOT PRIVILEGES
+     set nic's ip4 addr, netmask and/or broadcast
+      (ifconfig <card.dev> <ipaddr> netmask <netmask> broadcast <broadcast>)
+     can set ipaddr,netmask and/or broadcast to None but one or more of ipaddr,
+     netmask, broadcast must be set
+     :param card: Card object
+     :param ipaddr: ip address to set
+     :param netmask: netmask to set
+     :param broadcast: broadcast to set
+     :param argv: ioctl socket at argv[0] (or empty)
+     :returns: True on success
+     NOTE:
+      1) throws error if setting netmask or broadcast and card does not have
+       an ip assigned
+      2) if setting only the ip address, netmask and broadcast will be set
+         accordingly by the kernel. However, if setting multiple or setting the
+         netmask and/or broadcast after the ip is assigned, one can set them to
+         erroneous values i.e. ipaddr = 192.168.1.2 and broadcast = 10.0.0.31.
+    """
+    # ensure one of params is set & that all set params are valid ip address
+    if not ipaddr and not netmask and not broadcast:
+        raise pyric.error(errno.EINVAL,"One of ipaddr/netmask/broadcast must be set")
+    if ipaddr and not _validip4_(ipaddr): raise pyric.error(errno.EINVAL,"Invalid ip4 address")
+    if netmask and not _validip4_(netmask): raise pyric.error(errno.EINVAL,"Invalid netmask")
+    if broadcast and not _validip4_(broadcast): raise pyric.error(errno.EINVAL,"Invalid broadcast")
+    try:
+        iosock = argv[0]
+    except IndexError:
+        return _iostub_(inetset,card,ipaddr,netmask,broadcast)
+
+    # we have to do one at a time
+    try:
+        # ip address first
+        if ipaddr: ip4set(card,ipaddr,iosock)
+        if netmask: netmaskset(card,netmask,iosock)
+        if broadcast: broadcastset(card,broadcast,iosock)
+    except pyric.error as e:
+        # an ambiguous error is thrown if attempting to set netmask or broadcast
+        # without an ip address already set on the card
+        if not ipaddr and e.errno == errno.EADDRNOTAVAIL:
+            raise pyric.error(errno.EINVAL,"Cannot set netmask/broadcast. Set ip first")
+        else:
+            raise
+    except AttributeError as e:
+        raise pyric.error(errno.EINVAL,"Invalid parameter {0}".format(e))
+    except struct.error as e:
+        raise pyric.error(pyric.EUNDEF,"ifreq error: {0}".format(e))
+    return True
 
 def up(card,*argv):
     """
@@ -833,7 +1012,10 @@ def _validip4_(addr):
      :param addr: ip addr to check
      :returns: True if addr is valid ip, False otherwise
     """
-    if re.match(IPADDR,addr): return True
+    try:
+        if re.match(IPADDR,addr): return True
+    except TypeError:
+        return False
     return False
 
 def _validmac_(addr):
@@ -842,7 +1024,10 @@ def _validmac_(addr):
      :param addr: address to check
      :returns: True if addr is valid hw address, False otherwise
     """
-    if re.match(MACADDR,addr): return True
+    try:
+        if re.match(MACADDR,addr): return True
+    except TypeError:
+        return False
     return False
 
 def _issetf_(flags,flag):
@@ -1040,35 +1225,3 @@ def _fut_chset(card,ch,chw,*argv):
     nl.nl_sendmsg(nlsock,msg)
     nl.nl_recvmsg(nlsock)
     return True
-
-# [Errno 99] Cannot assign requested address
-def ip4get(card,*argv):
-    """
-     get nic's ipaddr
-     :param card: Card object
-     :param argv: ioctl socket at argv[0] (or empty)
-     :returns: True on success
-     TODO: add parameter check on ip address
-    """
-    ### DOESN"T WORK ###
-    try:
-        iosock = argv[0]
-    except IndexError:
-        return _iostub_(ip4get,card)
-
-    try:
-        flag = sioch.SIOCGIFADDR
-        ret = io.io_transfer(iosock,flag,ifh.ifreq(card.dev,flag))
-        fam = struct.unpack_from(ifh.sa_addr,ret,ifh.IFNAMELEN)[0]
-        print fam
-        return _hex2ip4_(ret[20:24])
-        # see macget
-        #fam = struct.unpack_from(ifh.sa_addr,ret,ifh.IFNAMELEN)[0]
-        #if fam == ifh.ARPHRD_ETHER or fam == ifh.AF_UNSPEC: # confirm we got a hwaddr back
-        #    return _hex2mac_(ret[18:24])
-        #else:
-        #    raise pyric.error(errno.EAFNOSUPPORT, "Invalid return addr family")
-    except AttributeError as e:
-        raise pyric.error(errno.EINVAL,"Invalid parameter {0}".format(e))
-    except struct.error as e:
-        raise pyric.error(pyric.EUNDEF,"error parsing results {0}".format(e))
