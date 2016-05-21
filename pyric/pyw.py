@@ -403,6 +403,57 @@ def inetget(card,*argv):
 
     return ip4,netmask,brdaddr
 
+def inetset(card,ipaddr,netmask,broadcast,*argv):
+    """
+     REQUIRES ROOT PRIVILEGES
+     set nic's ip4 addr, netmask and/or broadcast
+      (ifconfig <card.dev> <ipaddr> netmask <netmask> broadcast <broadcast>)
+     can set ipaddr,netmask and/or broadcast to None but one or more of ipaddr,
+     netmask, broadcast must be set
+     :param card: Card object
+     :param ipaddr: ip address to set
+     :param netmask: netmask to set
+     :param broadcast: broadcast to set
+     :param argv: ioctl socket at argv[0] (or empty)
+     :returns: True on success
+     NOTE:
+      1) throws error if setting netmask or broadcast and card does not have
+       an ip assigned
+      2) if setting only the ip address, netmask and broadcast will be set
+         accordingly by the kernel. However, if setting multiple or setting the
+         netmask and/or broadcast after the ip is assigned, one can set them to
+         erroneous values i.e. ipaddr = 192.168.1.2 and broadcast = 10.0.0.31.
+    """
+    # ensure one of params is set & that all set params are valid ip address
+    if not ipaddr and not netmask and not broadcast:
+        raise pyric.error(errno.EINVAL,"One of ipaddr/netmask/broadcast must be set")
+    if ipaddr and not _validip4_(ipaddr): raise pyric.error(errno.EINVAL,"Invalid ip4 address")
+    if netmask and not _validip4_(netmask): raise pyric.error(errno.EINVAL,"Invalid netmask")
+    if broadcast and not _validip4_(broadcast): raise pyric.error(errno.EINVAL,"Invalid broadcast")
+    try:
+        iosock = argv[0]
+    except IndexError:
+        return _iostub_(inetset,card,ipaddr,netmask,broadcast)
+
+    # we have to do one at a time
+    try:
+        # ip address first
+        if ipaddr: ip4set(card,ipaddr,iosock)
+        if netmask: netmaskset(card,netmask,iosock)
+        if broadcast: broadcastset(card,broadcast,iosock)
+    except pyric.error as e:
+        # an ambiguous error is thrown if attempting to set netmask or broadcast
+        # without an ip address already set on the card
+        if not ipaddr and e.errno == errno.EADDRNOTAVAIL:
+            raise pyric.error(errno.EINVAL,"Cannot set netmask/broadcast. Set ip first")
+        else:
+            raise
+    except AttributeError as e:
+        raise pyric.error(errno.EINVAL,"Invalid parameter {0}".format(e))
+    except struct.error as e:
+        raise pyric.error(pyric.EUNDEF,"ifreq error: {0}".format(e))
+    return True
+
 def ip4set(card,ipaddr,*argv):
     """
      REQUIRES ROOT PRIVILEGES
@@ -511,57 +562,6 @@ def broadcastset(card,broadcast,*argv):
     except struct.error as e:
         raise pyric.error(pyric.EUNDEF,"ifreq error: {0}".format(e))
 
-def inetset(card,ipaddr,netmask,broadcast,*argv):
-    """
-     REQUIRES ROOT PRIVILEGES
-     set nic's ip4 addr, netmask and/or broadcast
-      (ifconfig <card.dev> <ipaddr> netmask <netmask> broadcast <broadcast>)
-     can set ipaddr,netmask and/or broadcast to None but one or more of ipaddr,
-     netmask, broadcast must be set
-     :param card: Card object
-     :param ipaddr: ip address to set
-     :param netmask: netmask to set
-     :param broadcast: broadcast to set
-     :param argv: ioctl socket at argv[0] (or empty)
-     :returns: True on success
-     NOTE:
-      1) throws error if setting netmask or broadcast and card does not have
-       an ip assigned
-      2) if setting only the ip address, netmask and broadcast will be set
-         accordingly by the kernel. However, if setting multiple or setting the
-         netmask and/or broadcast after the ip is assigned, one can set them to
-         erroneous values i.e. ipaddr = 192.168.1.2 and broadcast = 10.0.0.31.
-    """
-    # ensure one of params is set & that all set params are valid ip address
-    if not ipaddr and not netmask and not broadcast:
-        raise pyric.error(errno.EINVAL,"One of ipaddr/netmask/broadcast must be set")
-    if ipaddr and not _validip4_(ipaddr): raise pyric.error(errno.EINVAL,"Invalid ip4 address")
-    if netmask and not _validip4_(netmask): raise pyric.error(errno.EINVAL,"Invalid netmask")
-    if broadcast and not _validip4_(broadcast): raise pyric.error(errno.EINVAL,"Invalid broadcast")
-    try:
-        iosock = argv[0]
-    except IndexError:
-        return _iostub_(inetset,card,ipaddr,netmask,broadcast)
-
-    # we have to do one at a time
-    try:
-        # ip address first
-        if ipaddr: ip4set(card,ipaddr,iosock)
-        if netmask: netmaskset(card,netmask,iosock)
-        if broadcast: broadcastset(card,broadcast,iosock)
-    except pyric.error as e:
-        # an ambiguous error is thrown if attempting to set netmask or broadcast
-        # without an ip address already set on the card
-        if not ipaddr and e.errno == errno.EADDRNOTAVAIL:
-            raise pyric.error(errno.EINVAL,"Cannot set netmask/broadcast. Set ip first")
-        else:
-            raise
-    except AttributeError as e:
-        raise pyric.error(errno.EINVAL,"Invalid parameter {0}".format(e))
-    except struct.error as e:
-        raise pyric.error(pyric.EUNDEF,"ifreq error: {0}".format(e))
-    return True
-
 def up(card,*argv):
     """
      REQUIRES ROOT PRIVILEGES
@@ -599,29 +599,6 @@ def down(card,*argv):
     if _issetf_(flags,ifh.IFF_UP):
         _flagsset_(dev,_unsetf_(flags,ifh.IFF_UP),iosock)
     return True
-
-def txget(card,*argv):
-    """
-     gets the device's transimission power (iwconfig <card.dev> | grep Tx-Power)
-     :param card: Card object
-     :param argv: ioctl socket at argv[0] (or empty)
-     :returns: transmission power
-    """
-    try:
-        iosock = argv[0]
-    except IndexError:
-        return _iostub_(txget,card)
-
-    try:
-        flag = sioch.SIOCGIWTXPOW
-        ret = io.io_transfer(iosock,flag,ifh.ifreq(card.dev,flag))
-        return struct.unpack_from(ifh.ifr_iwtxpwr,ret,ifh.IFNAMELEN)[0]
-    except AttributeError as e:
-        raise pyric.error(errno.EINVAL,"Invalid parameter {0}".format(e))
-    except IndexError:
-        return None
-    except struct.error as e:
-        raise pyric.error(pyric.EUNDEF,"Error parsing results {0}".format(e))
 
 def devstds(card,*argv):
     """
@@ -807,6 +784,29 @@ def ifaces(card,*argv):
         if info['card'].phy == card.phy: ifs.append((info['card'],info['mode']))
     return ifs
 
+def txget(card,*argv):
+    """
+     gets the device's transimission power (iwconfig <card.dev> | grep Tx-Power)
+     :param card: Card object
+     :param argv: ioctl socket at argv[0] (or empty)
+     :returns: transmission power
+    """
+    try:
+        iosock = argv[0]
+    except IndexError:
+        return _iostub_(txget,card)
+
+    try:
+        flag = sioch.SIOCGIWTXPOW
+        ret = io.io_transfer(iosock,flag,ifh.ifreq(card.dev,flag))
+        return struct.unpack_from(ifh.ifr_iwtxpwr,ret,ifh.IFNAMELEN)[0]
+    except AttributeError as e:
+        raise pyric.error(errno.EINVAL,"Invalid parameter {0}".format(e))
+    except IndexError:
+        return None
+    except struct.error as e:
+        raise pyric.error(pyric.EUNDEF,"Error parsing results {0}".format(e))
+
 def chget(card,*argv):
     """
      gets the current channel for device (iw dev <card.dev> info | grep channel)
@@ -820,6 +820,31 @@ def chget(card,*argv):
     except IndexError:
         return _nlstub_(chget,card)
     return channels.rf2ch(devinfo(card.dev,nlsock)['RF'])
+
+def chset(card,ch,chw,*argv):
+    """
+     REQUIRES ROOT PRIVILEGES
+     sets current channel on device (iw phy <card.phy> set channel <ch> <chw>)
+     :param card: Card object
+     :param ch: channel number
+     :param chw: channel width oneof {[None|'HT20'|'HT40-'|'HT40+'}
+     :param argv: netlink socket at argv[0] (or empty)
+     :returns: True on success
+     NOTE:
+      o ATT can throw a device busy for several reason. Most likely due to
+      the network manager etc.
+      o On my system at least (Ubuntu), creating a new dev in monitor mode and
+        deleting all other existing managed interfaces allows for the new virtual
+        device's channels to be changed
+    """
+    if ch not in channels.channels(): raise pyric.error(errno.EINVAL,"Invalid channel")
+    if chw not in channels.CHWIDTHS: raise pyric.error(errno.EINVAL,"Invalid width")
+    try:
+        nlsock = argv[0]
+    except IndexError:
+        return _nlstub_(chset,card,ch,chw)
+
+    return freqset(card,channels.ch2rf(ch),chw,nlsock)
 
 def freqset(card,rf,chw=None,*argv):
     """
@@ -849,30 +874,19 @@ def freqset(card,rf,chw=None,*argv):
     nl.nl_recvmsg(nlsock)
     return True
 
-def chset(card,ch,chw,*argv):
+def modeget(card,*argv):
     """
-     REQUIRES ROOT PRIVILEGES
-     sets current channel on device (iw phy <card.phy> set channel <ch> <chw>)
+     get current mode of card
      :param card: Card object
-     :param ch: channel number
-     :param chw: channel width oneof {[None|'HT20'|'HT40-'|'HT40+'}
      :param argv: netlink socket at argv[0] (or empty)
-     :returns: True on success
-     NOTE:
-      o ATT can throw a device busy for several reason. Most likely due to
-      the network manager etc.
-      o On my system at least (Ubuntu), creating a new dev in monitor mode and
-        deleting all other existing managed interfaces allows for the new virtual
-        device's channels to be changed
+     :return:
     """
-    if ch not in channels.channels(): raise pyric.error(errno.EINVAL,"Invalid channel")
-    if chw not in channels.CHWIDTHS: raise pyric.error(errno.EINVAL,"Invalid width")
     try:
         nlsock = argv[0]
     except IndexError:
-        return _nlstub_(chset,card,ch,chw)
+        return _nlstub_(modeget,card)
 
-    return freqset(card,channels.ch2rf(ch),chw,nlsock)
+    return devinfo(card,nlsock)['mode']
 
 def modeset(card,mode,flags=None,*argv):
     """
@@ -913,20 +927,6 @@ def modeset(card,mode,flags=None,*argv):
     nl.nl_sendmsg(nlsock,msg)
     nl.nl_recvmsg(nlsock)
     return True
-
-def modeget(card,*argv):
-    """
-     get current mode of card
-     :param card: Card object
-     :param argv: netlink socket at argv[0] (or empty)
-     :return:
-    """
-    try:
-        nlsock = argv[0]
-    except IndexError:
-        return _nlstub_(modeget,card)
-
-    return devinfo(card,nlsock)['mode']
 
 def devadd(card,vdev,mode,flags=None,*argv):
     """

@@ -50,7 +50,8 @@ A port of if.h, iw_param from wireless.h and sockaddr from socket.h to python
 
 __name__ = 'if_h'
 __license__ = 'GPLv3'
-__version__ = '0.0.3'
+__version__ = '0.0.3Dark' \
+              ''
 __date__ = 'February 2016'
 __author__ = 'Dale Patterson'
 __maintainer__ = 'Dale Patterson'

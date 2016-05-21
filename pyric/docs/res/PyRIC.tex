@@ -247,9 +247,9 @@ break the imports pyw.py uses. \\
 You will only be able to test PyRIC from the pyric directory but, if you want to,
 you can add it to your Python path and run it from any program or any location.
 To do so, assume you untared PyRIC to /home/bob/PyRIC. Create a text file named
-pyric.pth with one line
+pyric.pth with one line \\
 
-    /home/bob/PyRIC
+    /home/bob/PyRIC \\
 
 and save this file to /usr/lib/python2.7/dist-packages (or 
 /usr/lib/python3/dist-packages if you want to try it in Python 3).
@@ -707,8 +707,17 @@ ioctl, set card's hw address to mac
 \item up(card,[iosock]) (ifconfig card.<dev> up), type: ioctl, bring card up
 \item down(card,[iosock]): (ifconfig card.<dev> down), type: ioctl, bring card 
 down
-\item txget(card,[iosock]): (iwconfig card.<dev> | grep Tx-Power card), type: 
-ioctl, get card's transmission power
+\item inetget(card,[iosock]): (ifconfig card.<dev>), type: ioctl, get ip4 address,
+netmask and broadcast address of card
+\item inetset(card,ipaddr,netmask,broadcast,[iosock]): (ifconfig card/<dev> <ipaddr>
+netmask <netmask> broadcast <broadcast>), type: ioctl, set the interface addresses
+of the card
+\item ipset(card,ipaddr,[iosock]): (ifconfig card.<dev> <ipaddr>), type: ioctl,
+set the card's ip4 address
+\item ipset(card,ipaddr,[iosock]): (ifconfig card.<dev> <ipaddr>), type: ioctl,
+set the card's netmask
+\item ipset(card,ipaddr,[iosock]): (ifconfig card.<dev> <ipaddr>), type: ioctl,
+set the card's broadcast address
 \item devstds(card,[iosock]): (iwconfig card.<dev> | grep IEEE), type: ioctl, get
 list of card's 802.11 supported standards
 \item devmodes(card,[nlsock]): (iw phy card.phy info | grep interface), type:
@@ -721,6 +730,8 @@ for dev
 for phy
 \item ifaces(card,[nlsock]): (APX iw card.dev | grep phy\#), type: netlink, get all
 cards (w/ modes) of interfaces sharing the same phy as card
+\item txget(card,[iosock]): (iwconfig card.<dev> | grep Tx-Power card), type: 
+ioctl, get card's transmission power
 \item chget(card,[nlsock]): (iw dev <card.dev> info | grep channelS), type: 
 netlink, get card's current channel (only works for cards in mode managed)
 \item chset(card,ch,chw,[nlsock]): iw phy <card.phy> set channel <ch> <chw>), 
