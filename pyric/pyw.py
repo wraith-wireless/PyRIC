@@ -705,6 +705,7 @@ def phyinfo(card,*argv):
      :param card: Card
      :param argv: netlink socket at argv[0] (or empty)
      :returns: dict with the following key:value pairs
+      generation -> wiphy generation
       modes -> list of supported modes
       bands -> list of supported bands (still working on unpacking)
       scan_ssids -> max number of scan SSIDS
@@ -742,6 +743,7 @@ def phyinfo(card,*argv):
             'cov_class':None,'swmodes':None,'commands':None}
     # singular attributes
     info['bands'] = nl.nla_find(rmsg,nl80211h.NL80211_ATTR_WIPHY_BANDS)
+    info['generation'] = nl.nla_find(rmsg,nl80211h.NL80211_ATTR_GENERATION)
     info['retry_short'] = nl.nla_find(rmsg,nl80211h.NL80211_ATTR_WIPHY_RETRY_SHORT)
     info['retry_long'] = nl.nla_find(rmsg,nl80211h.NL80211_ATTR_WIPHY_RETRY_LONG)
     info['retry_short'] = nl.nla_find(rmsg,nl80211h.NL80211_ATTR_WIPHY_RETRY_SHORT)
