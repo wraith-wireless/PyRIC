@@ -33,6 +33,7 @@ __maintainer__ = 'Dale Patterson'
 __email__ = 'wraith.wireless@yandex.com'
 __status__ = 'Development'
 
+import struct
 import pyric.net.netlink_h as nlh
 import pyric.net.wireless.nl80211_h as nl80211h
 
@@ -178,7 +179,7 @@ nl80211_policy = {
     # not present in nl80211.c
     nl80211h.NL80211_ATTR_SUPPORTED_IFTYPES:nlh.NLA_NESTED,
     nl80211h.NL80211_ATTR_SOFTWARE_IFTYPES:nlh.NLA_NESTED,
-    nl80211h.NL80211_ATTR_WIPHY_BANDS:nlh.NLA_NESTED,
+    #nl80211h.NL80211_ATTR_WIPHY_BANDS:nlh.NLA_NESTED,
     nl80211h.NL80211_ATTR_SUPPORTED_COMMANDS:nlh.NLA_NESTED,
     nl80211h.NL80211_ATTR_MAX_NUM_SCAN_SSIDS:nlh.NLA_U8,
     nl80211h.NL80211_ATTR_GENERATION: nlh.NLA_U8,
@@ -284,3 +285,51 @@ nl80211_sched_scan_match_policy = {
 #    nl80211h.NL80211_SCHED_SCAN_PLAN_INTERVAL:nlh.NLA_U32,
 #    nl80211h.NL80211_SCHED_SCAN_PLAN_ITERATIONS:nlh.NLA_U32
 #}
+
+def nl80211_parse_freqs(bands):
+    """
+     extracts frequencies from bands
+     :param bands: packed bytes containing band data
+     :returns: list of frequencies found in bands
+     hack for parsing NL80211_ATTR_WIPHY_BANDS to extract supported frequencies
+
+     find \x01\01 which appears to start the list of freqs. \x01 = NL80211_BAND_ATTR_FREQS
+     Each freq appears to be listed preceded by a variable # of bytes then by
+
+      +-------+-----+-----+-------+-----+-----+
+      | buff1 | RF  | buff2 | freq data | pad |
+      +-------+-----+-------+-----+-----+-----+
+        9       4       4      <var>      1
+
+      where buff1 =
+      +--------------+-----+----------------------+
+      | \x00\x14\x00 | cnt | \x00\x08\x00\x01\x00 |
+      +--------------+-----+----------------------+
+
+      such that cnt is the number (starting at 0) of the current rf
+
+     and
+
+      buff2 = \x08\x00\x06\x00
+
+     Works on single band ISM radios but does not extract all freqs for UNII
+    """
+    bands = bands[bands.find('\x01\x01'):]
+
+    cnt = 0
+    rfs = []
+    while True:
+        # pull out the freq
+        cur = "\x00{0}\x00\x08\x00\x01\x00".format(struct.pack("B",cnt))
+        idx = bands.find(cur)
+        if idx < 0: break
+        idx += len(cur)
+        rfs.append(struct.unpack_from("I",bands,idx)[0])
+        bands = bands[idx:]
+
+        # move to the end of freq data
+        end = "\x08\x00\x06\x00"
+        bands = bands[bands.find(end)+len(end):]
+
+        cnt += 1
+    return rfs
