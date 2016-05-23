@@ -293,22 +293,27 @@ def nl80211_parse_freqs(bands):
      :returns: list of frequencies found in bands
      hack for parsing NL80211_ATTR_WIPHY_BANDS to extract supported frequencies
 
-     find \x01\01 which appears to start the list of freqs. \x01 = NL80211_BAND_ATTR_FREQS
-     Each freq appears to be listed preceded by a variable # of bytes then by
+     Each band (or frequency list) begins with \x01\x01 (\x01 = NL80211_BAND_ATTR_FREQS)
 
-      +-------+-----+-----+-------+-----+-----+
-      | buff1 | RF  | buff2 | freq data | pad |
-      +-------+-----+-------+-----+-----+-----+
-        9       4       4      <var>      1
+     Each freq appears to be listed as
+
+      +-------+-----+-------+------+-----+-----+-------+
+      | buff1 | RF  | [unk] |buff2 | freq data | [pad] |
+      +-------+-----+-------+------+-----+-----+-------+
+        9       4       7      4      <var>       1
 
       where buff1 =
-      +--------------+-----+----------------------+
-      | \x00\x14\x00 | cnt | \x00\x08\x00\x01\x00 |
-      +--------------+-----+----------------------+
 
-      such that cnt is the number (starting at 0) of the current rf
+      +------+-----+------+-----+----------------------+
+      | \x00 | <f> | \x00 | cnt | \x00\x08\x00\x01\x00 |
+      +------+-----+------+-----+----------------------+
 
-     and
+      such that f is some unknown flag or value (have currently seen \x14 and
+      \x1c) and cnt is the number (starting at 0) of the current freq
+
+      unk = \x04\x00\x03\x00\x04\x00\x04
+
+      and
 
       buff2 = \x08\x00\x06\x00
 
