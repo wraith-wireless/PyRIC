@@ -1,6 +1,6 @@
-# Include license, README
+# Include license, README, channels, device, pyw and user guide
 include LICENSE README.md __init__.py channels.py device.py pyw.py PyRIC.pdf
 
 # Include subdirectories
 recursive-include lib net examples docs
-recursive-include docs *.help *.pdf
+recursive-include docs *.help

@@ -25,9 +25,8 @@ same as would be found in libnl to ease any transitions. However, I have taken
 liberties with the below as these functions only handle nl80211 generic netlink
 messages.
 
-see http://www.carisma.slowglass.com/~tgr/libnl/doc/core.html
-
 Provides access to netlink sockets and messages in a manner similar to libnl.
+see http://www.carisma.slowglass.com/~tgr/libnl/doc/core.html
 
 """
 

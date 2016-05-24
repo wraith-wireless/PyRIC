@@ -25,7 +25,7 @@ Documentation to include lookup functionality for nl80211 commands and attribute
  desc: PyRIC and nl80211 documentation/help
  includes: nl80211.cmd
  changes:
-  o Began work on User Guide
+  o User Guide complete (mostly)
 """
 
 __name__ = 'docs'

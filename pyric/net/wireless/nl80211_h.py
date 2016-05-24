@@ -47,7 +47,7 @@ are permitted provided that the following conditions are met:
 
 NOTE:
  1. Most of these constants are not used but are left for possible future use
- 2. I have removed *_AFTER_LAST and only kept MAX_* for enums for those nums
+ 2. Have removed *_AFTER_LAST and only kept MAX_* for enums for those nums
 """
 
 __name__ = 'nl80211_h'

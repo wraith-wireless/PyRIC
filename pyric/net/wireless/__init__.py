@@ -18,10 +18,8 @@ are permitted provided that the following conditions are met:
    contributors may be used to endorse or promote products derived from this
    software without specific prior written permission.
 
-Linux header port nl80211.h, .c
-
- net 0.0.1
-  desc: linux port of nl80211.h
+ wireless 0.0.1
+  desc: linux port of nl80211.h, nl80211.c
  includes: nl80211_h 0.0.2 nl80211_c 0.0.1
  changes:
   o added nl80211_c to handle attribute policies

@@ -1,10 +1,6 @@
 #!/usr/bin/env python
 """ nlhelp.py: nl80211 help functions
 
-A set of functions to assist in finding info on nl80211 commands and attributes.
-These are stored in the "data" files commands.help and attributes.help which are
-json files.
-
 Copyright (C) 2016  Dale V. Patterson (wraith.wireless@yandex.com)
 
 This program is free software: you can redistribute it and/or modify it under
@@ -22,6 +18,10 @@ are permitted provided that the following conditions are met:
  o Neither the name of the orginal author Dale V. Patterson nor the names of any
    contributors may be used to endorse or promote products derived from this
    software without specific prior written permission.
+
+A set of functions to assist in finding info on nl80211 commands and attributes.
+These are stored in the "data" files commands.help and attributes.help which are
+json files.
 
 """
 

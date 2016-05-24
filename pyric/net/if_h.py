@@ -39,7 +39,8 @@ are permitted provided that the following conditions are met:
    contributors may be used to endorse or promote products derived from this
    software without specific prior written permission.
 
-A port of if.h, iw_param from wireless.h and sockaddr from socket.h to python
+A port of if.h, with some definitions from iw_param, wireless.h and sockaddr
+from socket.h to python
 
  Additionally
   1) imports definitions from wireless_h to check if a nic is wireless and get
@@ -50,8 +51,7 @@ A port of if.h, iw_param from wireless.h and sockaddr from socket.h to python
 
 __name__ = 'if_h'
 __license__ = 'GPLv3'
-__version__ = '0.0.3Dark' \
-              ''
+__version__ = '0.0.3'
 __date__ = 'February 2016'
 __author__ = 'Dale Patterson'
 __maintainer__ = 'Dale Patterson'

@@ -27,8 +27,8 @@ are permitted provided that the following conditions are met:
    contributors may be used to endorse or promote products derived from this
    software without specific prior written permission.
 
-A port of genetlink.h to python. Includes as well the nla_policy for generic
-netlink attributes.
+A port of genetlink.h to python and defines the nla_policy for generic netlink
+attributes.
 
 """
 

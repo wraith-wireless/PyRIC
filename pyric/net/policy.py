@@ -77,7 +77,7 @@ nla_dts["ctrl_attr_mcast"] = {genlh.CTRL_ATTR_MCAST_GRP_UNSPEC:nlh.NLA_UNSPEC,
 
 nla_dts["nl80211_attr"] = nl80211c.nl80211_policy
 
-# ATT we do include the below
+# ATT we do include the below as defined in nl80211_c
 #nla_dts["nl80211_key"] = nl80211c.nl80211_key_policy
 #nla_dts["nl80211_wowlan_trig"] = nl80211_wowlan_trig_policy
 #nla_dts["nl80211_wowlan_tcp"] = nl80211_wowlan_tcp_policy

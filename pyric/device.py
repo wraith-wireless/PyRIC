@@ -40,6 +40,14 @@ drvpath = '/sys/class/net/{0}/device/driver/module/drivers' # format w/ device n
 phypath = '/sys/class/ieee80211/{0}'                        # format w/ phyiscal name
 # NOTE phypath + index contains the ifindex (sometimes)
 
+def ifcard(dev):
+    """
+     :param dev: device name
+     :returns: tuple t = (driver,chipset)
+    """
+    driver = ifdriver(dev)
+    return driver, ifchipset(driver)
+
 def ifdriver(dev):
     """
      :param dev: device name

@@ -20,8 +20,7 @@ are permitted provided that the following conditions are met:
    contributors may be used to endorse or promote products derived from this
    software without specific prior written permission.
 
-Only defines ISM 2.4Ghz and UNII 5Ghz
-
+Defines ISM 2.4Ghz and UNII 5Ghz frequencies and channels
 """
 
 __name__ = 'channels'

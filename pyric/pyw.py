@@ -708,7 +708,7 @@ def phyinfo(card, *argv):
      :returns: dict with the following key:value pairs
       generation -> wiphy generation
       modes -> list of supported modes
-      bands -> list of supported bands (still working on unpacking)
+      freqs -> list of supported freqs
       scan_ssids -> max number of scan SSIDS
       retry_short -> retry short limit
       retry_long -> retry long limit
@@ -743,7 +743,7 @@ def phyinfo(card, *argv):
             'retry_long':None, 'frag_thresh':None, 'rts_thresh':None,
             'cov_class':None, 'swmodes':None, 'commands':None}
     # singular attributes
-    info['bands'] = nl.nla_find(rmsg, nl80211h.NL80211_ATTR_WIPHY_BANDS)
+    info['freqs'] = _getfreqs_(nl.nla_find(rmsg, nl80211h.NL80211_ATTR_WIPHY_BANDS))
     info['generation'] = nl.nla_find(rmsg, nl80211h.NL80211_ATTR_GENERATION)
     info['retry_short'] = nl.nla_find(rmsg, nl80211h.NL80211_ATTR_WIPHY_RETRY_SHORT)
     info['retry_long'] = nl.nla_find(rmsg, nl80211h.NL80211_ATTR_WIPHY_RETRY_LONG)
@@ -1163,6 +1163,21 @@ def _iftypes_(i):
         return IFTYPES[i]
     except IndexError:
         return "Unknown mode ({0})".format(i)
+
+def _getfreqs_(band):
+    """
+     extract list of supported freqs packed byte stream band
+     :param band: packed byte string from NL80211_ATTR_WIPHY_BANDS
+     :returns: list of supported frequencies
+
+     NOTE: this is an inefficient hack until I can get the parsing of the
+      *_WIPHY_BANDS functional
+    """
+    rfs = []
+    for freq in channels.freqs():
+        if band.find(struct.pack("I", freq)) != -1:
+            rfs.append(freq)
+    return rfs
 
 #### TRANSLATION FUNCTIONS ####
 

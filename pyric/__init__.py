@@ -103,11 +103,13 @@ Requires:
     - added devcmds in pyw
     - annotated (in comments) if fcts needed root privileges
     - added functions to get/set ip address, netmask and broadcast
+    - fixed PEP8 errors
+    - made worked around for pulling supported freqs out NL80211_ATTR_WIPHY_BANDS
 """
 
 __name__ = 'pyric'
 __license__ = 'GPLv3'
-__version__ = '0.0.7'
+__version__ = '0.0.8'
 __date__ = 'April 2016'
 __author__ = 'Dale Patterson'
 __maintainer__ = 'Dale Patterson'

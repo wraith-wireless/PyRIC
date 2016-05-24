@@ -52,10 +52,6 @@ __maintainer__ = 'Dale Patterson'
 __email__ = 'wraith.wireless@yandex.com'
 __status__ = 'Production'
 
-# Linux-specific socket ioctls
-#SIOCINQ  = FIONREAD
-#SIOCOUTQ = TIOCOUTQ # output queue size (not sent + not acked)
-
 # Routing table calls
 SIOCADDRT = 0x890B # add routing table entry
 SIOCDELRT = 0x890C # delete routing table entry

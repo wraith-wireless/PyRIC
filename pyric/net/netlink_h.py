@@ -320,20 +320,6 @@ NLA_TYPE_MASK		= ~(NLA_F_NESTED | NLA_F_NET_BYTEORDER)
 #NLA_HDRLEN		= ((int) NLA_ALIGN(sizeof(struct nlattr)))
 
 # defined error codes
-"""
- For ease of use, I define netlink errors (netlink/errno.h) here
-
-/*
- * netlink/errno.h		Error Numbers
- *
- *	This library is free software; you can redistribute it and/or
- *	modify it under the terms of the GNU Lesser General Public
- *	License as published by the Free Software Foundation version 2.1
- *	of the License.
- *
- * Copyright (c) 2008 Thomas Graf <tgraf@suug.ch>
- */
-"""
 # only use success and failure -> using errno for other error numbers
 NLE = ['Success','Unspecified failure']
 NLE_SUCCESS           =  0

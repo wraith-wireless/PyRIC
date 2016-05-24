@@ -1,9 +1,8 @@
   1) overall
    o look at iw dev wlan0 link
-   o look at iw dev
+   o make a cli as well
   2) libnl.py
    o see (1) in RFI
-   o define attr_ops and attr_mcast_groups in nla_policy_attr
   4) pyw
    o add txget from iw i.e. netlink perspective
    o find a better way to find the supported standards of a card
@@ -11,4 +10,4 @@
     - move everything to netlink
    o Can we find the current channel of a radio in monitor mode that is actively
      scanning?
-   o parse NL80211_ATTR_WIPHY_BANDS
+   o parse NL80211_ATTR_WIPHY_BANDS (have workaround currently in place)

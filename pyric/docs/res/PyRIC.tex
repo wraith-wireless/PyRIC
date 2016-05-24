@@ -72,7 +72,7 @@
     basicstyle=\footnotesize
 }
 
-\title{PyRIC v0.0.7: User Manual}
+\title{PyRIC v0.0.8: User Manual}
 \author{Dale V. Patterson\\ wraith.wireless@yandex.com}
 
 \begin{document}
@@ -98,6 +98,7 @@ At this time, PyRIC (through pyw functions) can:
 \item enumerate interfaces and wireless interfaces,
 \item get/set regulatory domain,
 \item get/set hw address,
+\item get/set ip4, netmask and broadcast address
 \item identify a radio's chipset and driver,
 \item turn device on/off,
 \item get supported standards,
@@ -656,6 +657,8 @@ Everything else is handled behind the scenes by libnl.py.
 \item \textbf{\_FAM80211ID\_}: Global netlink family id of nl80211. Do not touch
 \item \textbf{IFTYPES}: redefined (from nl80211\_h.py) interface modes
 \item \textbf{MNTRFLAGS}: redefined (from nl80211\_h.py) monitor mode flags
+\item \textbf{IPADDR}: Regular Expression for ip4 address validation
+\item \textbf{MACADDR}: Regular Expression for mac address validation
 \end{itemize}
 
 \subsection{Objects/Classes}
@@ -751,6 +754,9 @@ in when creating a monitor mode
 \item devdel(card,[nlsock]): (iw card.<dev> del), type: netlink, deletes dev
 \begin{itemize}
 \item \_hex2mac\_(v): returns a ':' separated mac address from byte stream v
+\item \_hex2ip4\_(v): returns a '.' separated ip4 address from byte stream v
+\item \_validip4\_(addr): determines if addr is a valid ip4 address
+\item \_validmac\_(addr): determines if addr is a valid mac address
 \item \_issetf\_(flags,flag): determines if flag is set in flags
 \item \_setf\_(flags,flag): set flag in flags to on
 \item \_unsetf\_(flags,flag): set flag in flags to off
@@ -759,6 +765,8 @@ only called once per module import
 \item \_ifindex\_(dev,[iosock]): returns dev's ifindex
 \item \_flagsget\_(dev,[iosock]): get's the dev's interface flags
 \item \_flagsset\_(dev,flags,[iosock]): set's the dev's interface flags
+\item \_getfreqs\_(band): returns a list of frequencies from the packed byte string
+band
 \item \_iostub\_(fct,*argv): ioctl stub function, calls fct with parameter list argv
 and an allocated ioctl socket
 \item \_nlstub\_(fct,*argv): netlink stub function, calls fct with parameter list

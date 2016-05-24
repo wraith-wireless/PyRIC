@@ -32,8 +32,6 @@ __email__ = 'wraith.wireless@yandex.com'
 __status__ = 'Development'
 
 from setuptools import setup, find_packages
-#from codecs import open
-#from os import path
 import pyric
 
 
