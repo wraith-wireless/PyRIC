@@ -349,6 +349,8 @@ Extending PyRIC is fun and easy too, see the user guide PyRIC.pdf.
   - examples              example folder
     + pentest.py          create wireless pentest environment example
     + device_details.py   display device information
+  - tests                 test folder
+    + pyw.unittest.py     unit test for pyw functions
   - setup.py              install file
   - setup.cfg             used by setup.py
   - MANIFEST.in           used by setup.py
