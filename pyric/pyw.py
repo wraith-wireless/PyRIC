@@ -97,7 +97,7 @@ Additional changes in pyw v 0.1.*
     or a ifindex is needed. The only exception to this is devinfo which by
     necessity will accept a Card or a device name
  2) All functions allow pyric errors to pass through.
- 3) sets the tx/rx buffer depending on the function
+
 """
 
 __name__ = 'pyw'
@@ -109,20 +109,21 @@ __maintainer__ = 'Dale Patterson'
 __email__ = 'wraith.wireless@yandex.com'
 __status__ = 'Development'
 
-import struct                                   # ioctl unpacking
-import pyric                                    # pyric exception
-import errno                                    # error codes
-import re                                       # check addr validity
-from pyric import device                        # device related
-from pyric import channels                      # channel related
-from pyric.docs.nlhelp import cmdbynum          # get command name
-import pyric.net.netlink_h as nlh               # netlink definition
-import pyric.net.genetlink_h as genlh           # genetlink definition
-import pyric.net.wireless.nl80211_h as nl80211h # 802.11 definition
-import pyric.net.sockios_h as sioch             # sockios constants
-import pyric.net.if_h as ifh                    # ifreq structure
-import pyric.lib.libnl as nl                    # netlink functions
-import pyric.lib.libio as io                    # ioctl functions
+import struct                                                # ioctl unpacking
+import pyric                                                 # pyric exception
+import errno                                                 # error codes
+import re                                                    # check addr validity
+from pyric import device                                     # device related
+from pyric import channels                                   # channel related
+from pyric.docs.nlhelp import cmdbynum                       # get command name
+import pyric.net.netlink_h as nlh                            # netlink definition
+import pyric.net.genetlink_h as genlh                        # genetlink definition
+import pyric.net.wireless.nl80211_h as nl80211h              # 802.11 definition
+#from pyric.net.wireless.nl80211_c import nl80211_parse_freqs # WIPHY_BANDS
+import pyric.net.sockios_h as sioch                          # sockios constants
+import pyric.net.if_h as ifh                                 # ifreq structure
+import pyric.lib.libnl as nl                                 # netlink functions
+import pyric.lib.libio as io                                 # ioctl functions
 
 _FAM80211ID_ = None
 
@@ -739,11 +740,10 @@ def phyinfo(card, *argv):
     rmsg = nl.nl_recvmsg(nlsock)
 
     # pull out attributes
-    info = {'scan_ssids':None, 'modes':None, 'bands':None, 'retry_short':None,
+    info = {'scan_ssids':None, 'modes':None, 'freqs':None, 'retry_short':None,
             'retry_long':None, 'frag_thresh':None, 'rts_thresh':None,
             'cov_class':None, 'swmodes':None, 'commands':None}
     # singular attributes
-    info['freqs'] = _getfreqs_(nl.nla_find(rmsg, nl80211h.NL80211_ATTR_WIPHY_BANDS))
     info['generation'] = nl.nla_find(rmsg, nl80211h.NL80211_ATTR_GENERATION)
     info['retry_short'] = nl.nla_find(rmsg, nl80211h.NL80211_ATTR_WIPHY_RETRY_SHORT)
     info['retry_long'] = nl.nla_find(rmsg, nl80211h.NL80211_ATTR_WIPHY_RETRY_LONG)
@@ -752,7 +752,10 @@ def phyinfo(card, *argv):
     info['rts_thresh'] = nl.nla_find(rmsg, nl80211h.NL80211_ATTR_WIPHY_RTS_THRESHOLD)
     info['cov_class'] = nl.nla_find(rmsg, nl80211h.NL80211_ATTR_WIPHY_COVERAGE_CLASS)
     info['scan_ssids'] = nl.nla_find(rmsg, nl80211h.NL80211_ATTR_MAX_NUM_SCAN_SSIDS)
-    # nested attributes (for whatever reason, these use big-endian)
+    # nested attributes
+    bands = nl.nla_find(rmsg, nl80211h.NL80211_ATTR_WIPHY_BANDS)
+    #info['freqs'] = nl80211_parse_freqs(bands)
+    info['freqs'] = _getfreqs_(bands)
     modes = nl.nla_find(rmsg, nl80211h.NL80211_ATTR_SUPPORTED_IFTYPES)
     info['modes'] = [_iftypes_(struct.unpack('>H', mode)[0]) for mode in modes]
     modes = nl.nla_find(rmsg, nl80211h.NL80211_ATTR_SOFTWARE_IFTYPES)
@@ -978,8 +981,8 @@ def devdel(card, *argv):
      :param card: Card object
      :param argv: netlink socket at argv[0] (or empty)
      :returns: True on success
-     NOTE: the original card is no longer valid (i.e. the phy will still be present but
-     the device name and ifindex are no longer 'present' in the system
+     NOTE: the original card is no longer valid (i.e. the phy will still be present
+     but the device name and ifindex are no longer 'present' in the system
     """
     try:
         nlsock = argv[0]
@@ -1059,6 +1062,20 @@ def _unsetf_(flags, flag):
      :return: new flag value
     """
     return flags & ~flag
+
+def _getfreqs_(band):
+    """
+     extract list of supported freqs packed byte stream band
+     :param band: packed byte string from NL80211_ATTR_WIPHY_BANDS
+     :returns: list of supported frequencies
+
+     NOTE: this is actually faster than nl80211_c.nl80211_parse_freqs
+    """
+    rfs = []
+    for freq in channels.freqs():
+        if band.find(struct.pack("I", freq)) != -1:
+            rfs.append(freq)
+    return rfs
 
 def _familyid_(nlsock):
     """
@@ -1164,21 +1181,6 @@ def _iftypes_(i):
     except IndexError:
         return "Unknown mode ({0})".format(i)
 
-def _getfreqs_(band):
-    """
-     extract list of supported freqs packed byte stream band
-     :param band: packed byte string from NL80211_ATTR_WIPHY_BANDS
-     :returns: list of supported frequencies
-
-     NOTE: this is an inefficient hack until I can get the parsing of the
-      *_WIPHY_BANDS functional
-    """
-    rfs = []
-    for freq in channels.freqs():
-        if band.find(struct.pack("I", freq)) != -1:
-            rfs.append(freq)
-    return rfs
-
 #### TRANSLATION FUNCTIONS ####
 
 def _iostub_(fct, *argv):
@@ -1214,7 +1216,7 @@ def _nlstub_(fct, *argv):
     finally:
         if nlsock: nl.nl_socket_free(nlsock)
 
-#### NOT USED ####
+#### PENDING ####
 
 def _fut_chset(card, ch, chw, *argv):
     """

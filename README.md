@@ -4,14 +4,16 @@
 ## 1 DESCRIPTION:
 BLUF: Why use subprocess.Popen, regular expressions and str.find to interact
 with your Wireless Network Interface Card. PyRIC provides the ability to
-manipuate, identify and enumerate your system's cards. It is a pure python port
-of a subset the functionality provided by iw, ifconfig and iwconfig. PyRIC is:
+manipuate, identify and enumerate your system's wireless cards. It is a pure
+python port of a subset of the functionality provided by iw, ifconfig and iwconfig.
+PyRIC is:
 * Pythonic: No ctypes, SWIG etc. PyRIC redefines C header files as Python and
-uses sockets to communicate with kernel.
+uses netlink (or ioctl) sockets to communicate directly with the kernel.
 * Self-sufficient: No third-party files used, PyRIC is completely self-contained
 * Fast: (relatively speaking) PyRIC is faster than using iw through subprocess.Popen
-* Parse(less): Get the output you without parsing output from iw. Never worry about
-iw updates and rewriting your parsers.
+* Small: PyRIC is roughly 420kB
+* Parseless: Get the output you want without parsing output from iw. Never worry
+about iw updates and rewriting your parsers.
 * Easy: If you can use iw, you can use PyRIC
 
 ### a. Background
@@ -65,12 +67,12 @@ that need to access the wireless nic repeatedly as shown in the table below.
 | persistent | 257.8293 | 0.0257 | 0.0354    | 0.0004   |
 
 The table shows benchmarks for hop time on a Alfa AWUS036NH 10000 times. Note that
-there is no implication (explicit or implicit) that PyRIC is faster than iw. Rather,
-the table shows that PyRIC is faster than using Popen to execute iw. Using one-time
-sockets, there is a difference of 28 seconds over Popen and iw with a small
-decrease in the average hoptime. Not a big difference. However, the performance
-increased dramatically when persistent netlink sockets are used with the total
-time and average hop time nearly halved.
+there is no implication that PyRIC is faster than iw. Rather, the table shows that
+PyRIC is faster than using Popen to execute iw. Using one-time sockets, there is
+a difference of 28 seconds over Popen and iw with a small decrease in the average
+hoptime. Not a big difference. However, the performance increased dramatically when
+persistent netlink sockets are used with the total time and average hop time nearly
+halved.
 
 ### c. Current State
 ATT, PyRIC accomplish my core needs but it is still a work in progress. It provides
@@ -94,6 +96,10 @@ It also provides limited help functionality concerning nl80211 commands/attribut
 the nl80211 header file and may be vague.
 
 ### d. What is PyRIC?
+
+To avoid confusion, PyRIC is the system as a whole, including all header files
+and "libraries" that are required to communicate with the kernel. pyw is a
+interface to these libraries providing specific funtions.
 
 What it does - defines programmatic access to a small subset of iw and ifconfig.
 
@@ -342,20 +348,22 @@ Extending PyRIC is fun and easy too, see the user guide PyRIC.pdf.
   - \_\_init\_\_.py       initialize distrubution PyRIC module
   - examples              example folder
     + pentest.py          create wireless pentest environment example
+    + device_details.py   display device information
   - setup.py              install file
   - setup.cfg             used by setup.py
   - MANIFEST.in           used by setup.py
   - README.md             this file
   - LICENSE               GPLv3 License
+  + TODO                  todos for PyRIC
+  + RFI                   comments and observations
   - PyRIC.pdf             User Guide
+  - pyw_unittest.py       unittest for pyw
   - pyric                 package directory
     + \_\_init\_\_.py     initialize pyric module
     + pyw.py              wireless nic functionality
     + radio.py            consolidate pyw in a class
     + channels.py         802.11 ISM/UNII freqs. & channels
     + device.py           device/chipset utility functions
-    + TODO                todos for PyRIC
-    + RFI                 comments and observations
     + net                 linux header ports
       * \_\_init\_\_.py   initialize net subpackage
       * if_h.py           inet/ifreq definition

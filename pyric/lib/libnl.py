@@ -472,9 +472,11 @@ def nla_parse(msg,l,mtype,stream,idx):
             dt = nla_datatype(pol,atype) # attr datatype
 
             # Note: we use unpack_from which will ignore the null bytes in numeric
-            # datatypes & for strings & unspec we just strip trailing null bytes
-            if dt == nlh.NLA_STRING or dt == nlh.NLA_UNSPEC: a = _nla_strip_(a)
-            if dt == nlh.NLA_NESTED: a = nla_parse_nested(a)
+            # datatypes & for strings, strip trailing null bytes
+            #if dt == nlh.NLA_STRING or dt == nlh.NLA_UNSPEC: a = _nla_strip_(a)
+            # dt == nlh.NLA_UNSPEC: ignore
+            if dt == nlh.NLA_STRING: a = _nla_strip_(a)
+            elif dt == nlh.NLA_NESTED: a = nla_parse_nested(a)
             elif dt == nlh.NLA_U8: a = struct.unpack_from("B",a,0)[0]
             elif dt == nlh.NLA_U16: a = struct.unpack_from("H",a,0)[0]
             elif dt == nlh.NLA_U32: a = struct.unpack_from("I",a,0)[0]
@@ -615,7 +617,6 @@ def _nla_strip_(v):
         return v
     except IndexError:
         return v
-
 
 def _attrpack_(a,v,d):
     """

@@ -104,7 +104,12 @@ Requires:
     - annotated (in comments) if fcts needed root privileges
     - added functions to get/set ip address, netmask and broadcast
     - fixed PEP8 errors
-    - made worked around for pulling supported freqs out NL80211_ATTR_WIPHY_BANDS
+    - added function pulling supported freqs out NL80211_ATTR_WIPHY_BANDS
+     * ATT using _getfreqs_ which attempts to find the packed version of every
+      freq
+     * nl80211_c.nl80211_parse_freqs works but is slower than _getfreqs_ and
+      uses several hacks which may make it invalid for certain cards
+    - added 4.9GHz frequencies to channels.py
 """
 
 __name__ = 'pyric'

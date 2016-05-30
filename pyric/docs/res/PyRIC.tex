@@ -81,7 +81,7 @@
 
 \section{About PyRIC}\label{sec:About}
 PyRIC is a python port of (a subset of) iw and by extension a python port of 
-Netlink\cite{spae} (w.r.t nl80211 functions). The goal of PyRIc is to provide 
+Netlink\cite{spae} (w.r.t nl80211 functions). The goal of PyRIC is to provide 
 a simple interface to the underlying nl80211 kernel support that handles the 
 complex operations of Netlink seamlessy while maintaining a minimum of "code 
 walking" to understand, modify and extend. PyRIC will only work on Linux 
@@ -112,12 +112,27 @@ It also provides users with the ability, through libnl(.py) to extend the above
 functionality by creating additional commands.\\
 
 Currently, PyRIC does handle multicast messages i.e. events or dumps although 
-plans for future versions include adding the ability to process dumps.
+plans for future versions include adding the ability to process dumps. \\
+
+There are other Python implementations but many have not been maintained and most
+attempt to provide a full implementation of Netlink with nl80211 functionality 
+as a side-project. Unlike those, PyRIC is:   
+\begin{itemize} 
+\item Pythonic: No ctypes, SWIG etc. PyRIC redefines C header files as Python and
+uses sockets to communicate directly with the kernel,
+\item Self-sufficient: No third-party files used, PyRIC is completely self-contained,
+\item Fast: (relatively speaking) PyRIC is faster than using iw through 
+subprocess.Popen,
+\item Small: PyRIC is roughly 420kB,
+\item Parseless: Get the output you want without parsing output from iw. Never worry 
+about iw updates and rewriting your parsers, and
+\item Easy: If you can use iw, you can use PyRIC.
+\end{itemize} 
 
 \subsection{Naming Conventions}
 The terms interface, device and radio are all used interchangeably throughout to 
-refer to a network interface card (NIC) wireless or Ethernet. The following terms 
-will always have one one meaning:
+refer to a network interface card (NIC). The following terms will always have one
+meaning:
 \begin{itemize}
 \item \textbf{dev} - the device name i.e. wlan0 or eth0 of a NIC, 
 \item \textbf{phy} - the physical index of a NIC i.e. the 0 in phy0,
@@ -154,6 +169,44 @@ be noticed right away as the phy will remain the same. Also, usb devices (if the
 usb is disconnected and reconnected) will have the same dev but the phy and 
 ifindex will be different.
 
+\subsection{Benchmarks}
+PyRIC makes use of several "extensions" to speed up pyw functions:
+\begin{enumerate}
+\item \textbf{Persistent sockets}: pyw provides the caller with functions and 
+the ability to pass their own netlink (or ioctl socket) to pyw functions
+\item \textbf{One-time request for the nl80211 family id}: pyw stores the family
+id in a global variable
+\item \textbf{Consolidation} different "reference" values are consolidated in one
+class (see the previous section)
+\end{enumerate}
+
+\begin{table}
+\begin{center}
+\begin{tabular}{| l | r | r | r | r|}
+\hline
+chset & Total & Avg & Longest & Shortest \\
+\hline
+Popen(iw) & 588.3059 & 0.0588 & 0.0682 & 0.0021 \\
+\hline
+one-time & 560.3559 & 0.0560 & 0.0645 & 0.0003 \\
+\hline
+persistent & 257.8293 & 0.0257 & 0.0354 & 0.0004 \\
+\hline
+\end{tabular}
+\caption{Benchmark: Popen(iw) vs pyw} 
+\end{center}
+\label{tab:benchmark}
+\end{table}
+
+While small, these change improve the performance of any programs using pyw. 
+Table 1 shows benchmarks for hop time on a Alfa AWUS036NH conducted 10000 times. 
+Note that we are not implying that PyRIC is faster than iw. Rather, the table 
+shows that PyRIC is faster than using Popen to execute iw. Using one-time sockets,
+there is a difference of 28 seconds over Popen and iw with a small decrease in 
+the average hoptime. Not a big difference. However, the performance increased
+dramatically when persistent netlink sockets are used with the total time and 
+average hop time nearly halved.
+
 \subsection{Hierarchy/Architecture}
 PyRIC's hierarchy is briefly discussed next.
 
@@ -166,20 +219,23 @@ use for PyPI packaging
 \item \textbf{MANIFEST.in}: used by setup.py
 \item \textbf{LICENSE}: GPLv3 License
 \item \textbf{PyRIC.pdf}: this file
+\item \textbf{TODO}: lists any outstanding TODOs, ideas for future revisions
+\item \textbf{RFI}: comments and observations about netlinks, nl80211 etc
 \item \textbf{examples}: examples directory
 \begin{enumerate}
 \item \textbf{pentest.py}: create wireless pentest environment
+\item \textbf{device\_details.py}: display device information
 \end{enumerate}
 \item \textbf{pyric} package directory
 \begin{enumerate}
 \item \textbf{\_\_init\_\_.py}: Initialize pyric defines the EUNDEF error code 
 (PyRIC uses errno for all errorcodes adding EUNDEF) and the common exception 
 class, 'error' - all submodules use this class for any exceptions.  
-\item \textbf{TODO}: lists any outstanding TODOs, ideas for future revisions
-\item \textbf{RFI}: comments and observations about netlinks, nl80211 etc
-\item \textbf{channels.py}: ISM and UNII frequencies and channels, with conversion functions
+\item \textbf{channels.py}: ISM and UNII frequencies and channels, with conversion
+functions
 \item \textbf{device.py}: device and chipset utility functions
-\item \textbf{pyw.py}: this is the interface, providing wireless interface manipulation functions
+\item \textbf{pyw.py}: this is the interface, providing wireless interface 
+manipulation functions
 \item \textbf{lib}: lib subpackage
 \begin{enumerate}
 \item \textbf{\_\_init\_\_.py}: initialize lib subpackage
@@ -257,7 +313,7 @@ and save this file to /usr/lib/python2.7/dist-packages (or
 
 \begin{table}
 \begin{center}
-\begin{tabular}{| l | r | r | r | }
+\begin{tabular}{| l | r | r | r |}
 \hline
 Source & Stability & Recency & Installation \\
 \hline
@@ -280,7 +336,9 @@ As stated previously, PyRIC provides a set of functions to interact with your
 system's radio(s) and the ability to interact directly with the kernel through
 netlink and ioctl sockets. \\
 
-It is helpful if the reader has a basic knowledge of netlinks. For a review, see "Communicating between the kernel and user-space in Linux using Netlink sockets". 
+It is helpful if the reader has a basic knowledge of netlinks. For a review, see 
+"Communicating between the kernel and user-space in Linux using Netlink Sockets"
+\cite{spae}. 
 
 \subsection{Interacting with the Wireless Core and Wireless NICs: pyw.py}
 If you can use iw, you can use pyw.py. The easist way to explain how to use pyw 

@@ -20,7 +20,8 @@ are permitted provided that the following conditions are met:
    contributors may be used to endorse or promote products derived from this
    software without specific prior written permission.
 
-Defines ISM 2.4Ghz and UNII 5Ghz frequencies and channels
+Defines ISM 2.4Ghz, UNII 5Ghz and 4.9GHz frequencies and channels
+
 """
 
 __name__ = 'channels'
@@ -54,16 +55,16 @@ UNII_5_F2C={5765:153,5640:128,5260:52,5520:104,5785:157,5660:132,5280:56,
             5220:44,5230:46,5745:149,5620:124,5240:48,5500:100}
 
 # UNII 4 Bands
-#UNII_4_C2F={183:4915,184:4920,185:4925,187:4935,188:4940,189:4945,192:4960,196:4980}
-#UNII_4_F2C={4960:192,4935:187,4940:188,4945:189,4915:183,4980:196,4920:184,4925:185}
+UNII_4_C2F={183:4915,184:4920,185:4925,187:4935,188:4940,189:4945,192:4960,196:4980}
+UNII_4_F2C={4960:192,4935:187,4940:188,4945:189,4915:183,4980:196,4920:184,4925:185}
 
 def channels():
     """ :returns: list of all channels """
-    return sorted(ISM_24_C2F.keys() + UNII_5_C2F.keys())
+    return sorted(ISM_24_C2F.keys() + UNII_5_C2F.keys() + UNII_4_C2F.keys())
 
 def freqs():
     """ :returns: list of frequencies """
-    return sorted(ISM_24_F2C.keys() + UNII_5_F2C.keys())
+    return sorted(ISM_24_F2C.keys() + UNII_5_F2C.keys()+ UNII_4_F2C.keys())
 
 def ch2rf(c):
     """

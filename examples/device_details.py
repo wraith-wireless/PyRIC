@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-""" device.py
+""" device_details.py
 
 Example for displaying device details
 """
@@ -67,7 +67,7 @@ if __name__ == '__main__':
     try:
         dev = args.dev
         if dev is None:
-            print "usage: python device.py -d <dev>"
+            print "usage: python device_details.py -d <dev>"
         else:
             execute(dev)
     except pyric.error as e:

@@ -23,15 +23,14 @@ are permitted provided that the following conditions are met:
  includes: nl80211_h 0.0.2 nl80211_c 0.0.1
  changes:
   o added nl80211_c to handle attribute policies
-
+   - added nl80211_parse_freqs to parse out supported frequencies
 """
 
 __name__ = 'wireless'
 __license__ = 'GPLv3'
-__version__ = '0.0.1'
+__version__ = '0.0.2'
 __date__ = 'April 2016'
 __author__ = 'Dale Patterson'
 __maintainer__ = 'Dale Patterson'
 __email__ = 'wraith.wireless@yandex.com'
 __status__ = 'Development'
-

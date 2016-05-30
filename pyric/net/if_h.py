@@ -158,10 +158,10 @@ IF_LINK_MODE_DORMANT = 1 # limit upward transition to dormant
 #    char            sa_data[14];    /* 14 bytes of protocol address */
 #};
 # NOTE:
-#  1) for our purposes, we use only characters, 6 octets for a hw addr and 4
-# octets for an ip4 addr.
+#  1) for our purposes, we use only 6 characters, 6 octets for a hw addr and 4
+#     octets for an ip4 addr.
 #  2) For whatever reason, all ioctl calls accept and return ip4 addresses
-#  prefixed by two null bytes
+#     prefixed by two null bytes
 
 AF_UNSPEC    = 0  # from socket.h sa_family unspecified
 ARPHRD_ETHER = 1  # from net/if_arp.h sa_family ethernet a.k.a AF_LOCAL
