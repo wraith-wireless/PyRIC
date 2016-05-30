@@ -1,17 +1,17 @@
 #!/usr/bin/env python
 
-""" channels.py: 802.11 channel/freq utilities
+""" channels.py:802.11 channel/freq utilities
 
 Copyright (C) 2016  Dale V. Patterson (wraith.wireless@yandex.com)
 
-This program is free software: you can redistribute it and/or modify it under
+This program is free software:you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free Software
-Foundation, either version 3 of the License, or (at your option) any later
+Foundation,either version 3 of the License,or (at your option) any later
 version.
 
-Redistribution and use in source and binary forms, with or without modifications,
+Redistribution and use in source and binary forms,with or without modifications,
 are permitted provided that the following conditions are met:
- o Redistributions of source code must retain the above copyright notice, this
+ o Redistributions of source code must retain the above copyright notice,this
    list of conditions and the following disclaimer.
  o Redistributions in binary form must reproduce the above copyright notice,
    this list of conditions and the following disclaimer in the documentation
@@ -20,7 +20,7 @@ are permitted provided that the following conditions are met:
    contributors may be used to endorse or promote products derived from this
    software without specific prior written permission.
 
-Defines ISM 2.4Ghz, UNII 5Ghz and 4.9GHz frequencies and channels
+Defines ISM 2.4Ghz,UNII 5Ghz and 4.9GHz frequencies and channels
 
 """
 
@@ -45,45 +45,54 @@ ISM_24_F2C={2432:5,2467:12,2437:6,2472:13,2442:7,2484:14,2412:1,
             2447:8,2417:2,2452:9,2422:3,2457:10,2427:4,2462:11}
 
 # UNII 5 Bands
-UNII_5_C2F={36:5180,38:5190,40:5200,42:5210,44:5220,46:5230,48:5240,52:5260,
-            56:5280,60:5300,64:5320,100:5500,104:5520,108:5540,112:5560,116:5580,
-            120:5600,124:5620,128:5640,132:5660,136:5680,140:5700,149:5745,
-            153:5765,157:5785,161:5805,165:5825}
-UNII_5_F2C={5765:153,5640:128,5260:52,5520:104,5785:157,5660:132,5280:56,
-            5540:108,5805:161,5680:136,5300:60,5560:112,5180:36,5825:165,
-            5700:140,5190:38,5320:64,5580:116,5200:40,5210:42,5600:120,
-            5220:44,5230:46,5745:149,5620:124,5240:48,5500:100}
+UNII_5_C2F={34:5170,36:5180,38:5190,40:5200,42:5210,44:5220,46:5230,48:5240,50:5250,
+            52:5260,54:5270,56:5280,58:5280,60:5300,62:5310,64:5320,100:5500,
+            102:5510,104:5520,106:5530,108:5540,110:5550,112:5560,114:5570,116:5580,
+            118:5590,120:5600,122:5610,124:5620,126:5630,128:5640,132:5660,136:5680,
+            138:5690,140:5700,142:5710,144:5720,149:5745,151:5755,153:5765,155:5775,
+            157:5785,159:5795,161:5805,165:5825}
+UNII_5_F2C={5250:50,5765:153,5510:102,5640:128,5260:52,5775:155,5520:104,5270:54,
+            5785:157,5530:106,5660:132,5280:58,5795:159,5540:108,5805:161,5550:110,
+            5680:136,5170:34,5300:60,5560:112,5690:138,5180:36,5310:62,5825:165,
+            5570:114,5700:140,5190:38,5320:64,5580:116,5710:142,5200:40,5590:118,
+            5720:144,5210:42,5600:120,5220:44,5610:122,5230:46,5745:149,5620:124,
+            5240:48,5755:151,5500:100,5630:126}
 
 # UNII 4 Bands
 UNII_4_C2F={183:4915,184:4920,185:4925,187:4935,188:4940,189:4945,192:4960,196:4980}
 UNII_4_F2C={4960:192,4935:187,4940:188,4945:189,4915:183,4980:196,4920:184,4925:185}
 
+# US high powered backhaul
+#131 	3657.5 	 132 	36622.5 ? 132 	3660.0 133 	3667.5 133 	3665.0
+#134 	3672.5 	 134 	3670.0    135 	3677.5 136 	3682.5 136 	3680.0
+#137 	3687.5 	 137 	3685.0    138 	3689.5 138 	3690.0
+
 def channels():
-    """ :returns: list of all channels """
+    """ :returns:list of all channels """
     return sorted(ISM_24_C2F.keys() + UNII_5_C2F.keys() + UNII_4_C2F.keys())
 
 def freqs():
-    """ :returns: list of frequencies """
+    """ :returns:list of frequencies """
     return sorted(ISM_24_F2C.keys() + UNII_5_F2C.keys()+ UNII_4_F2C.keys())
 
 def ch2rf(c):
     """
      channel to frequency conversion
 
-     :param c: channel
-     :returns: frequency in MHz corresponding to channel
+     :param c:channel
+     :returns:frequency in MHz corresponding to channel
     """
-    if c in ISM_24_C2F: return ISM_24_C2F[c]
-    if c in UNII_5_C2F: return UNII_5_C2F[c]
+    if c in ISM_24_C2F:return ISM_24_C2F[c]
+    if c in UNII_5_C2F:return UNII_5_C2F[c]
     return None
 
 def rf2ch(f):
     """
      frequency to channel conversion
 
-     :param f: frequency (in MHz)
-     :returns: channel number corresponding to frequency
+     :param f:frequency (in MHz)
+     :returns:channel number corresponding to frequency
     """
-    if f in ISM_24_F2C: return ISM_24_F2C[f]
-    if f in UNII_5_F2C: return UNII_5_F2C[f]
+    if f in ISM_24_F2C:return ISM_24_F2C[f]
+    if f in UNII_5_F2C:return UNII_5_F2C[f]
     return None
