@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-
 """ nl80211_h.py: 802.11 netlink interface public header
 
 /*

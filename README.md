@@ -96,6 +96,8 @@ the following:
 * get/set regulatory domain
 * get/set mode
 * add/delete interfaces
+* enumerate ISM and UNII channels
+* block/unblock rfkill devices (still working on it)
 
 It also provides limited help functionality concerning nl80211 commands/attributes
 (for those who wish to add additional commands). However, it pulls directly from
@@ -372,6 +374,7 @@ Extending PyRIC is fun and easy too, see the user guide PyRIC.pdf.
     + radio.py            consolidate pyw in a class
     + channels.py         802.11 ISM/UNII freqs. & channels
     + device.py           device/chipset utility functions
+    + rfkill.py           rfkill port
     + net                 linux header ports
       * \_\_init\_\_.py   initialize net subpackage
       * if_h.py           inet/ifreq definition

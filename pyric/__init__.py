@@ -113,6 +113,8 @@ Requires:
     - fixed _validmac_ to validate both uppercase & lowercase hex characters
     - added devfreqs, devchs
    o unittest completed 61 tests ran in 5.360s
+   o added rfkill (still working on it)
+
 """
 
 __name__ = 'pyric'
