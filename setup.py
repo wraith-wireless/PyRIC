@@ -69,7 +69,8 @@ setup(name='PyRIC',
                    'Topic :: System :: Networking',
                    'Topic :: Utilities',
                    'Operating System :: POSIX :: Linux',
-                   'Programming Language :: Python'
+                   'Programming Language :: Python',
+                   'Programming Language :: Python :: 2.7'
                    ],
     keywords='nl80211 iw developement wireless pentest',
     packages=find_packages(),

@@ -8,7 +8,8 @@
    o find a better way to find the supported standards of a card
    o for now, using ioctl to set ip addresses
     - move to netlink (using ip ?) or is better to keep as ioctl since this
-     allows us to set erroneous values for netmask, broadcast
+     allows us to set erroneous values for netmask, broadcast whereas ip forces
+     validity
    o Can we find the current channel of a radio in monitor mode that is actively
      scanning?
    o parse NL80211_ATTR_WIPHY_BANDS (have workaround currently in place)

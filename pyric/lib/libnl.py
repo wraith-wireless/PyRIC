@@ -436,7 +436,6 @@ def nlmsg_fromstream(stream):
         if t == nlh.NLMSG_ERROR or l == nlh.NLMSGACKLEN:
             # have an (possible) ack/nack i.e. error msg
             e = struct.unpack_from(nlh.nl_nlmsgerr,stream,nlh.NLMSGHDRLEN)[0]
-            # here is a big problem report NLE_* or errno?
             raise pyric.error(abs(e),strerror(abs(e)))
         c,_,_ = struct.unpack_from(genlh.genl_genlmsghdr,stream,nlh.NLMSGHDRLEN)
     except struct.error as e:
