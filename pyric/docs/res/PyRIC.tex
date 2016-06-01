@@ -226,6 +226,10 @@ use for PyPI packaging
 \item \textbf{pentest.py}: create wireless pentest environment
 \item \textbf{device\_details.py}: display device information
 \end{enumerate}
+\item \textbf{tests}: test directory
+\begin{enumerate}
+\item \textbf{pyw.unittest.py}: pyw unittesting
+\end{enumerate}
 \item \textbf{pyric} package directory
 \begin{enumerate}
 \item \textbf{\_\_init\_\_.py}: Initialize pyric defines the EUNDEF error code 
@@ -773,12 +777,16 @@ netmask and broadcast address of card
 \item inetset(card,ipaddr,netmask,broadcast,[iosock]): (ifconfig card/<dev> <ipaddr>
 netmask <netmask> broadcast <broadcast>), type: ioctl, set the interface addresses
 of the card
-\item ipset(card,ipaddr,[iosock]): (ifconfig card.<dev> <ipaddr>), type: ioctl,
+\item ip4set(card,ipaddr,[iosock]): (ifconfig card.<dev> <ipaddr>), type: ioctl,
 set the card's ip4 address
-\item ipset(card,ipaddr,[iosock]): (ifconfig card.<dev> <ipaddr>), type: ioctl,
-set the card's netmask
-\item ipset(card,ipaddr,[iosock]): (ifconfig card.<dev> <ipaddr>), type: ioctl,
-set the card's broadcast address
+\item netmaskset(card,netmask,[iosock]): (ifconfig card.<dev> netmask <netmask>), 
+type: ioctl, set the card's netmask
+\item broadcastset(card,broadcast,[iosock]): (ifconfig card.<dev> broadcast 
+<broadcast>), type: ioctl, set the card's broadcast address
+\item devfreqs(card,[nlsock]): (iw phy card.phy info), type: netlink, get card's 
+supported frequencies
+\item devchs(card,[nlsock]): (iw phy card.phy info), type: netlink, get card's 
+supported channels
 \item devstds(card,[iosock]): (iwconfig card.<dev> | grep IEEE), type: ioctl, get
 list of card's 802.11 supported standards
 \item devmodes(card,[nlsock]): (iw phy card.phy info | grep interface), type:

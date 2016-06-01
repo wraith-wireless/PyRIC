@@ -110,6 +110,9 @@ Requires:
      * nl80211_c.nl80211_parse_freqs works but is slower than _getfreqs_ and
       uses several hacks which may make it invalid for certain cards
     - added 4.9GHz frequencies to channels.py
+    - fixed _validmac_ to validate both uppercase & lowercase hex characters
+    - added devfreqs, devchs
+   o unittest completed 61 tests ran in 5.360s
 """
 
 __name__ = 'pyric'

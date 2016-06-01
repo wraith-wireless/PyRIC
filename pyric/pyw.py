@@ -252,6 +252,8 @@ def regset(rd, *argv):
 #### WIRELESS INTERFACE FUNCTIONS                                           ####
 ################################################################################
 
+#### CARD RELATED ####
+
 class Card(tuple):
     """
      A wireless network interface card - Wrapper around a tuple
@@ -300,6 +302,8 @@ def validcard(card, *argv):
     except pyric.error as e:
         if e.errno == errno.ENODEV: return False
         else: raise
+
+#### ADDRESS RELATED ####
 
 def macget(card, *argv):
     """
@@ -564,6 +568,8 @@ def broadcastset(card, broadcast, *argv):
     except struct.error as e:
         raise pyric.error(pyric.EUNDEF, "ifreq error: {0}".format(e))
 
+#### ON/OFF ####
+
 def up(card, *argv):
     """
      REQUIRES ROOT PRIVILEGES
@@ -577,10 +583,12 @@ def up(card, *argv):
     except IndexError:
         return _iostub_(up, card)
 
-    dev = card.dev
-    flags = _flagsget_(dev, iosock)
-    if not _issetf_(flags, ifh.IFF_UP):
-        _flagsset_(dev, _setf_(flags, ifh.IFF_UP), iosock)
+    try:
+        flags = _flagsget_(card.dev, iosock)
+        if not _issetf_(flags, ifh.IFF_UP):
+            _flagsset_(card.dev, _setf_(flags, ifh.IFF_UP), iosock)
+    except AttributeError as e:
+        raise pyric.error(errno.EINVAL, "Invalid paramter {0}".format(e))
     return True
 
 def down(card, *argv):
@@ -596,18 +604,50 @@ def down(card, *argv):
     except IndexError:
         return _iostub_(down, card)
 
-    dev = card.dev
-    flags = _flagsget_(dev, iosock)
-    if _issetf_(flags, ifh.IFF_UP):
-        _flagsset_(dev, _unsetf_(flags, ifh.IFF_UP), iosock)
+    try:
+        flags = _flagsget_(card.dev, iosock)
+        if _issetf_(flags, ifh.IFF_UP):
+            _flagsset_(card.dev, _unsetf_(flags, ifh.IFF_UP), iosock)
+    except AttributeError as e:
+        raise pyric.error(errno.EINVAL, "Invalid paramter {0}".format(e))
     return True
+
+#### INFO RELATED ####
+
+def devfreqs(card,*argv):
+    """
+     returns card's supported frequencies
+     :param card: Card object
+     :param argv: netlink socket at argv[0] (or empty)
+     :returns: list of supported frequencies
+    """
+    try:
+        nlsock = argv[0]
+    except IndexError:
+        return _nlstub_(devfreqs,card)
+
+    return phyinfo(card,nlsock)['freqs']
+
+def devchs(card,*argv):
+    """
+     returns card's supported channels
+     :param card: Card object
+     :param argv: netlink socket at argv[0] (or empty)
+     :returns: list of supported channels
+    """
+    try:
+        nlsock = argv[0]
+    except IndexError:
+        return _nlstub_(devchs,card)
+
+    return map(channels.rf2ch,phyinfo(card,nlsock)['freqs'])
 
 def devstds(card, *argv):
     """
      gets card's wireless standards (iwconfig <card.dev> | grep IEEE
      :param card: Card object
      :param argv: ioctl socket at argv[0] (or empty)
-     :returns: returns a list standards (letter designators)
+     :returns: list of standards (letter designators)
     """
     try:
         iosock = argv[0]
@@ -718,13 +758,6 @@ def phyinfo(card, *argv):
       cov_class -> coverage class
       swmodes -> supported software modes
       commands -> supported commands
-
-     NOTE: function is still in experimental stage, still working through how
-      the nested attributes should be treated. ATT have found that:
-       modes,swmodes are big-endian unsigned shorts corresponding to nl80211_iftype
-       commands are a tuple of big-endian unsigned shorts t=(idx,cmd) where
-       idx is the current index in the list of supported commands and
-       cmd correpsonds to nl80211_commands
     """
     try:
         nlsock = argv[0]
@@ -732,12 +765,15 @@ def phyinfo(card, *argv):
         return _nlstub_(phyinfo, card)
 
     # iw sends a @NL80211_ATTR_SPLIT_WIPHY_DUMP, we don't & get full return at once
-    msg = nl.nlmsg_new(nltype=_familyid_(nlsock),
-                       cmd=nl80211h.NL80211_CMD_GET_WIPHY,
-                       flags=nlh.NLM_F_REQUEST | nlh.NLM_F_ACK)
-    nl.nla_put_u32(msg, card.phy, nl80211h.NL80211_ATTR_WIPHY)
-    nl.nl_sendmsg(nlsock, msg)
-    rmsg = nl.nl_recvmsg(nlsock)
+    try:
+        msg = nl.nlmsg_new(nltype=_familyid_(nlsock),
+                           cmd=nl80211h.NL80211_CMD_GET_WIPHY,
+                           flags=nlh.NLM_F_REQUEST | nlh.NLM_F_ACK)
+        nl.nla_put_u32(msg, card.phy, nl80211h.NL80211_ATTR_WIPHY)
+        nl.nl_sendmsg(nlsock, msg)
+        rmsg = nl.nl_recvmsg(nlsock)
+    except AttributeError as e:
+        raise pyric.error(errno.EINVAL, "Invalid paramter {0}".format(e))
 
     # pull out attributes
     info = {'scan_ssids':None, 'modes':None, 'freqs':None, 'retry_short':None,
@@ -771,31 +807,14 @@ def phyinfo(card, *argv):
             info['commands'].append("unknown cmd ({0})".format(cmd))
     return info
 
-def ifaces(card, *argv):
-    """
-     returns all interfaces sharing the same phy as card (APX iw dev | grep phy#)
-     :param card: Card object
-     :param argv: netlink socket at argv[0] (or empty)
-     :returns: a list of tuples t = (Card,mode) for each device having the same
-      phyiscal index as that of card
-    """
-    try:
-        nlsock = argv[0]
-    except IndexError:
-        return _nlstub_(ifaces, card)
-
-    ifs = []
-    for dev in winterfaces():
-        info = devinfo(dev, nlsock)
-        if info['card'].phy == card.phy: ifs.append((info['card'], info['mode']))
-    return ifs
+#### TX/RX RELATED ####
 
 def txget(card, *argv):
     """
      gets the device's transimission power (iwconfig <card.dev> | grep Tx-Power)
      :param card: Card object
      :param argv: ioctl socket at argv[0] (or empty)
-     :returns: transmission power
+     :returns: transmission power in dBm
     """
     try:
         iosock = argv[0]
@@ -818,16 +837,16 @@ def chget(card, *argv):
      gets the current channel for device (iw dev <card.dev> info | grep channel)
      :param card: Card object
      :param argv: netlink socket at argv[0] (or empty)
-     NOTE:
-      o ATT will only work if dev is associated w/ AP
+     NOTE: will only work if dev is associated w/ AP or device is in monitor mode
+     and has had chset previously
     """
     try:
         nlsock = argv[0]
     except IndexError:
         return _nlstub_(chget, card)
-    return channels.rf2ch(devinfo(card.dev, nlsock)['RF'])
+    return channels.rf2ch(devinfo(card, nlsock)['RF'])
 
-def chset(card, ch, chw, *argv):
+def chset(card, ch, chw=None, *argv):
     """
      REQUIRES ROOT PRIVILEGES
      sets current channel on device (iw phy <card.phy> set channel <ch> <chw>)
@@ -869,16 +888,21 @@ def freqset(card, rf, chw=None, *argv):
     except IndexError:
         return _nlstub_(freqset, card, rf, chw)
 
-    msg = nl.nlmsg_new(nltype=_familyid_(nlsock),
-                       cmd=nl80211h.NL80211_CMD_SET_WIPHY,
-                       flags=nlh.NLM_F_REQUEST | nlh.NLM_F_ACK)
-    nl.nla_put_u32(msg, card.phy, nl80211h.NL80211_ATTR_WIPHY)
-    nl.nla_put_u32(msg, rf, nl80211h.NL80211_ATTR_WIPHY_FREQ)
-    nl.nla_put_u32(msg, channels.CHWIDTHS.index(chw),
-                   nl80211h.NL80211_ATTR_WIPHY_CHANNEL_TYPE)
-    nl.nl_sendmsg(nlsock, msg)
-    nl.nl_recvmsg(nlsock)
+    try:
+        msg = nl.nlmsg_new(nltype=_familyid_(nlsock),
+                           cmd=nl80211h.NL80211_CMD_SET_WIPHY,
+                           flags=nlh.NLM_F_REQUEST | nlh.NLM_F_ACK)
+        nl.nla_put_u32(msg, card.phy, nl80211h.NL80211_ATTR_WIPHY)
+        nl.nla_put_u32(msg, rf, nl80211h.NL80211_ATTR_WIPHY_FREQ)
+        nl.nla_put_u32(msg, channels.CHWIDTHS.index(chw),
+                       nl80211h.NL80211_ATTR_WIPHY_CHANNEL_TYPE)
+        nl.nl_sendmsg(nlsock, msg)
+        nl.nl_recvmsg(nlsock)
+    except AttributeError as e:
+        raise pyric.error(errno.EINVAL,"Invalid paramter {0}".format(e))
     return True
+
+#### INTERFACE & MODE RELATED ####
 
 def modeget(card, *argv):
     """
@@ -911,8 +935,7 @@ def modeset(card, mode, flags=None, *argv):
     if mode not in IFTYPES: raise pyric.error(errno.EINVAL, 'Invalid mode')
     if flags:
         if mode != 'monitor':
-            raise pyric.error(errno.EINVAL,
-                              'Can only set flags in monitor mode')
+            raise pyric.error(errno.EINVAL, 'Can only set flags in monitor mode')
         for flag in flags:
             if flag not in MNTRFLAGS:
                 raise pyric.error(errno.EINVAL, 'Invalid flag: {0}', format(flag))
@@ -923,16 +946,43 @@ def modeset(card, mode, flags=None, *argv):
     except IndexError:
         return _nlstub_(modeset, card, mode, flags)
 
-    msg = nl.nlmsg_new(nltype=_familyid_(nlsock),
-                       cmd=nl80211h.NL80211_CMD_SET_INTERFACE,
-                       flags=nlh.NLM_F_REQUEST | nlh.NLM_F_ACK)
-    nl.nla_put_u32(msg, card.idx, nl80211h.NL80211_ATTR_IFINDEX)
-    nl.nla_put_u32(msg, IFTYPES.index(mode), nl80211h.NL80211_ATTR_IFTYPE)
-    for flag in flags:
-        nl.nla_put_u32(msg, MNTRFLAGS.index(flag), nl80211h.NL80211_ATTR_MNTR_FLAGS)
-    nl.nl_sendmsg(nlsock, msg)
-    nl.nl_recvmsg(nlsock)
+    try:
+        msg = nl.nlmsg_new(nltype=_familyid_(nlsock),
+                           cmd=nl80211h.NL80211_CMD_SET_INTERFACE,
+                           flags=nlh.NLM_F_REQUEST | nlh.NLM_F_ACK)
+        nl.nla_put_u32(msg, card.idx, nl80211h.NL80211_ATTR_IFINDEX)
+        nl.nla_put_u32(msg, IFTYPES.index(mode), nl80211h.NL80211_ATTR_IFTYPE)
+        for flag in flags:
+            nl.nla_put_u32(msg, MNTRFLAGS.index(flag),
+                           nl80211h.NL80211_ATTR_MNTR_FLAGS)
+        nl.nl_sendmsg(nlsock, msg)
+        nl.nl_recvmsg(nlsock)
+    except AttributeError as e:
+        raise pyric.error(errno.EINVAL, "Invalid paramter {0}".format(e))
     return True
+
+def ifaces(card, *argv):
+    """
+     returns all interfaces sharing the same phy as card (APX iw dev | grep phy#)
+     :param card: Card object
+     :param argv: netlink socket at argv[0] (or empty)
+     :returns: a list of tuples t = (Card,mode) for each device having the same
+      phyiscal index as that of card
+    """
+    try:
+        nlsock = argv[0]
+    except IndexError:
+        return _nlstub_(ifaces, card)
+
+    ifs = []
+    for dev in winterfaces():
+        info = devinfo(dev, nlsock)
+        try:
+            if info['card'].phy == card.phy:
+                ifs.append((info['card'], info['mode']))
+        except AttributeError as e:
+            raise pyric.error(errno.EINVAL, "Invalid paramter {0}".format(e))
+    return ifs
 
 def devadd(card, vdev, mode, flags=None, *argv):
     """
@@ -943,8 +993,9 @@ def devadd(card, vdev, mode, flags=None, *argv):
      :param vdev: device name of new interface
      :param mode: 'name' of mode to operate in (must be one of in {'unspecified'|
      'ibss'|'managed'|'AP'|'AP VLAN'|'wds'|'monitor'|'mesh'|'p2p'}
-     :param flags: list of monitor flags (can only be used if vnic is being created in
-      monitor mode)
+     :param flags: list of monitor flags (can only be used if vnic is being created
+      in monitor mode) oneof {'invalid'|'fcsfail'|'plcpfail'|'control'|'other bss'
+      |'cook'|'active'}
      :param argv: netlink socket at argv[0] (or empty)
      :returns: the new Card
     """
@@ -962,16 +1013,20 @@ def devadd(card, vdev, mode, flags=None, *argv):
     except IndexError:
         return _nlstub_(devadd, card, vdev, mode, flags)
 
-    msg = nl.nlmsg_new(nltype=_familyid_(nlsock),
-                       cmd=nl80211h.NL80211_CMD_NEW_INTERFACE,
-                       flags=nlh.NLM_F_REQUEST | nlh.NLM_F_ACK)
-    nl.nla_put_u32(msg, card.phy, nl80211h.NL80211_ATTR_WIPHY)
-    nl.nla_put_string(msg, vdev, nl80211h.NL80211_ATTR_IFNAME)
-    nl.nla_put_u32(msg, IFTYPES.index(mode), nl80211h.NL80211_ATTR_IFTYPE)
-    for flag in flags:
-        nl.nla_put_u32(msg, MNTRFLAGS.index(flag), nl80211h.NL80211_ATTR_MNTR_FLAGS)
-    nl.nl_sendmsg(nlsock, msg)
-    rmsg = nl.nl_recvmsg(nlsock) # success returns new device attributes
+    try:
+        msg = nl.nlmsg_new(nltype=_familyid_(nlsock),
+                           cmd=nl80211h.NL80211_CMD_NEW_INTERFACE,
+                           flags=nlh.NLM_F_REQUEST | nlh.NLM_F_ACK)
+        nl.nla_put_u32(msg, card.phy, nl80211h.NL80211_ATTR_WIPHY)
+        nl.nla_put_string(msg, vdev, nl80211h.NL80211_ATTR_IFNAME)
+        nl.nla_put_u32(msg, IFTYPES.index(mode), nl80211h.NL80211_ATTR_IFTYPE)
+        for flag in flags:
+            nl.nla_put_u32(msg, MNTRFLAGS.index(flag),
+                           nl80211h.NL80211_ATTR_MNTR_FLAGS)
+        nl.nl_sendmsg(nlsock, msg)
+        rmsg = nl.nl_recvmsg(nlsock) # success returns new device attributes
+    except AttributeError as e:
+        raise pyric.error(errno.EINVAL, "Invalid paramter {0}".format(e))
     return Card(card.phy, vdev, nl.nla_find(rmsg, nl80211h.NL80211_ATTR_IFINDEX))
 
 def devdel(card, *argv):
@@ -989,12 +1044,15 @@ def devdel(card, *argv):
     except IndexError:
         return _nlstub_(devdel, card)
 
-    msg = nl.nlmsg_new(nltype=_familyid_(nlsock),
-                       cmd=nl80211h.NL80211_CMD_DEL_INTERFACE,
-                       flags=nlh.NLM_F_REQUEST | nlh.NLM_F_ACK)
-    nl.nla_put_u32(msg, card.idx, nl80211h.NL80211_ATTR_IFINDEX)
-    nl.nl_sendmsg(nlsock, msg)
-    nl.nl_recvmsg(nlsock)
+    try:
+        msg = nl.nlmsg_new(nltype=_familyid_(nlsock),
+                           cmd=nl80211h.NL80211_CMD_DEL_INTERFACE,
+                           flags=nlh.NLM_F_REQUEST | nlh.NLM_F_ACK)
+        nl.nla_put_u32(msg, card.idx, nl80211h.NL80211_ATTR_IFINDEX)
+        nl.nl_sendmsg(nlsock, msg)
+        nl.nl_recvmsg(nlsock)
+    except AttributeError as e:
+        raise pyric.error(errno.EINVAL,"Invalid paramter {0}".format(e))
     return True
 
 ################################################################################
@@ -1010,7 +1068,7 @@ def _hex2ip4_(v):
     return '.'.join([str(ord(c)) for c in v])
 
 IPADDR = re.compile("^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$") # re for ip addr
-MACADDR = re.compile("^([0-9A-F]{2}:){5}([0-9A-F]{2})$")    # re for mac addr (capital letters only)
+MACADDR = re.compile("^([0-9a-fA-F]{2}:){5}([0-9a-fA-F]{2})$") # re for mac addr
 
 def _validip4_(addr):
     """

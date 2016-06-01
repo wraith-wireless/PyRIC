@@ -1,13 +1,14 @@
   1) overall
-   o look at iw dev wlan0 link
    o make a cli as well
   2) libnl.py
    o see (1) in RFI
   4) pyw
+   o look at iw dev wlan0 link - has information about the AP connected to
    o add txget from iw i.e. netlink perspective
    o find a better way to find the supported standards of a card
    o for now, using ioctl to set ip addresses
-    - move everything to netlink
+    - move to netlink (using ip ?) or is better to keep as ioctl since this
+     allows us to set erroneous values for netmask, broadcast
    o Can we find the current channel of a radio in monitor mode that is actively
      scanning?
    o parse NL80211_ATTR_WIPHY_BANDS (have workaround currently in place)
