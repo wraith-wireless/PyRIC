@@ -1,5 +1,5 @@
 # PyRIC: Python Radio Interface Controller
-## Pythonic iw
+## Pythonic iw (and more) for the Wireless Pentester
 
 [![License: GPLv3](https://img.shields.io/pypi/l/PyRIC.svg)](https://github.com/wraith-wireless/PyRIC/blob/master/LICENSE)
 [![Current version at PyPI](https://img.shields.io/pypi/v/PyRIC.svg)](https://pypi.python.org/pypi/PyRIC)
@@ -10,7 +10,7 @@
 ## 1 DESCRIPTION:
 BLUF: Why use subprocess.Popen, regular expressions and str.find to interact
 with your Wireless Network Interface Card. PyRIC provides the ability to
-manipuate, identify and enumerate your system's wireless cards. It is a pure
+manipulate, identify and enumerate your system's wireless cards. It is a pure
 python port of a subset of the functionality provided by iw, ifconfig and iwconfig.
 PyRIC is:
 * Pythonic: No ctypes, SWIG etc. PyRIC redefines C header files as Python and
@@ -21,6 +21,13 @@ uses netlink (or ioctl) sockets to communicate directly with the kernel.
 * Parseless: Get the output you want without parsing output from iw. Never worry
 about iw updates and rewriting your parsers.
 * Easy: If you can use iw, you can use PyRIC
+
+Python is primarliy and originally a port of a subset of iw but has evolved in
+an attempt to meet the needs of wireless pentesting as it relates to wireless
+network cards. In addition to providing iw related functions, PyRIC implements:
+* ifconfig functionality such as mac address, ip address, netmask and broadcast
+setting and getting
+* rfkill list, block and unblock
 
 ### a. Background
 PyRIC arose out of a need in Wraith (https://github.com/wraith-wireless/wraith)
