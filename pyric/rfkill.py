@@ -38,9 +38,20 @@ are permitted provided that the following conditions are met:
    contributors may be used to endorse or promote products derived from this
    software without specific prior written permission.
 
-Implements userspace program rfkill in Python
+Implements userspace program rfkill in Python to query the state of rfkill switches
 
 """
+
+"""
+ rfkill writes and reads rfkill_event structures to /dev/rfkill using fcntl
+ Results and useful information can be found in /sys/class/rfkill which contains
+ one or more rfkill<n> directories where n is the index of each 'wireless'
+ device. In each rfkill<n> are several files some of which are:
+  o type: type of device i.e. wlan, bluetooth etc
+  o name: in the case of 802.11 cards this is the physical name
+"""
+dpath = '/dev/rfkill'
+spath = '/sys/class/rfkill'
 
 __name__ = 'rfkill'
 __license__ = 'GPLv3'
@@ -54,6 +65,8 @@ __status__ = 'Development'
 import os
 import struct
 import fcntl
+import pyric
+import errno
 
 RFKILL_STATE_SOFT_BLOCKED = 0
 RFKILL_STATE_UNBLOCKED    = 1
@@ -75,6 +88,7 @@ RFKILL_STATE_HARD_BLOCKED = 2
  * @NUM_RFKILL_TYPES: number of defined rfkill types
  */
 """
+RFKILL_TYPES = ['all','wlan','bluetooth','uwb','wimax','wwan','gps','fm','nfc']
 RFKILL_TYPE_ALL       = 0
 RFKILL_TYPE_WLAN      = 1
 RFKILL_TYPE_BLUETOOTH = 2
@@ -127,3 +141,86 @@ def rfkill_event(idx,rtype,op,hard=0,soft=0):
     """
     return struct.pack(rfk_rfkill_event,idx,rtype,op,hard,soft)
 
+def rfkill_list():
+    """
+     list rfkill event structures (rfkill list)
+     :returns: a dict of dicts name -> {idx,type,soft,hard}
+    """
+    rfks = {}
+    fin = open(dpath,'r')
+    flags = fcntl.fcntl(fin.fileno(),fcntl.F_GETFL)
+    fcntl.fcntl(fin.fileno(),fcntl.F_SETFL,flags|os.O_NONBLOCK)
+    while True:
+        try:
+            idx,t,op,s,h = struct.unpack(rfk_rfkill_event,fin.read(RFKILLEVENTLEN))
+            if op == RFKILL_OP_ADD:
+                rfks[getname(idx)] = {'idx':idx,
+                                      'type':RFKILL_TYPES[t],
+                                      'soft':s,
+                                      'hard':h}
+        except IOError:
+            break
+    fin.close()
+    return rfks
+
+def rfkill_block(idx):
+    """
+     blocks the device at index
+     :param idx: rkill index
+    """
+    fout = None
+    try:
+        rfke = rfkill_event(idx,RFKILL_TYPE_ALL,RFKILL_OP_CHANGE,1,0)
+        fout = open(dpath, 'w')
+        fout.write(rfke)
+    except struct.error as e:
+        raise pyric.error(pyric.EUNDEF,"Error packing rfkill event {0}".format(e))
+    except IOError as e:
+        raise pyric.error(e.errno,e.message)
+    finally:
+        if fout: fout.close()
+
+def rfkill_unblock(idx):
+    """
+     unblocks the device at index
+     :param idx: rkill index
+    """
+    pass
+
+def rfkill_unblockby(rtype):
+    """
+     blocks the device of type
+     :param rtype: rfkill type one of {'all'|'wlan'|'bluetooth'|'uwb'|'wimax'
+      |'wwan'|'gps'|'fm'|'nfc'}
+    """
+    pass
+
+def getname(idx):
+    """
+     returns the phyical name of the device
+     :param idx: rfkill index
+     :returns: the name of the device
+    """
+    fin = None
+    try:
+        fin = open(os.path.join(spath,"rfkill{0}".format(idx),'name'),'r')
+        return fin.read().strip()
+    except IOError:
+        raise pyric.error(errno.EINVAL,"No such device")
+    finally:
+        if fin: fin.close()
+
+def gettype(idx):
+    """
+     returns the type of the device
+     :param idx: rfkill index
+     :returns: the type of the device
+    """
+    fin = None
+    try:
+        fin = open(os.path.join(spath,"rfkill{0}".format(idx),'type'),'r')
+        return fin.read().strip()
+    except IOError:
+        raise pyric.error(errno.EINVAL,"No such device")
+    finally:
+        if fin: fin.close()

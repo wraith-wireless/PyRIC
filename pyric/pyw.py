@@ -119,7 +119,6 @@ from pyric.docs.nlhelp import cmdbynum                       # get command name
 import pyric.net.netlink_h as nlh                            # netlink definition
 import pyric.net.genetlink_h as genlh                        # genetlink definition
 import pyric.net.wireless.nl80211_h as nl80211h              # 802.11 definition
-#from pyric.net.wireless.nl80211_c import nl80211_parse_freqs # WIPHY_BANDS
 import pyric.net.sockios_h as sioch                          # sockios constants
 import pyric.net.if_h as ifh                                 # ifreq structure
 import pyric.lib.libnl as nl                                 # netlink functions
