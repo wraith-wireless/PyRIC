@@ -107,7 +107,7 @@ __date__ = 'May 2016'
 __author__ = 'Dale Patterson'
 __maintainer__ = 'Dale Patterson'
 __email__ = 'wraith.wireless@yandex.com'
-__status__ = 'Development'
+__status__ = 'Production'
 
 import struct                                                # ioctl unpacking
 import pyric                                                 # pyric exception
@@ -613,7 +613,7 @@ def down(card, *argv):
 
 #### INFO RELATED ####
 
-def devfreqs(card,*argv):
+def devfreqs(card, *argv):
     """
      returns card's supported frequencies
      :param card: Card object
@@ -623,11 +623,11 @@ def devfreqs(card,*argv):
     try:
         nlsock = argv[0]
     except IndexError:
-        return _nlstub_(devfreqs,card)
+        return _nlstub_(devfreqs, card)
 
-    return phyinfo(card,nlsock)['freqs']
+    return phyinfo(card, nlsock)['freqs']
 
-def devchs(card,*argv):
+def devchs(card, *argv):
     """
      returns card's supported channels
      :param card: Card object
@@ -637,9 +637,9 @@ def devchs(card,*argv):
     try:
         nlsock = argv[0]
     except IndexError:
-        return _nlstub_(devchs,card)
+        return _nlstub_(devchs, card)
 
-    return map(channels.rf2ch,phyinfo(card,nlsock)['freqs'])
+    return map(channels.rf2ch, phyinfo(card, nlsock)['freqs'])
 
 def devstds(card, *argv):
     """
@@ -656,8 +656,8 @@ def devstds(card, *argv):
     try:
         flag = sioch.SIOCGIWNAME
         ret = io.io_transfer(iosock, flag,ifh.ifreq(card.dev, flag))
-        stds = ret[ifh.IFNAMELEN:]             # get the standards
-        stds = stds[:stds.find('\x00')]        # remove nulls
+        stds = ret[ifh.IFNAMELEN:]              # get the standards
+        stds = stds[:stds.find('\x00')]         # remove nulls
         stds = stds.replace('IEEE 802.11', '')  # remove IEEE 802.11
         return [std for std in stds]
     except AttributeError as e:
@@ -845,7 +845,7 @@ def chget(card, *argv):
         return _nlstub_(chget, card)
     return channels.rf2ch(devinfo(card, nlsock)['RF'])
 
-def chset(card, ch, chw=None, *argv):
+def chset(card, ch, chw, *argv):
     """
      REQUIRES ROOT PRIVILEGES
      sets current channel on device (iw phy <card.phy> set channel <ch> <chw>)

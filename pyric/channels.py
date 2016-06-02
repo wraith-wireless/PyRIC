@@ -22,6 +22,8 @@ are permitted provided that the following conditions are met:
 
 Defines ISM 2.4Ghz,UNII 5Ghz and 4.9GHz frequencies and channels
 
+Need to define 3GHz channels/freqs
+
 """
 
 __name__ = 'channels'
@@ -78,7 +80,6 @@ def freqs():
 def ch2rf(c):
     """
      channel to frequency conversion
-
      :param c:channel
      :returns:frequency in MHz corresponding to channel
     """
@@ -89,7 +90,6 @@ def ch2rf(c):
 def rf2ch(f):
     """
      frequency to channel conversion
-
      :param f:frequency (in MHz)
      :returns:channel number corresponding to frequency
     """

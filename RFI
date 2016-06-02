@@ -114,3 +114,4 @@ dev <devname> set txpower <auto|fixed|limit> [<tx power in mBm>]
 
 phy <phyname> set txpower <auto|fixed|limit> [<tx power in mBm>]
 		Specify transmit power level and setting type.
+

@@ -40,6 +40,13 @@ are permitted provided that the following conditions are met:
 
 Implements userspace program rfkill in Python to query the state of rfkill switches
 
+NOTE:
+ o rfkill_block will block all devices regardless of index, however, the blocked
+  state will only shown in device that was submitted for blocking - this is the
+  same behavior seen in rfkill block <idx>
+  - this may be due to bug in ubuntu and not present in other distros
+ o rfkill does not do sanity checks on the index, rfkill.py will through error
+  if the index does not exist
 """
 
 """
@@ -60,7 +67,7 @@ __date__ = 'June 2016'
 __author__ = 'Dale Patterson'
 __maintainer__ = 'Dale Patterson'
 __email__ = 'wraith.wireless@yandex.com'
-__status__ = 'Development'
+__status__ = 'Production'
 
 import os
 import struct
@@ -168,6 +175,8 @@ def rfkill_block(idx):
      blocks the device at index
      :param idx: rkill index
     """
+    if not os.path.exists(os.path.join(spath,"rfkill{0}".format(idx))):
+        raise pyric.error(errno.ENODEV,"No device at {0}".format(idx))
     fout = None
     try:
         rfke = rfkill_event(idx,RFKILL_TYPE_ALL,RFKILL_OP_CHANGE,1,0)
@@ -180,20 +189,99 @@ def rfkill_block(idx):
     finally:
         if fout: fout.close()
 
-def rfkill_unblock(idx):
-    """
-     unblocks the device at index
-     :param idx: rkill index
-    """
-    pass
-
-def rfkill_unblockby(rtype):
+def rfkill_blockby(rtype):
     """
      blocks the device of type
      :param rtype: rfkill type one of {'all'|'wlan'|'bluetooth'|'uwb'|'wimax'
       |'wwan'|'gps'|'fm'|'nfc'}
     """
-    pass
+    rfks = rfkill_list()
+    for name in rfks:
+        if rfks[name]['type'] == rtype:
+            rfkill_block(rfks[name]['idx'])
+
+def rfkill_unblock(idx):
+    """
+     unblocks the device at index
+     :param idx: rkill index
+    """
+    if not os.path.exists(os.path.join(spath, "rfkill{0}".format(idx))):
+        raise pyric.error(errno.ENODEV, "No device at {0}".format(idx))
+    fout = None
+    try:
+        rfke = rfkill_event(idx,RFKILL_TYPE_ALL,RFKILL_OP_CHANGE,0,0)
+        fout = open(dpath, 'w')
+        fout.write(rfke)
+    except struct.error as e:
+        raise pyric.error(pyric.EUNDEF,"Error packing rfkill event {0}".format(e))
+    except IOError as e:
+        raise pyric.error(e.errno,e.message)
+    finally:
+        if fout: fout.close()
+
+def rfkill_unblockby(rtype):
+    """
+     unblocks the device of type
+     :param rtype: rfkill type one of {'all'|'wlan'|'bluetooth'|'uwb'|'wimax'
+      |'wwan'|'gps'|'fm'|'nfc'}
+    """
+    if rtype not in RFKILL_TYPES:
+        raise pyric.error(errno.EINVAL,"Type {0} is not valid".format(rtype))
+    rfks = rfkill_list()
+    for name in rfks:
+        if rfks[name]['type'] == rtype:
+            rfkill_unblock(rfks[name]['idx'])
+
+def soft_blocked(idx):
+    """
+     determines soft block state of device
+     :param idx: rkill index
+     :returns: True if device at idx is soft blocked, False otherwise
+    """
+    if not os.path.exists(os.path.join(spath,"rfkill{0}".format(idx))):
+        raise pyric.error(errno.ENODEV,"No device at {0}".format(idx))
+    fin = None
+    try:
+        fin = open(os.path.join(spath,"rfkill{0}".format(idx),'soft'),'r')
+        return int(fin.read().strip()) == 1
+    except IOError:
+        raise pyric.error(errno.ENODEV,"No device at {0}".format(idx))
+    except ValueError:
+        raise pyric.error(pyric.EUNDEF,"Unexpected error")
+    finally:
+        if fin: fin.close()
+
+def hard_blocked(idx):
+    """
+     determines hard block state of device
+     :param idx: rkill index
+     :returns: True if device at idx is hard blocked, False otherwise
+    """
+    if not os.path.exists(os.path.join(spath,"rfkill{0}".format(idx))):
+        raise pyric.error(errno.ENODEV,"No device at {0}".format(idx))
+    fin = None
+    try:
+        fin = open(os.path.join(spath,"rfkill{0}".format(idx),'hard'),'r')
+        return int(fin.read().strip()) == 1
+    except IOError:
+        raise pyric.error(errno.ENODEV,"No device at {0}".format(idx))
+    except ValueError:
+        raise pyric.error(pyric.EUNDEF,"Unexpected error")
+    finally:
+        if fin: fin.close()
+
+def getidx(phy):
+    """
+     returns the rfkill index associated with the physical index
+     :param phy: phyiscal index
+     :returns: the rfkill index
+    """
+    phy = "phy{0}".format(phy)
+    rfks = rfkill_list()
+    try:
+        return rfks["phy{0}".format(phy)]['idx']
+    except KeyError:
+        return None
 
 def getname(idx):
     """
@@ -206,7 +294,7 @@ def getname(idx):
         fin = open(os.path.join(spath,"rfkill{0}".format(idx),'name'),'r')
         return fin.read().strip()
     except IOError:
-        raise pyric.error(errno.EINVAL,"No such device")
+        raise pyric.error(errno.EINVAL,"No device at {0}".format(idx))
     finally:
         if fin: fin.close()
 
@@ -221,6 +309,6 @@ def gettype(idx):
         fin = open(os.path.join(spath,"rfkill{0}".format(idx),'type'),'r')
         return fin.read().strip()
     except IOError:
-        raise pyric.error(errno.EINVAL,"No such device")
+        raise pyric.error(errno.ENODEV,"No device at {0}".format(idx))
     finally:
         if fin: fin.close()

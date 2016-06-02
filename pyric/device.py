@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+
 """ device.py: utility functions
 
 Copyright (C) 2016  Dale V. Patterson (wraith.wireless@yandex.com)
@@ -37,7 +38,7 @@ from os import listdir
 
 dpath = '/proc/net/dev' # system device details
 drvpath = '/sys/class/net/{0}/device/driver/module/drivers' # format w/ device name
-phypath = '/sys/class/ieee80211/{0}'                        # format w/ phyiscal name
+#phypath = '/sys/class/ieee80211/{0}'                        # format w/ phyiscal name
 # NOTE phypath + index contains the ifindex (sometimes)
 
 def ifcard(dev):

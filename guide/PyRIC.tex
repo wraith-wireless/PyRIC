@@ -19,12 +19,12 @@
 %
 % __name__ = 'User Guide'
 %__license__ = 'GPLv3'
-%__version__ = '0.0.2'
-%__date__ = 'May 2016'
+%__version__ = '0.0.3'
+%__date__ = 'June 2016'
 %__author__ = 'Dale Patterson'
 %__maintainer__ = 'Dale Patterson'
 %__email__ = 'wraith.wireless@yandex.com'
-%__status__ = 'Development'
+%__status__ = 'Production'
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \documentclass[11pt]{article}
@@ -72,7 +72,7 @@
     basicstyle=\footnotesize
 }
 
-\title{PyRIC v0.0.8: User Manual}
+\title{PyRIC v0.1.0: User Manual}
 \author{Dale V. Patterson\\ wraith.wireless@yandex.com}
 
 \begin{document}
@@ -80,20 +80,41 @@
 \tableofcontents
 
 \section{About PyRIC}\label{sec:About}
-PyRIC is a python port of (a subset of) iw and by extension a python port of 
-Netlink\cite{spae} (w.r.t nl80211 functions). The goal of PyRIC is to provide 
-a simple interface to the underlying nl80211 kernel support that handles the 
-complex operations of Netlink seamlessy while maintaining a minimum of "code 
-walking" to understand, modify and extend. PyRIC will only work on Linux 
-with Netlink support.\\
+PyRIC provides wireless pentesters the ability to manipulate, identify and 
+enumerate your system's wireless cards programmatically in Python. PyRIC provides
+functionality offered by command line tools like iw, ifconfig, iwconfig and rfkill.
+Why use subprocess.Popen, regular expressions and str.find to interact with your
+wireless cards? PyRIC is:
+\begin{enumerate}
+\item \textbf{Pythonic}: No ctypes, SWIG etc. PyRIC redefines C header files as 
+Python and uses sockets to communicate with kernel.
+\item \textbf{Self-sufficient}: No third-party files used, PyRIC is completely self-
+contained
+\item \textbf{Fast}: (relatively speaking) PyRIC is faster than using iw through 
+subprocess.Popen
+\item \textbf{Parseless}: Get the output you without parsing output from iw. Never 
+worry about iw updates and rewriting your parsers.
+\item \textbf{Easy}: If you can use iw, you can use PyRIC
+\end{enumerate}
 
-While users can utilize libnl(.py) and libio(.py) to communicate directly with 
-the kernel, the true utility of PyRIC is pyw(.py). Like iw, pyw provides an 
-interface/buffer between the caller and the kernel, handling all message
-construction, parsing and transfer transparently and without requiring any 
-Netlink knowledge or experience. \\
+At it's heart, PyRIC is a python port of (a subset of) iw and by extension a 
+python port of Netlink\cite{spae} (w.r.t nl80211 functions). The original goal 
+of PyRIC was to provide a simple interface to the underlying nl80211 kernel 
+support, handling the complex operations of Netlink seamlessy while maintaining 
+a minimum of "code walking" to understand, modify and extend. PyRIC will only work 
+on Linux with Netlink support.\\
 
-At this time, PyRIC (through pyw functions) can:
+While users can utilize libnl(.py) to communicate directly with the kernel, the
+true utility of PyRIC is pyw(.py). Like iw, pyw provides an interface/buffer 
+between the caller and the kernel, handling all message construction, parsing 
+and transfer transparently and without requiring any Netlink knowledge or 
+experience. \\
+
+PyRIC does more though, via fcntl it implements rfkill, allowing users to list, 
+block and unblock devices as well as implement libio(.py) for ioctl communication 
+with the kernel providing users the ability to turn cards on/off and set addresses.
+
+At this time, PyRIC (through pyw, rfkill and device) can:
 \begin{itemize}
 \item enumerate interfaces and wireless interfaces,
 \item get/set regulatory domain,
@@ -105,29 +126,15 @@ At this time, PyRIC (through pyw functions) can:
 \item get supported commands,
 \item get supported modes,
 \item get dev/phy info on device,
-\item get/set mode, and
-\item add/delete interfaces. 
+\item get/set mode,
+\item add/delete interfaces, and
+\item block/unblock devices through rfkill.
 \end{itemize}
 It also provides users with the ability, through libnl(.py) to extend the above 
 functionality by creating additional commands.\\
 
 Currently, PyRIC does handle multicast messages i.e. events or dumps although 
 plans for future versions include adding the ability to process dumps. \\
-
-There are other Python implementations but many have not been maintained and most
-attempt to provide a full implementation of Netlink with nl80211 functionality 
-as a side-project. Unlike those, PyRIC is:   
-\begin{itemize} 
-\item Pythonic: No ctypes, SWIG etc. PyRIC redefines C header files as Python and
-uses sockets to communicate directly with the kernel,
-\item Self-sufficient: No third-party files used, PyRIC is completely self-contained,
-\item Fast: (relatively speaking) PyRIC is faster than using iw through 
-subprocess.Popen,
-\item Small: PyRIC is roughly 420kB,
-\item Parseless: Get the output you want without parsing output from iw. Never worry 
-about iw updates and rewriting your parsers, and
-\item Easy: If you can use iw, you can use PyRIC.
-\end{itemize} 
 
 \subsection{Naming Conventions}
 The terms interface, device and radio are all used interchangeably throughout to 
@@ -162,11 +169,11 @@ The ifindex is found through the use of ioctl, meaning two sockets have to be
 created and two messages have to be sent, received and parsed in order to execute
 the command. With Cards, the ifindex is requested for only once. \\
 
-Keep in mind that any identifier (phy,dev,ifindex) can be invalidated outside of 
-your control. Another program can rename your interface, that is change the dev 
-without your knowledge. Depending on what functions are being used this may not 
-be noticed right away as the phy will remain the same. Also, usb devices (if the 
-usb is disconnected and reconnected) will have the same dev but the phy and 
+Keep in mind that any identifier (phy, dev, ifindex) can be invalidated outside 
+of your control. Another program can rename your interface, that is change the 
+dev without your knowledge. Depending on what functions are being used this may 
+not be noticed right away as the phy will remain the same. Also, usb devices (if 
+the usb is disconnected and reconnected) will have the same dev but the phy and 
 ifindex will be different.
 
 \subsection{Benchmarks}
@@ -198,81 +205,14 @@ persistent & 257.8293 & 0.0257 & 0.0354 & 0.0004 \\
 \label{tab:benchmark}
 \end{table}
 
-While small, these change improve the performance of any programs using pyw. 
-Table 1 shows benchmarks for hop time on a Alfa AWUS036NH conducted 10000 times. 
+While small, these changes can improve the performance of any programs using pyw. 
+Table 1 shows benchmarks for hop time on an Alfa AWUS036NH conducted 10000 times. 
 Note that we are not implying that PyRIC is faster than iw. Rather, the table 
 shows that PyRIC is faster than using Popen to execute iw. Using one-time sockets,
 there is a difference of 28 seconds over Popen and iw with a small decrease in 
 the average hoptime. Not a big difference. However, the performance increased
 dramatically when persistent netlink sockets are used with the total time and 
 average hop time nearly halved.
-
-\subsection{Hierarchy/Architecture}
-PyRIC's hierarchy is briefly discussed next.
-
-\begin{enumerate}
-\item \textbf{\_\_init\_\_.py}: Initialize PyRIC, the root distribution directory
-use for PyPI packaging 
-\item \textbf{README.md}: self-descriptive
-\item \textbf{setup.py}: install file
-\item \textbf{setup.cfg}: used by setup.py
-\item \textbf{MANIFEST.in}: used by setup.py
-\item \textbf{LICENSE}: GPLv3 License
-\item \textbf{PyRIC.pdf}: this file
-\item \textbf{TODO}: lists any outstanding TODOs, ideas for future revisions
-\item \textbf{RFI}: comments and observations about netlinks, nl80211 etc
-\item \textbf{examples}: examples directory
-\begin{enumerate}
-\item \textbf{pentest.py}: create wireless pentest environment
-\item \textbf{device\_details.py}: display device information
-\end{enumerate}
-\item \textbf{tests}: test directory
-\begin{enumerate}
-\item \textbf{pyw.unittest.py}: pyw unittesting
-\end{enumerate}
-\item \textbf{pyric} package directory
-\begin{enumerate}
-\item \textbf{\_\_init\_\_.py}: Initialize pyric defines the EUNDEF error code 
-(PyRIC uses errno for all errorcodes adding EUNDEF) and the common exception 
-class, 'error' - all submodules use this class for any exceptions.  
-\item \textbf{channels.py}: ISM and UNII frequencies and channels, with conversion
-functions
-\item \textbf{device.py}: device and chipset utility functions
-\item \textbf{pyw.py}: this is the interface, providing wireless interface 
-manipulation functions
-\item \textbf{lib}: lib subpackage
-\begin{enumerate}
-\item \textbf{\_\_init\_\_.py}: initialize lib subpackage
-\item \textbf{libnl.py}: netlink API
-\item \textbf{libio.py}: ioctl API
-\end{enumerate}
-\item \textbf{net}: net subpackage
-\begin{enumerate}
-\item \textbf{\_\_init\_\_.py}: initialize net subpackage
-\item \textbf{if\_h.py}: inet/ifreq definition
-\item \textbf{sockios\_h.py}: socket-level I/O control call flags
-\item \textbf{netlink\_h.py}: port of netlink.h
-\item \textbf{genetlink\_h.py}: port of genetlink.h
-\item \textbf{policy.py}: defines attribute datatypes
-\item \textbf{wireless}: wireless subpackage
-\begin{enumerate}
-\item \textbf{\_\_init\_\_.py}: initialize lib subpackage
-\item \textbf{nl80211\_h.py}: port of nl80211 (commands \& attributes)
-\item \textbf{nl80211\_c.py}: nl80211 attribute datatypes/policies
-\end{enumerate}
-\end{enumerate}
-\item \textbf{docs}: docs subpackage
-\item \textbf{\_\_init\_\_.py}: initialize docs subpackage
-\item \textbf{nlhelp.py}: functions to search display nl80211 constants
-\item \textbf{commands.help}: nl80211 commands help data (json)
-\item \textbf{attributes.help}: nl80211 attributes help data (json)
-\item \textbf{res}:resource subpackage
-\begin{enumerate}
-\item \textbf{PyRIC.tex}: LaTeX for user guide
-\item \textbf{PyRIC.bib}: bibliography for user guide
-\end{enumerate}
-\end{enumerate}
-\end{enumerate}
 
 \section{Installing PyRIC}\label{sec:installing}
 Starting with version 0.0.6, the structure (see Section \ref{sec:About} has 
@@ -282,10 +222,7 @@ just test) outside of a pip installation. \\
 
 Obviously, the easiest way to install PyRIC is through PyPI:\\
 
-    \texttt{sudo pip install --pre PyRIC}\\
-
-Note the use of the '--pre' flag. Without it, pip will not install PyRIC since
-it is still in the developmental stage.\\
+    \texttt{sudo pip install PyRIC}\\
 
 You can also install PyRIC from source. The tarball can be downloaded from:
 
@@ -338,16 +275,12 @@ Github & 3 & 5 & 3\\
 \section{Using PyRIC}\label{sec:using}
 As stated previously, PyRIC provides a set of functions to interact with your 
 system's radio(s) and the ability to interact directly with the kernel through
-netlink and ioctl sockets. \\
-
-It is helpful if the reader has a basic knowledge of netlinks. For a review, see 
-"Communicating between the kernel and user-space in Linux using Netlink Sockets"
-\cite{spae}. 
+netlink and ioctl sockets.
 
 \subsection{Interacting with the Wireless Core and Wireless NICs: pyw.py}
-If you can use iw, you can use pyw.py. The easist way to explain how to use pyw 
-is with an example. Imagine your wireless network is on ch 6 has been experiencing 
-difficulites lately and you want to capture some traffic to analyse it. Listing 
+If you can use iw, you can use pyw. The easist way to explain how to use pyw is 
+with an example. Imagine your wireless network, on ch 6, has been experiencing 
+difficulties lately and you want to capture some traffic to analyse it. Listing 
 \ref{lst:pentest} shows how to set up a wireless pentest environment. \\
 
 \begin{lstlisting}[caption={Setting up a Wireless Pentest Environment},
@@ -517,8 +450,12 @@ that is used in the creation of a card and in retrieved the card's supported
 modes. \\
 
 Use Python's built in help features on pyw functions or see Appendex \ref{sec:pywapi} 
-to determine what type of 
-socket is needed.
+to determine what type of socket is needed.
+
+\subsection{Additional Tools: channels.py, device.py and rfkill.py}
+In addition to ifconfig and iw related functions found in pyw.py, PyRIC provides
+a port of rfkill, channel/frequency enumeration and device chipset, driver 
+retrieval. More information can be found in the Appendices. 
 
 \subsection{Interacting with the Kernel: libnl.py and libio.py}
 The kernel interfaces, libnl.py and libio.py are located in the lib directory.
@@ -530,7 +467,11 @@ found in the next section.
 
 \section{Extending PyRIC}\label{sec:extending}
 You may find that pyw does not offer some of the functionality you need. Using
-libnl.py and/or libnl.io, additional functionality can be added to your program. 
+libnl.py and/or libnl.io, additional functionality can be added to your program.\\ 
+
+It is helpful if the reader has a basic knowledge of netlinks. For a review, see 
+"Communicating between the kernel and user-space in Linux using Netlink Sockets"
+\cite{spae}. 
 
 \subsection{Porting C}
 All Python ports of C header files can be found in the net directory. C Enums 
@@ -712,6 +653,51 @@ Rather simple, in fact the hardest part is figuring out what to send to the kern
 Everything else is handled behind the scenes by libnl.py.
 
 \begin{appendices}
+\section{Hierarchy/Architecture}
+PyRIC's hierarchy is briefly discussed next.
+
+\begin{enumerate}
+\item \textbf{pyric} package directory
+\begin{enumerate}
+\item \textbf{\_\_init\_\_.py}: Initialize pyric defines the EUNDEF error code 
+(PyRIC uses errno for all errorcodes adding EUNDEF) and the common exception 
+class, 'error' - all submodules use this class for any exceptions.  
+\item \textbf{pyw.py}: this is the interface, providing wireless interface 
+manipulation functions
+\item \textbf{channels.py}: ISM and UNII frequencies and channels, with conversion
+functions
+\item \textbf{device.py}: device and chipset utility functions
+\item \textbf{rfkill.py}: Python port of command line tool rfkill
+\item \textbf{lib}: lib subpackage
+\begin{enumerate}
+\item \textbf{\_\_init\_\_.py}: initialize lib subpackage
+\item \textbf{libnl.py}: netlink API
+\item \textbf{libio.py}: ioctl API
+\end{enumerate}
+\item \textbf{net}: net subpackage
+\begin{enumerate}
+\item \textbf{\_\_init\_\_.py}: initialize net subpackage
+\item \textbf{if\_h.py}: inet/ifreq definition
+\item \textbf{sockios\_h.py}: socket-level I/O control call flags
+\item \textbf{netlink\_h.py}: port of netlink.h
+\item \textbf{genetlink\_h.py}: port of genetlink.h
+\item \textbf{policy.py}: defines attribute datatypes
+\item \textbf{wireless}: wireless subpackage
+\begin{enumerate}
+\item \textbf{\_\_init\_\_.py}: initialize lib subpackage
+\item \textbf{nl80211\_h.py}: port of nl80211 (commands \& attributes)
+\item \textbf{nl80211\_c.py}: nl80211 attribute datatypes/policies
+\end{enumerate}
+\end{enumerate}
+\item \textbf{docs}: docs subpackage
+\item \textbf{\_\_init\_\_.py}: initialize docs subpackage
+\item \textbf{nlhelp.py}: functions to search display nl80211 constants
+\item \textbf{commands.help}: nl80211 commands help data (json)
+\item \textbf{attributes.help}: nl80211 attributes help data (json)
+\item \textbf{res}:resource subpackage
+\end{enumerate}
+\end{enumerate}
+
 \section{API: pyw.py}\label{sec:pywapi}
 
 \subsection{Constants}
@@ -839,6 +825,78 @@ and an allocated ioctl socket
 argv and an allocated netlink socket
 \end{itemize}
 \end{itemize}
+
+\section{API: channels.py}\label{sec:channels.api}
+Channel, Frequency enumeration and conversions can be found in channels.py.
+
+\subsection{Constants}
+\begin{enumerate}
+\item \textbf{CHWIDTHS}: imported channel widths from nl80211\_h
+\item \textbf{ISM\_24\_C2F}: Dict containing ISM channel (key) to frequency (value) 
+pairs
+\item \textbf{ISM\_24\_F2C}: Dict containing ISM frequency (key) to channel (value)
+pairs
+\item \textbf{UNII\_5\_C2F}: Dict containing UNII 5Ghz channel (key) to frequency 
+(value) pairs
+\item \textbf{UNII\_5\_F2C}: Dict containing UNII 5Ghz frequency (key) to channel 
+(value) pairs
+\item \textbf{UNII\_4\_C2F}: Dict containing UNII upper 4Ghz channel (key) to 
+frequency (value) pairs
+\item \textbf{UNII\_4\_F2C}: Dict containing UNII upper 4Ghz frequency (key) to 
+channel (value) pairs
+\end{enumerate}
+
+\subsection{Functions}
+\begin{enumerate}
+\item channels(): returns a list of all channels
+\item freqs(): returns a list of all frequencies
+\item ch2rf(c): convert channel c to frequency
+\item rf2ch(f): convert frequency f to channel
+\end{enumerate}
+
+\section{API: device.py}\label{sec:deviceapi}
+Retrieval of the driver and chipset of a given card is found in device.py.
+
+\subsection{Constants}
+\begin{enumerate}
+\item \textbf{dpath}: path to system device details
+\item \textbf{drvpath}: path to device drivers 
+\end{enumerate}
+
+\subsection{Functions}
+\begin{enumerate}
+\item ifcard(dev): returns the device driver and chipset
+\item ifdriver(dev): returns the device driver
+\item ifchipset(driver): returns the chipset associated with driver
+\end{enumerate}
+
+\section{API: rfkill.py}\label{sec:rfkillapi}
+A port of the command line tool rfkill, rfkill.py writes and reads rfkill\_event 
+structures to /dev/rfkill using fcntl provding functionality to block and unblock 
+devices. 
+
+\subsection{Constants}
+\begin{enumerate}
+\item \textbf{RFKILL\_TYPES}: list of strings corresponding to the types of devices
+supported by rfkill
+\end{enumerate}
+
+\subsection{Functions}
+\begin{enumerate}
+\item rfkill\_list(): corresponds to rkill list, returns a dict of dicts name -> 
+\{idx, type, soft, hard\}. If type is 'wireless', then name will be of the form
+phy<n> such that n is the physical index of the wireless card 
+\item rfkill\_block(idx): soft blocks the device at rfkill index idx
+\item rfkill\_blockby(rtype): soft blocks all devices of type rtype
+\item rfkill\_unblock(idx): turns off the soft block at rfkill index idx
+\item rfkill\_unblockby(rtype): turns off the soft blocks of all devices of type
+rtype
+\item soft\_blocked{idx}: determines soft block state of device at rfkill index idx
+\item hard\_blocked{idx}: determines hard block state of device at rfkill index idx
+\item getidx(phy): returns the rfkill index of the device with physical index phy
+\item getname(idx): returns the name of the device at rfkill index idx
+\item gettype(idx): returns the type of the device at rfkill index idx
+\end{enumerate}
 
 \section{API: libnl.py}\label{sec:libnlapi}
 Providing libnl similar functionality, libnl.py provides the interface between
@@ -977,8 +1035,20 @@ only the value otherwise returns the attribute tuple
 \end{itemize}
 \end{itemize}
 
+\section{API: libio.py}\label{sec:libioapi}
+A very basic interface to ioctl, libio provides socket creation, deletion and 
+transfer.
+
+\subsection{Functions}
+\begin{enumerate}
+\item io\_socket\_alloc(): returns an ioctl socket
+\item io\_socket\_free(iosock): closes the ioctl socket iosock
+\item io\_transfer\_(iosock,flag,ifreq): sends the ifreq structure with sockios 
+control call flag to the kernel and returns the received ifreq structure
+\end{enumerate}
+
 \section{Copyright and License}\label{sec:copy}
-PYRIC: Python Radio Interface Controller v0.0.5\\
+PYRIC: Python Radio Interface Controller v0.1.0\\
 
 Copyright (C) 2016  Dale V. Patterson (wraith.wireless@yandex.com)\\
 

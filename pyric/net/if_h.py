@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-
 """ sockios_h.py: definitions for INET interface module
 
 /*

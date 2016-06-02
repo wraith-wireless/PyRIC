@@ -1,5 +1,6 @@
   1) overall
    o make a cli as well
+   o determine if rfkill issue is related only to ubuntu
   2) libnl.py
    o see (1) in RFI
   4) pyw

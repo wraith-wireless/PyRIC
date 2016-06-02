@@ -1,7 +1,8 @@
 #!/usr/bin/env python
-""" device_details.py
+""" details.py
 
 Example for displaying device details
+
 """
 
 import argparse as ap
@@ -67,7 +68,7 @@ if __name__ == '__main__':
     try:
         dev = args.dev
         if dev is None:
-            print "usage: python device_details.py -d <dev>"
+            print "usage: python details.py -d <dev>"
         else:
             execute(dev)
     except pyric.error as e:

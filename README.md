@@ -22,7 +22,7 @@ uses netlink (or ioctl) sockets to communicate directly with the kernel.
 about iw updates and rewriting your parsers.
 * Easy: If you can use iw, you can use PyRIC
 
-Python is primarliy and originally a port of a subset of iw but has evolved in
+PyRIC is primarliy and originally a port of a subset of iw but has evolved in
 an attempt to meet the needs of wireless pentesting as it relates to wireless
 network cards. In addition to providing iw related functions, PyRIC implements:
 * ifconfig functionality such as mac address, ip address, netmask and broadcast
@@ -61,8 +61,7 @@ commands although an understanding of libnl(.py) is helpful especially, if for
 example, the code is to be extended to handle multicast or callbacks.
 
 ### b. Additions to iw
-In addition to providing some ifconfig functionality, I have also added several
-"extensions" to iw:
+Several "extensions" have been added to iw:
 * Persistent sockets: pyw provides the caller with functions & ability to pass
 their own netlink (or ioctl socket) to pyw functions;
 * One-time request for the nl80211 family id: pyw stores the family id in a
@@ -71,7 +70,7 @@ global variable
 (Cards are tuples t=(dev,phy #,ifindex)
 
 These are minimal changes but they can improve the performance of any progams
-that need to access the wireless nic repeatedly as shown in the table below.
+that needs to access the wireless nic repeatedly as shown in the table below.
 
 | chset      | Total    | Avg    | Longest   | Shortest |
 |------------|----------|--------|-----------|----------|
@@ -88,8 +87,8 @@ persistent netlink sockets are used with the total time and average hop time nea
 halved.
 
 ### c. Current State
-ATT, PyRIC accomplish my core needs but it is still a work in progress. It provides
-the following:
+ATT, PyRIC accomplishes my core needs but it is still a work in progress. It
+currently provides the following:
 * enumerate interfaces and wireless interfaces
 * identify a cards chipset and driver
 * get/set hardware address
@@ -104,7 +103,7 @@ the following:
 * get/set mode
 * add/delete interfaces
 * enumerate ISM and UNII channels
-* block/unblock rfkill devices (still working on it)
+* block/unblock rfkill devices
 
 It also provides limited help functionality concerning nl80211 commands/attributes
 (for those who wish to add additional commands). However, it pulls directly from
@@ -116,10 +115,10 @@ To avoid confusion, PyRIC is the system as a whole, including all header files
 and "libraries" that are required to communicate with the kernel. pyw is a
 interface to these libraries providing specific funtions.
 
-What it does - defines programmatic access to a small subset of iw and ifconfig.
-
-What it does not do - handle multicast messages, callbacks or dumps or non nl80211
-funtionality.
+What it does - defines programmatic access to a subset of iw, ifconfig and iwconfig.
+In short, PyRIC provides Python wireless pentesters the ability to work with
+wireless cards directly from Python without having to use command line tools
+through Popen.
 
 ## 2. INSTALLING/USING:
 
@@ -130,16 +129,13 @@ installation.
 
 ### a. Requirements
 PyRIC has only two requirements: Linux and Python. There has been very little
-testing (on my side) on kernel 4.x and Python 3 but working out the small bugs
-continues on Python 2.7 and kernel 3.13.x.
+testing (on my side) on kernel 4.x and Python 3 but unit testing confirms
+functionality on Python 2.7 and kernel 3.13.x.
 
 ### b. Install from Package Manager
 Obviously, the easiest way to install PyRIC is through PyPI:
 
-    sudo pip install --pre PyRIC
-
-Note the use of the '--pre' flag. Without it, pip will not install PyRIC since
-it is still in the developmental stage.
+    sudo pip install PyRIC
 
 ### c. Install from Source
 The PyRIC source (tarball) can be downloaded from https://pypi.python.org/pypi/PyRIC
@@ -366,6 +362,9 @@ Extending PyRIC is fun and easy too, see the user guide PyRIC.pdf.
     + device_details.py   display device information
   - tests                 test folder
     + pyw.unittest.py     unit test for pyw functions
+  - guide                 User Guide resources
+    + PyRIC.tex           User Guide LaTex
+    + PyRIC.bib           User Guide bibliography
   - setup.py              install file
   - setup.cfg             used by setup.py
   - MANIFEST.in           used by setup.py
@@ -401,6 +400,3 @@ Extending PyRIC is fun and easy too, see the user guide PyRIC.pdf.
       * nlhelp.py         nl80211 search
       * commands.help     nl80211 commands help data
       * attributes.help   nl80211 attributes help data
-      * res               User Guide resources
-        - PyRIC.tex       User Guide LaTex
-        - PyRIC.bib       User Guide bibliography

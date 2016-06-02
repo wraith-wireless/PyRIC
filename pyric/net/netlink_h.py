@@ -45,7 +45,7 @@ __date__ = 'March 2016'
 __author__ = 'Dale Patterson'
 __maintainer__ = 'Dale Patterson'
 __email__ = 'wraith.wireless@yandex.com'
-__status__ = 'Development'
+__status__ = 'Production'
 
 import struct
 

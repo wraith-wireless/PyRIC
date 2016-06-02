@@ -31,7 +31,7 @@ __date__ = 'April 2016'
 __author__ = 'Dale Patterson'
 __maintainer__ = 'Dale Patterson'
 __email__ = 'wraith.wireless@yandex.com'
-__status__ = 'Development'
+__status__ = 'Production'
 
 import socket
 import struct
@@ -44,11 +44,11 @@ def io_socket_alloc():
      create a socket for ioctl calls
      :returns: an io socket
     """
-    return socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    return socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
 
-def io_socket_free(sock):
+def io_socket_free(iosock):
     """ close the socket """
-    if sock: sock.close()
+    if iosock: iosock.close()
     return None
 
 def io_transfer(iosock,flag,ifreq):

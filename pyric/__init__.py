@@ -119,12 +119,12 @@ Requires:
 
 __name__ = 'pyric'
 __license__ = 'GPLv3'
-__version__ = '0.0.8'
-__date__ = 'April 2016'
+__version__ = '0.1.0'
+__date__ = 'June 2016'
 __author__ = 'Dale Patterson'
 __maintainer__ = 'Dale Patterson'
 __email__ = 'wraith.wireless@yandex.com'
-__status__ = 'Development'
+__status__ = 'Production'
 
 from os import strerror
 

@@ -24,29 +24,28 @@ are permitted provided that the following conditions are met:
 
 #__name__ = 'setup'
 __license__ = 'GPLv3'
-__version__ = '0.0.2'
-__date__ = 'May 2016'
+__version__ = '0.0.3'
+__date__ = 'June 2016'
 __author__ = 'Dale Patterson'
 __maintainer__ = 'Dale Patterson'
 __email__ = 'wraith.wireless@yandex.com'
-__status__ = 'Development'
+__status__ = 'Production'
 
 from setuptools import setup, find_packages
 import pyric
 
-
 long_desc = """
- PyRIC provides the ability to
-manipuate, identify and enumerate your system's wireless cards. It is a pure
-python port of a subset of the functionality provided by iw, ifconfig and iwconfig.
-PyRIC is:
-* Pythonic: No ctypes, SWIG etc. PyRIC redefines C header files as Python and
-uses sockets to communicate with kernel.
-* Self-sufficient: No third-party files used, PyRIC is completely self-contained
-* Fast: (relatively speaking) PyRIC is faster than using iw through subprocess.Popen
-* Parse(less): Get the output you without parsing output from iw. Never worry about
-iw updates and rewriting your parsers.
-* Easy: If you can use iw, you can use PyRIC
+ PyRIC provides the ability to manipuate, identify and enumerate your system's
+ wireless cards. It is a pure python port of a subset of the functionality provided
+ by iw, ifconfig, iwconfig and rfkill.
+ PyRIC is:
+ * Pythonic: No ctypes, SWIG etc. PyRIC redefines C header files as Python and
+ uses sockets to communicate with kernel.
+ * Self-sufficient: No third-party files used, PyRIC is completely self-contained
+ * Fast: (relatively speaking) PyRIC is faster than using iw through subprocess.Popen
+ * Parseless: Get the output you without parsing output from iw. Never worry about
+ iw updates and rewriting your parsers.
+ * Easy: If you can use iw, you can use PyRIC
 """
 
 setup(name='PyRIC',
@@ -60,9 +59,11 @@ setup(name='PyRIC',
       maintainer=pyric.__maintainer__,
       maintainer_email=pyric.__email__,
       license=pyric.__license__,
-      classifiers=['Development Status :: 4 - Beta',
+      classifiers=['Development Status :: 5 - Production/Stable',
                    'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
                    'Intended Audience :: Developers',
+                   'Intended Audience :: System Administrators',
+                   'Topic :: Security',
                    'Topic :: Software Development',
                    'Topic :: Software Development :: Libraries',
                    'Topic :: Security',
@@ -72,7 +73,7 @@ setup(name='PyRIC',
                    'Programming Language :: Python',
                    'Programming Language :: Python :: 2.7'
                    ],
-    keywords='nl80211 iw developement wireless pentest',
+    keywords='nl80211 iw wireless pentest',
     packages=find_packages(),
     package_data={'pyric':['docs/*.help']}
 )

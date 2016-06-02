@@ -79,7 +79,6 @@ GENL_ID_CTRL	  = 0x10 # hardcoded from netlink_h
 GENL_ID_VFS_DQUOT = GENL_ID_CTRL + 1
 GENL_ID_PMCRAID	  = GENL_ID_CTRL + 2
 
-
 #Controller
 CTRL_CMD_UNSPEC       =  0
 CTRL_CMD_NEWFAMILY    =  1
