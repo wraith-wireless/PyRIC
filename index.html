@@ -32,7 +32,7 @@
       <section>
         <div id="title">
           <h1>PyRIC</h1>
-          <p>Pythonic iw</p>
+          <p>Pythonic iw (and more) for the Wireless Pentester</p>
           <hr>
           <span class="credits left">Project maintained by <a href="https://github.com/wraith-wireless">wraith-wireless</a></span>
           <span class="credits right">Hosted on GitHub Pages &mdash; Theme by <a href="https://twitter.com/michigangraham">mattgraham</a></span>
@@ -42,24 +42,42 @@
 <a id="pyric-python-radio-interface-controller" class="anchor" href="#pyric-python-radio-interface-controller" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>PyRIC: Python Radio Interface Controller</h1>
 
 <h2>
-<a id="pythonic-iw" class="anchor" href="#pythonic-iw" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Pythonic iw</h2>
+<a id="pythonic-iw-and-more-for-the-wireless-pentester" class="anchor" href="#pythonic-iw-and-more-for-the-wireless-pentester" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Pythonic iw (and more) for the Wireless Pentester</h2>
+
+<p><a href="https://github.com/wraith-wireless/PyRIC/blob/master/LICENSE"><img src="https://img.shields.io/pypi/l/PyRIC.svg" alt="License: GPLv3"></a>
+<a href="https://pypi.python.org/pypi/PyRIC"><img src="https://img.shields.io/pypi/v/PyRIC.svg" alt="Current version at PyPI"></a>
+<a href="https://pypi.python.org/pypi/PyRIC"><img src="https://img.shields.io/pypi/dm/PyRIC.svg" alt="Downloads per month on PyPI"></a>
+<img src="https://img.shields.io/pypi/pyversions/PyRIC.svg" alt="Supported Python Versions">
+<img src="https://img.shields.io/pypi/status/PyRIC.svg" alt="Software status"></p>
 
 <h2>
 <a id="1-description" class="anchor" href="#1-description" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>1 DESCRIPTION:</h2>
 
 <p>BLUF: Why use subprocess.Popen, regular expressions and str.find to interact
 with your Wireless Network Interface Card. PyRIC provides the ability to
-manipuate, identify and enumerate your system's cards. It is a pure python port
-of a subset the functionality provided by iw, ifconfig and iwconfig. PyRIC is:</p>
+manipulate, identify and enumerate your system's wireless cards. It is a pure
+python port of a subset of the functionality provided by iw, ifconfig and iwconfig.
+PyRIC is:</p>
 
 <ul>
 <li>Pythonic: No ctypes, SWIG etc. PyRIC redefines C header files as Python and
-uses sockets to communicate with kernel.</li>
+uses netlink (or ioctl) sockets to communicate directly with the kernel.</li>
 <li>Self-sufficient: No third-party files used, PyRIC is completely self-contained</li>
 <li>Fast: (relatively speaking) PyRIC is faster than using iw through subprocess.Popen</li>
-<li>Parse(less): Get the output you without parsing output from iw. Never worry about
-iw updates and rewriting your parsers.</li>
+<li>Small: PyRIC is roughly 420kB</li>
+<li>Parseless: Get the output you want without parsing output from iw. Never worry
+about iw updates and rewriting your parsers.</li>
 <li>Easy: If you can use iw, you can use PyRIC</li>
+</ul>
+
+<p>PyRIC is primarliy and originally a port of a subset of iw but has evolved in
+an attempt to meet the needs of wireless pentesting as it relates to wireless
+network cards. In addition to providing iw related functions, PyRIC implements:</p>
+
+<ul>
+<li>ifconfig functionality such as mac address, ip address, netmask and broadcast
+setting and getting</li>
+<li>rfkill list, block and unblock</li>
 </ul>
 
 <h3>
@@ -98,8 +116,7 @@ example, the code is to be extended to handle multicast or callbacks.</p>
 <h3>
 <a id="b-additions-to-iw" class="anchor" href="#b-additions-to-iw" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>b. Additions to iw</h3>
 
-<p>In addition to providing some ifconfig functionality, I have also added several
-"extensions" to iw:</p>
+<p>Several "extensions" have been added to iw:</p>
 
 <ul>
 <li>Persistent sockets: pyw provides the caller with functions &amp; ability to pass
@@ -111,7 +128,7 @@ global variable</li>
 </ul>
 
 <p>These are minimal changes but they can improve the performance of any progams
-that need to access the wireless nic repeatedly as shown in the table below.</p>
+that needs to access the wireless nic repeatedly as shown in the table below.</p>
 
 <table>
 <thead>
@@ -149,18 +166,18 @@ that need to access the wireless nic repeatedly as shown in the table below.</p>
 </table>
 
 <p>The table shows benchmarks for hop time on a Alfa AWUS036NH 10000 times. Note that
-there is no implication (explicit or implicit) that PyRIC is faster than iw. Rather,
-the table shows that PyRIC is faster than using Popen to execute iw. Using one-time
-sockets, there is a difference of 28 seconds over Popen and iw with a small
-decrease in the average hoptime. Not a big difference. However, the performance
-increased dramatically when persistent netlink sockets are used with the total
-time and average hop time nearly halved.</p>
+there is no implication that PyRIC is faster than iw. Rather, the table shows that
+PyRIC is faster than using Popen to execute iw. Using one-time sockets, there is
+a difference of 28 seconds over Popen and iw with a small decrease in the average
+hoptime. Not a big difference. However, the performance increased dramatically when
+persistent netlink sockets are used with the total time and average hop time nearly
+halved.</p>
 
 <h3>
 <a id="c-current-state" class="anchor" href="#c-current-state" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>c. Current State</h3>
 
-<p>ATT, PyRIC accomplish my core needs but it is still a work in progress. It provides
-the following:</p>
+<p>ATT, PyRIC accomplishes my core needs but it is still a work in progress. It
+currently provides the following:</p>
 
 <ul>
 <li>enumerate interfaces and wireless interfaces</li>
@@ -176,6 +193,8 @@ the following:</p>
 <li>get/set regulatory domain</li>
 <li>get/set mode</li>
 <li>add/delete interfaces</li>
+<li>enumerate ISM and UNII channels</li>
+<li>block/unblock rfkill devices</li>
 </ul>
 
 <p>It also provides limited help functionality concerning nl80211 commands/attributes
@@ -185,10 +204,14 @@ the nl80211 header file and may be vague.</p>
 <h3>
 <a id="d-what-is-pyric" class="anchor" href="#d-what-is-pyric" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>d. What is PyRIC?</h3>
 
-<p>What it does - defines programmatic access to a small subset of iw and ifconfig.</p>
+<p>To avoid confusion, PyRIC is the system as a whole, including all header files
+and "libraries" that are required to communicate with the kernel. pyw is a
+interface to these libraries providing specific funtions.</p>
 
-<p>What it does not do - handle multicast messages, callbacks or dumps or non nl80211
-funtionality.</p>
+<p>What it does - defines programmatic access to a subset of iw, ifconfig and iwconfig.
+In short, PyRIC provides Python wireless pentesters the ability to work with
+wireless cards directly from Python without having to use command line tools
+through Popen.</p>
 
 <h2>
 <a id="2-installingusing" class="anchor" href="#2-installingusing" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>2. INSTALLING/USING:</h2>
@@ -202,19 +225,16 @@ installation.</p>
 <a id="a-requirements" class="anchor" href="#a-requirements" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>a. Requirements</h3>
 
 <p>PyRIC has only two requirements: Linux and Python. There has been very little
-testing (on my side) on kernel 4.x and Python 3 but working out the small bugs
-continues on Python 2.7 and kernel 3.13.x.</p>
+testing (on my side) on kernel 4.x and Python 3 but unit testing confirms
+functionality on Python 2.7 and kernel 3.13.x.</p>
 
 <h3>
 <a id="b-install-from-package-manager" class="anchor" href="#b-install-from-package-manager" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>b. Install from Package Manager</h3>
 
 <p>Obviously, the easiest way to install PyRIC is through PyPI:</p>
 
-<pre><code>sudo pip install --pre PyRIC
+<pre><code>sudo pip install PyRIC
 </code></pre>
-
-<p>Note the use of the '--pre' flag. Without it, pip will not install PyRIC since
-it is still in the developmental stage.</p>
 
 <h3>
 <a id="c-install-from-source" class="anchor" href="#c-install-from-source" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>c. Install from Source</h3>
@@ -448,6 +468,20 @@ w0
 
 <ul>
 <li>pentest.py          create wireless pentest environment example</li>
+<li>device_details.py   display device information</li>
+</ul>
+</li>
+<li>tests                 test folder
+
+<ul>
+<li>pyw.unittest.py     unit test for pyw functions</li>
+</ul>
+</li>
+<li>guide                 User Guide resources
+
+<ul>
+<li>PyRIC.tex           User Guide LaTex</li>
+<li>PyRIC.bib           User Guide bibliography</li>
 </ul>
 </li>
 <li>setup.py              install file</li>
@@ -455,7 +489,10 @@ w0
 <li>MANIFEST.in           used by setup.py</li>
 <li>README.md             this file</li>
 <li>LICENSE               GPLv3 License</li>
+<li>TODO                  todos for PyRIC</li>
+<li>RFI                   comments and observations</li>
 <li>PyRIC.pdf             User Guide</li>
+<li>pyw_unittest.py       unittest for pyw</li>
 <li>pyric                 package directory
 
 <ul>
@@ -464,8 +501,7 @@ w0
 <li>radio.py            consolidate pyw in a class</li>
 <li>channels.py         802.11 ISM/UNII freqs. &amp; channels</li>
 <li>device.py           device/chipset utility functions</li>
-<li>TODO                todos for PyRIC</li>
-<li>RFI                 comments and observations</li>
+<li>rfkill.py           rfkill port</li>
 <li>net                 linux header ports
 
 <ul>
@@ -499,13 +535,6 @@ w0
 <li>nlhelp.py         nl80211 search</li>
 <li>commands.help     nl80211 commands help data</li>
 <li>attributes.help   nl80211 attributes help data</li>
-<li>res               User Guide resources
-
-<ul>
-<li>PyRIC.tex       User Guide LaTex</li>
-<li>PyRIC.bib       User Guide bibliography</li>
-</ul>
-</li>
 </ul>
 </li>
 </ul>
