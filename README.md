@@ -176,10 +176,8 @@ Once installed, see examples/pentest.py which covers most pyw functions or read
 throuhg PyRIC.pdf. However, for those impatient types:
 
 ```python
-import pyric               # pyric error and EUNDEF error code
-from pyric import device   # driver and chipset lookup
-from pyric import channels # channels, freqs, widths and conversions
-from pyric import pyw      # iw functionality
+import pyric          # pyric error and EUNDEF error code
+from pyric import pyw  iw functionality
 ```
 
 will import the basic requirements and is assumed for the examples below. It is also assumed
@@ -268,6 +266,10 @@ when setting the inet addresses: for example you can set the ip address on
 #### ii. Getting Info On Your Card
 
 ```python
+pyw.devinfo(w0)
+=> {'wdev': 4294967297, 'RF': None, 'CF': None, 'mac': '00:c0:ca:59:af:a6',
+'mode': 'managed', 'CHW': None, 'card': Card(phy=1,dev=alfa0,ifindex=4)}
+
 pyw.txget(w0)
 => 20
 
@@ -288,10 +290,6 @@ u'frame', u'frame_wait_cancel', u'set_wiphy_netns', u'set_channel', u'set_wds_pe
 u'probe_client', u'set_noack_map', u'register_beacons', u'start_p2p_device',
 u'set_mcast_rate', u'connect', u'disconnect']
 
-pyw.devinfo(w0)
-=> {'wdev': 4294967297, 'RF': None, 'CF': None, 'mac': '00:c0:ca:59:af:a6',
-'mode': 'managed', 'CHW': None, 'card': Card(phy=1,dev=alfa0,ifindex=4)}
-
 pinfo = pyw.phyinfo(w0)
 
 pinfo['scan_ssids']
@@ -311,6 +309,44 @@ pinfo['rts_thresh']
 
 pinfo['cov_class']
 => 0
+
+pinfo['freqs']
+=>[2412, 2417, 2422, 2427, 2432, 2437, 2442, 2447, 2452, 2457, 2462, 2467, 2472,
+2484]
+```
+
+Read the user guide, or type dir(pyw) in your console to get a full listing
+of pyw functions.
+
+c. Miscelleaneous Utilities
+Several additional tools are located in the utils directory. Two of these are:
+ * channels.py: defines ISM and UNII band channels/frequencies and provides
+ functions to convert between channel and frequency and vice-versa
+ * ouifetch.py: retrieves and parses oui.txt from the IEEE website and stores
+  the oui data in a file that can be read by hardware.py functions
+The others will be demonstrated in the following functions
+
+i. hardware.py
+Driver, chipset and mac address related functions can be found here:
+
+``` python
+import pyric.utils.hardware as hw
+
+ouis = hw.parseoui()
+len(ouis)
+=> 22128
+
+mac = 'a0:88:b4:9e:68:58'
+dev = 'wlan0'
+
+hw.oui(mac)
+=> 'a0:88:b4'
+
+hw.ulm(mac)
+=> '9e:68:58'
+
+hw.manufacturer(ouis,mac)
+=> 'Intel Corporate'
 
 ```
 

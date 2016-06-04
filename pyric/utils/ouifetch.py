@@ -20,7 +20,7 @@ are permitted provided that the following conditions are met:
    contributors may be used to endorse or promote products derived from this
    software without specific prior written permission.
 
-Fetchs and store oui data from IEEE
+Fetchs and stores oui data from IEEE
 
 """
 

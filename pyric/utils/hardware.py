@@ -35,11 +35,12 @@ __status__ = 'Production'
 
 import os
 import random
+import pyric
 
 dpath = '/proc/net/dev' # system device details
 drvpath = '/sys/class/net/{0}/device/driver/module/drivers' # format w/ device name
 
-def parseoui(path):
+def parseoui(path=None):
     """
      parse oui.txt file
      :param path: path of oui text file
@@ -48,14 +49,19 @@ def parseoui(path):
     fin = None
     ouis = {}
 
+    if not path:
+        path = os.path.join(os.path.dirname(os.path.abspath(__file__)),'data/oui.txt')
+
     try:
         fin = open(path)
         for line in fin.readlines()[1:]:
             o,m = line.strip().split('\t')
             ouis[o.lower()] = m[0:100]
         fin.close()
-    except (IOError,IndexError):
+    except IndexError:
         pass
+    except IOError as e:
+        raise pyric.error(e.errno,e.strerror)
     finally:
         if fin and not fin.closed: fin.close()
     return ouis
