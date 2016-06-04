@@ -41,8 +41,8 @@ from pyric import pyw
 # modify below to fit your system
 pri = {'dev':'alfa0',
        'mac':'00:c0:ca:59:af:a6',
-       'ifindex':5,
-       'phy':2,
+       'ifindex':4,
+       'phy':1,
        'mode':'managed',
        'tx':20,
        'freqs':sorted(ISM_24_F2C.keys()),

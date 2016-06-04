@@ -234,7 +234,7 @@ You can also use pyw.devinfo to get a Card object and pyw.devadd will return a c
 object for the newly created virtual interface. The card, w0, will be used throughout
 the remainder of the examples.
 
-#### i. Setting The Mac Address
+#### i. Setting The Mac Address and IP Address
 
 ```python
 mac = pyw.macget(w0) # get the hw addr
@@ -250,6 +250,15 @@ pyw.up(w0) # bring wlan0 back up
 
 pyw.macget(w0) # see if it worked
 => '00:1F:32:00:01:00'
+
+pyw.inetget(w0) # not associated, inet won't return an address
+=> (None, None, None)
+
+pyw.inetset(w0,'192.168.3.23','192.168.3.63','255.255.255.192')
+=> True
+
+pyw.inetget(w0)
+=> ('192.168.3.23', '255.255.255.0', '192.168.3.255')
 ```
 #### ii. Getting Info On Your Card
 
