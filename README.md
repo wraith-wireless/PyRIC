@@ -15,6 +15,7 @@ have increased dramatically in recent years. However, these tools still rely on
 Linux command lines tools to setup and prepare and restore the system for use.
 Until now. Why use subprocess.Popen, regular expressions and str.find to interact
 with your wireless cards? PyRIC is:
+
 1. Pythonic: no ctypes, SWIG etc. PyRIC redefines C header files as Python and
 uses sockets to communicate with the kernel.
 2. Self-sufficient: No third-party files used. PyRIC is completely self-contained.
@@ -403,8 +404,8 @@ rfkill.rfkill_list()
 ```
 
 Note that rfkill_list lists all 'wireless' devices: wlan, bluetooth, wimax, wwan,
-gps, fm and nfc. Another important thing to note is that the index is not the
-interface index.
+gps, fm and nfc. Another important thing to note is that the rfkill index is not
+the same as the interface index.
 
 #### iii. Virtual Interfaces
 In my experience, virtual interfaces are primarily used to recon, attack or some
