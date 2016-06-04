@@ -46,6 +46,8 @@ import pyric
 import errno
 import pyric.net.wireless.rfkill_h as rfkh
 
+RFKILL_STATE = [False,True] # Unblocked = 0, Blocked = 1
+
 """
  rfkill writes and reads rfkill_event structures to /dev/rfkill using fcntl
  Results and useful information can be found in /sys/class/rfkill which contains
@@ -73,8 +75,8 @@ def rfkill_list():
             if op == rfkh.RFKILL_OP_ADD:
                 rfks[getname(idx)] = {'idx':idx,
                                       'type':rfkh.RFKILL_TYPES[t],
-                                      'soft':s,
-                                      'hard':h}
+                                      'soft':RFKILL_STATE[s],
+                                      'hard':RFKILL_STATE[h]}
         except IOError:
             break
     fin.close()
@@ -186,7 +188,6 @@ def getidx(phy):
      :param phy: phyiscal index
      :returns: the rfkill index
     """
-    phy = "phy{0}".format(phy)
     rfks = rfkill_list()
     try:
         return rfks["phy{0}".format(phy)]['idx']

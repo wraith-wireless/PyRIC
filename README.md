@@ -332,7 +332,7 @@ Driver, chipset and mac address related functions can be found here:
 ``` python
 import pyric.utils.hardware as hw
 
-ouis = hw.parseoui()
+ouis = hw.parseoui() # load the oui dict
 len(ouis)
 => 22128
 
@@ -348,7 +348,63 @@ hw.ulm(mac)
 hw.manufacturer(ouis,mac)
 => 'Intel Corporate'
 
+hw.randhw(ouis) # generate a random mac address
+=>'00:03:f0:5a:a1:fc'
+
+hw.manufacturer(ouis,'00:03:f0:5a:a1:fc')
+=> 'Redfern Broadband Networks'
+
+hw.ifcard('wlan0') # get driver & chipset
+=> ('iwlwifi', 'Intel 4965/5xxx/6xxx/1xxx')
 ```
+
+ii. rfkill.py
+Sometimes, your card has a soft block (or hard block) on it and it is not
+recognized by command line tools or pyw. Use rkill to list, turn on or turn
+off soft blocks.
+
+``` python
+from pyric.utils import rfkill
+
+rfkill.rfkill_list() # list rfkill devices
+=> {'tpacpi_bluetooth_sw': {'soft': True, 'hard': False, 'type': 'bluetooth', 'idx': 1},
+    'phy3': {'soft': False, 'hard': False, 'type': 'wlan', 'idx': 5},
+    'phy0': {'soft': False, 'hard': False, 'type': 'wlan', 'idx': 0}}
+
+idx = rfkill.getidx(3)
+idx
+=> 5
+
+rfkill.getname(idx)
+=> phy3
+
+rfkill.gettype(idx)
+=> 'wlan'
+
+rfkill.soft_blocked(idx)
+=> False
+
+rfkill.hard_blocked(idx)
+=> False
+
+rfkill.rfkill_block(idx)
+
+rfkill.list()
+=> {'tpacpi_bluetooth_sw': {'soft': False, 'hard': True, 'type': 'bluetooth', 'idx': 1},
+    'phy3': {'soft': True, 'hard': True, 'type': 'wlan', 'idx': 5},
+    'phy0': {'soft': True, 'hard': True, 'type': 'wlan', 'idx': 0}}
+
+rfkill.rfkill_unblock(idx)
+
+rfkill.rfkill_list()
+=> {'tpacpi_bluetooth_sw': {'soft': True, 'hard': False, 'type': 'bluetooth', 'idx': 1},
+    'phy3': {'soft': False, 'hard': False, 'type': 'wlan', 'idx': 5},
+    'phy0': {'soft': False, 'hard': False, 'type': 'wlan', 'idx': 0}}
+```
+
+Note that rfkill_list lists all 'wireless' devices: wlan, bluetooth, wimax, wwan,
+gps, fm and nfc. Another important thing to note is that the index is not the
+interface index.
 
 #### iii. Virtual Interfaces
 In my experience, virtual interfaces are primarily used to recon, attack or some
