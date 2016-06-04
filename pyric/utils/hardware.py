@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-""" device.py: utility functions
+""" hardware.py: device related utility functions
 
 Copyright (C) 2016  Dale V. Patterson (wraith.wireless@yandex.com)
 
@@ -20,26 +20,81 @@ are permitted provided that the following conditions are met:
    contributors may be used to endorse or promote products derived from this
    software without specific prior written permission.
 
-Defines device functions to get driver and chipset. Should we move hwaddr from
-hex string to here?
+Defines device hardware related functions: mac address, driver, chipset
 
 """
 
-__name__ = 'device'
+__name__ = 'hardware'
 __license__ = 'GPLv3'
-__version__ = '0.0.3'
-__date__ = 'August 2014'
+__version__ = '0.0.4'
+__date__ = 'June 2016'
 __author__ = 'Dale Patterson'
 __maintainer__ = 'Dale Patterson'
 __email__ = 'wraith.wireless@yandex.com'
 __status__ = 'Production'
 
-from os import listdir
+import os
+import random
 
 dpath = '/proc/net/dev' # system device details
 drvpath = '/sys/class/net/{0}/device/driver/module/drivers' # format w/ device name
-#phypath = '/sys/class/ieee80211/{0}'                        # format w/ phyiscal name
-# NOTE phypath + index contains the ifindex (sometimes)
+
+def parseoui(path):
+    """
+     parse oui.txt file
+     :param path: path of oui text file
+     :returns: oui dict {oui:manuf} for each oui in path or empty dict
+    """
+    fin = None
+    ouis = {}
+
+    try:
+        fin = open(path)
+        for line in fin.readlines()[1:]:
+            o,m = line.strip().split('\t')
+            ouis[o.lower()] = m[0:100]
+        fin.close()
+    except (IOError,IndexError):
+        pass
+    finally:
+        if fin and not fin.closed: fin.close()
+    return ouis
+
+def oui(mac):
+    """
+     :param mac: 48-bit mac address
+     :returns: oui portion of mac address
+    """
+    return mac[:8]
+
+def ulm(mac):
+    """
+    :param mac:
+    :returns: ulm portion of mac address
+    """
+    return mac[9:]
+
+def manufacturer(ouis,mac):
+    """
+     returns the manufacturer of the mac address if exists, otherwise 'unknown'
+     :param ouis: oui dict
+     :param mac: hw addr to search up
+     :returns: manufacturer
+    """
+    try:
+        return ouis[mac[:8]]
+    except KeyError:
+        return "unknown"
+
+def randhw(ouis):
+    """
+     generate a random hw address
+     :param ouis: oui dict to use
+     :returns: random hw address
+    """
+    o = random.choice(ouis.keys())
+    u = ":".join(['{0:02x}'.format(random.randint(0,255)) for _ in xrange(3)])
+    return o + ':' + u
 
 def ifcard(dev):
     """
@@ -56,7 +111,7 @@ def ifdriver(dev):
     """
     try:
         # find the driver for nic in driver's module, split on ':' and return
-        ds = listdir(drvpath.format(dev))
+        ds = os.listdir(drvpath.format(dev))
         if len(ds) > 1: return "Unknown"
         return ds[0].split(':')[1]
     except OSError:

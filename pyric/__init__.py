@@ -115,11 +115,28 @@ Requires:
    o unittest completed 61 tests ran in 5.360s
    o added rfkill (still working on it)
 
+ pyric 0.1.0
+  desc: Pythonic iw - wireless nic (radio) manipulation, enumeration, and attribute
+  enumeration
+  includes:  /docs /examples /lib /net pyw 0.1.2 device 0.0.3 channels 0.0.1
+  changes:
+   o production release
+
+ pyric 0.1.1
+  desc: wireless nic library: wireless radio identification, manipulation, enumeration
+  includes:  /nlhelp /lib /net /utils pyw 0.1.2
+  changes:
+   o restructured hierarchy
+    - renamed device to hardware
+   o added mac address related functions to hardware
+   o split rfkill into functions file and definition file
+   o added block/unblock to pyw
+
 """
 
 __name__ = 'pyric'
 __license__ = 'GPLv3'
-__version__ = '0.1.0'
+__version__ = '0.1.1'
 __date__ = 'June 2016'
 __author__ = 'Dale Patterson'
 __maintainer__ = 'Dale Patterson'
@@ -140,4 +157,3 @@ def perror(e):
     """
     # anything less than 0 is an unknown
     return strerror(e)
-

@@ -35,9 +35,11 @@ from setuptools import setup, find_packages
 import pyric
 
 long_desc = """
- PyRIC provides the ability to manipuate, identify and enumerate your system's
- wireless cards. It is a pure python port of a subset of the functionality provided
- by iw, ifconfig, iwconfig and rfkill.
+ PyRIC is Linux wireless network interface card library. It provides the ability to
+ manipuate, identify and enumerate your system's wireless cards. PyRIC is a pure
+ python port of a subset of the functionality provided by iw, ifconfig, iwconfig
+ and rfkill.
+
  PyRIC is:
  * Pythonic: No ctypes, SWIG etc. PyRIC redefines C header files as Python and
  uses sockets to communicate with kernel.
@@ -73,7 +75,7 @@ setup(name='PyRIC',
                    'Programming Language :: Python',
                    'Programming Language :: Python :: 2.7'
                    ],
-    keywords='nl80211 iw wireless pentest',
+    keywords='Linux nl80211 iw wireless pentest',
     packages=find_packages(),
     package_data={'pyric':['docs/*.help']}
 )

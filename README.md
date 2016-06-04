@@ -1,5 +1,5 @@
 # PyRIC: Python Radio Interface Controller
-## Pythonic iw (and more) for the Wireless Pentester
+## Linux wireless library for the Python Wireless Developer and Pentester
 
 [![License: GPLv3](https://img.shields.io/pypi/l/PyRIC.svg)](https://github.com/wraith-wireless/PyRIC/blob/master/LICENSE)
 [![Current version at PyPI](https://img.shields.io/pypi/v/PyRIC.svg)](https://pypi.python.org/pypi/PyRIC)
@@ -8,26 +8,30 @@
 ![Software status](https://img.shields.io/pypi/status/PyRIC.svg)
 
 ## 1 DESCRIPTION:
-BLUF: Why use subprocess.Popen, regular expressions and str.find to interact
-with your Wireless Network Interface Card. PyRIC provides the ability to
-manipulate, identify and enumerate your system's wireless cards. It is a pure
-python port of a subset of the functionality provided by iw, ifconfig and iwconfig.
-PyRIC is:
-* Pythonic: No ctypes, SWIG etc. PyRIC redefines C header files as Python and
-uses netlink (or ioctl) sockets to communicate directly with the kernel.
-* Self-sufficient: No third-party files used, PyRIC is completely self-contained
-* Fast: (relatively speaking) PyRIC is faster than using iw through subprocess.Popen
-* Small: PyRIC is roughly 420kB
-* Parseless: Get the output you want without parsing output from iw. Never worry
-about iw updates and rewriting your parsers.
-* Easy: If you can use iw, you can use PyRIC
+PyRIC (is a Linux only) library providing wireless developers and pentesters the
+ability to identify, enumerate and manipulate their system's wireless cards
+programmatically in Python. Pentesting applications and scripts written in Python
+have increased dramatically in recent years. However, these tools still rely on
+Linux command lines tools to setup and prepare and restore the system for use.
+Until now. Why use subprocess.Popen, regular expressions and str.find to interact
+with your wireless cards? PyRIC is:
+1. Pythonic: no ctypes, SWIG etc. PyRIC redefines C header files as Python and
+uses sockets to communicate with the kernel.
+2. Self-sufficient: No third-party files used. PyRIC is completely self-contained.
+3. Fast: (relatively speaking) PyRIC is faster than using command line tools
+through subprocess.Popen
+4. Parseless: Get the output you want without parsing output from command line
+tools. Never worry about newer iw versions and having to rewrite your parsers.
+5. Easy: If you can use iw, you can use PyRIC.
 
-PyRIC is primarliy and originally a port of a subset of iw but has evolved in
-an attempt to meet the needs of wireless pentesting as it relates to wireless
-network cards. In addition to providing iw related functions, PyRIC implements:
-* ifconfig functionality such as mac address, ip address, netmask and broadcast
-setting and getting
-* rfkill list, block and unblock
+At it's heart, PyRIC is a Python port of (a subset of) iw and by extension, a
+Python port of Netlink w.r.t nl80211 functionality. The original goal of PyRIC
+was to provide a simple interface to the underlying nl80211 kernel support,
+handling the complex operations of Netlink seamlessy while maintaining a minimum
+of "code walking" to understand, modify and extend. But, why stop there? Since
+it's initial inception, PyRIC has grown to include ioctl support to replicate
+features of ifconfig such as getting or setting the mac address and has recently
+implemented rkill support to soft block or unblock wireless cards.
 
 ### a. Background
 PyRIC arose out of a need in Wraith (https://github.com/wraith-wireless/wraith)
@@ -115,17 +119,12 @@ To avoid confusion, PyRIC is the system as a whole, including all header files
 and "libraries" that are required to communicate with the kernel. pyw is a
 interface to these libraries providing specific funtions.
 
-What it does - defines programmatic access to a subset of iw, ifconfig and iwconfig.
+What it does - defines programmatic access to a subset of iw, ifconfig and rkill.
 In short, PyRIC provides Python wireless pentesters the ability to work with
 wireless cards directly from Python without having to use command line tools
 through Popen.
 
 ## 2. INSTALLING/USING:
-
-Starting with version 0.0.6, the structure (see Section 4) has changed to facilitate
-packaging on PyPI. This restructing has of course led to some minor difficulties
-especially when attempting to install (or even just test) outside of a pip
-installation.
 
 ### a. Requirements
 PyRIC has only two requirements: Linux and Python. There has been very little
@@ -172,7 +171,7 @@ https://github.com/wraith-wireless/pyric/releases/ It is not guaranteed to be st
 (as I tend to commit changes periodically while working on the code) and may in
 fact not run at all.
 
-## 3. USING
+## 3. USING (Work in Progress)
 Once installed, see examples/pentest.py which covers most pyw functions or read
 throuhg PyRIC.pdf. However, for those impatient types:
 
@@ -353,34 +352,40 @@ w0
 
 Extending PyRIC is fun and easy too, see the user guide PyRIC.pdf.
 
-## 5. ARCHITECTURE/HEIRARCHY: Brief Overview of the project file structure
+## 5. ARCHITECTURE/HEIRARCHY:
+Brief Overview of the project file structure. Directories and/or files annotated
+with (-) are not included in pip installs or PyPI downloads
 
 * PyRIC                   root Distribution directory
   - \_\_init\_\_.py       initialize distrubution PyRIC module
   - examples              example folder
     + pentest.py          create wireless pentest environment example
     + device_details.py   display device information
-  - tests                 test folder
+  - tests (-)             test folder
     + pyw.unittest.py     unit test for pyw functions
-  - guide                 User Guide resources
-    + PyRIC.tex           User Guide LaTex
-    + PyRIC.bib           User Guide bibliography
+  - docs                  User Guide resources
+    + nlsend.png (-)      image for user guide
+    + nlsock.png (-)      image for user guide
+    + PyRIC.tex (-)       User tex file
+    + PyRIC.bib (-)       User Guide bibliography
+    + PyRIC.pdf           User Guide
   - setup.py              install file
   - setup.cfg             used by setup.py
   - MANIFEST.in           used by setup.py
   - README.md             this file
   - LICENSE               GPLv3 License
   + TODO                  todos for PyRIC
-  + RFI                   comments and observations
-  - PyRIC.pdf             User Guide
-  - pyw_unittest.py       unittest for pyw
   - pyric                 package directory
     + \_\_init\_\_.py     initialize pyric module
     + pyw.py              wireless nic functionality
-    + radio.py            consolidate pyw in a class
-    + channels.py         802.11 ISM/UNII freqs. & channels
-    + device.py           device/chipset utility functions
-    + rfkill.py           rfkill port
+    + utils               utility directory
+     * \_\_init\_\_.py    initialize utils module
+     * channels.py        802.11 ISM/UNII freqs. & channels
+     * hardware.py        device, chipset and mac address utility functions
+     * rfkill.py          rfkill functions
+     * ouifetch.py        retrieve and store oui dict from IEEE
+     * data               data folder for ouis
+      - oui.txt           oui file fetched from IEEE
     + net                 linux header ports
       * \_\_init\_\_.py   initialize net subpackage
       * if_h.py           inet/ifreq definition
@@ -392,11 +397,12 @@ Extending PyRIC is fun and easy too, see the user guide PyRIC.pdf.
         - \_\_init\_\_.py initialize wireless subpackage
         - nl80211_h.py    nl80211 constants
         - nl80211_c.py    nl80211 attribute policies
+        - rfkill_h.py     rfkill header file
     + lib                 library subpackages
       * \_\_init\_\_.py   initialize lib subpackage
       * libnl.py          netlink helper functions
       * libio.py          sockios helper functions
-    + docs                netlinke documentation/help
-      * nlhelp.py         nl80211 search
+    + nlhelp              netlinke documentation/help
+      * nsearch.py        nl80211 search
       * commands.help     nl80211 commands help data
       * attributes.help   nl80211 attributes help data

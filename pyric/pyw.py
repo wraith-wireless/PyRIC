@@ -109,20 +109,21 @@ __maintainer__ = 'Dale Patterson'
 __email__ = 'wraith.wireless@yandex.com'
 __status__ = 'Production'
 
-import struct                                                # ioctl unpacking
-import pyric                                                 # pyric exception
-import errno                                                 # error codes
-import re                                                    # check addr validity
-from pyric import device                                     # device related
-from pyric import channels                                   # channel related
-from pyric.docs.nlhelp import cmdbynum                       # get command name
-import pyric.net.netlink_h as nlh                            # netlink definition
-import pyric.net.genetlink_h as genlh                        # genetlink definition
-import pyric.net.wireless.nl80211_h as nl80211h              # 802.11 definition
-import pyric.net.sockios_h as sioch                          # sockios constants
-import pyric.net.if_h as ifh                                 # ifreq structure
-import pyric.lib.libnl as nl                                 # netlink functions
-import pyric.lib.libio as io                                 # ioctl functions
+import struct                                   # ioctl unpacking
+import pyric                                    # pyric exception
+import errno                                    # error codes
+import re                                       # check addr validity
+from pyric.utils import channels                # channel related
+from pyric.utils import rfkill                  # block/unblock
+from pyric.nlhelp.nlsearch import cmdbynum      # get command name
+import pyric.utils.hardware as hw               # device related
+import pyric.net.netlink_h as nlh               # netlink definition
+import pyric.net.genetlink_h as genlh           # genetlink definition
+import pyric.net.wireless.nl80211_h as nl80211h # nl80211 definition
+import pyric.net.sockios_h as sioch             # sockios constants
+import pyric.net.if_h as ifh                    # ifreq structure
+import pyric.lib.libnl as nl                    # netlink functions
+import pyric.lib.libio as io                    # ioctl functions
 
 _FAM80211ID_ = None
 
@@ -143,7 +144,7 @@ def interfaces():
     try:
         # read in devices from /proc/net/dev. After splitting on newlines, the
         # first 2 lines are headers and the last line is empty so we remove them
-        fin = open(device.dpath, 'r')
+        fin = open(hw.dpath, 'r')
         ds = fin.read().split('\n')[2:-1]
     except IOError:
         return []
@@ -611,6 +612,28 @@ def down(card, *argv):
         raise pyric.error(errno.EINVAL, "Invalid paramter {0}".format(e))
     return True
 
+def block(card):
+    """
+     soft blocks card
+     :param card: Card object
+    """
+    try:
+        idx = rfkill.getidx(card.phy)
+        rfkill.rfkill_block(idx)
+    except AttributeError:
+        raise pyric.error(errno.ENODEV, "Device no longer registered")
+
+def unblock(card):
+    """
+     turns off soft block
+     :param card:
+    """
+    try:
+        idx = rfkill.getidx(card.phy)
+        rfkill.rfkill_unblock(idx)
+    except AttributeError:
+        raise pyric.error(errno.ENODEV, "Device no longer registered")
+
 #### INFO RELATED ####
 
 def devfreqs(card, *argv):
@@ -845,7 +868,7 @@ def chget(card, *argv):
         return _nlstub_(chget, card)
     return channels.rf2ch(devinfo(card, nlsock)['RF'])
 
-def chset(card, ch, chw, *argv):
+def chset(card, ch, chw=None, *argv):
     """
      REQUIRES ROOT PRIVILEGES
      sets current channel on device (iw phy <card.phy> set channel <ch> <chw>)

@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-""" docs
+""" utils PyRIC utilities
 
 Copyright (C) 2016  Dale V. Patterson (wraith.wireless@yandex.com)
 
@@ -19,19 +19,18 @@ are permitted provided that the following conditions are met:
    contributors may be used to endorse or promote products derived from this
    software without specific prior written permission.
 
-Documentation to include lookup functionality for nl80211 commands and attributes
+ utils 0.0.1
+  desc: utilities
+  includes: hardware 0.0.4 ouifetch 0.0.1 channels 0.0.1 rfkill 0.0.1
+  changes:
+   o added mac address related to hardware.py
 
- docs 0.0.1
- desc: PyRIC and nl80211 documentation/help
- includes: nl80211.cmd
- changes:
-  o User Guide complete (mostly)
 """
 
-__name__ = 'docs'
+__name__ = 'utils'
 __license__ = 'GPLv3'
 __version__ = '0.0.1'
-__date__ = 'April 2016'
+__date__ = 'June 2016'
 __author__ = 'Dale Patterson'
 __maintainer__ = 'Dale Patterson'
 __email__ = 'wraith.wireless@yandex.com'

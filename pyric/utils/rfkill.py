@@ -1,24 +1,5 @@
 #!/usr/bin/env python
-""" rfkill.py: rfkill port
-
-/usr/include/linux
-/*
- * Copyright (C) 2006 - 2007 Ivo van Doorn
- * Copyright (C) 2007 Dmitry Torokhov
- * Copyright 2009 Johannes Berg <johannes@sipsolutions.net>
- *
- * Permission to use, copy, modify, and/or distribute this software for any
- * purpose with or without fee is hereby granted, provided that the above
- * copyright notice and this permission notice appear in all copies.
- *
- * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
- * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
- * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
- * ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
- * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
- * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
- * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
- */
+""" rfkill.py: rfkill functions
 
 Copyright (C) 2016  Dale V. Patterson (wraith.wireless@yandex.com)
 
@@ -49,17 +30,6 @@ NOTE:
   if the index does not exist
 """
 
-"""
- rfkill writes and reads rfkill_event structures to /dev/rfkill using fcntl
- Results and useful information can be found in /sys/class/rfkill which contains
- one or more rfkill<n> directories where n is the index of each 'wireless'
- device. In each rfkill<n> are several files some of which are:
-  o type: type of device i.e. wlan, bluetooth etc
-  o name: in the case of 802.11 cards this is the physical name
-"""
-dpath = '/dev/rfkill'
-spath = '/sys/class/rfkill'
-
 __name__ = 'rfkill'
 __license__ = 'GPLv3'
 __version__ = '0.0.1'
@@ -74,79 +44,18 @@ import struct
 import fcntl
 import pyric
 import errno
-
-RFKILL_STATE_SOFT_BLOCKED = 0
-RFKILL_STATE_UNBLOCKED    = 1
-RFKILL_STATE_HARD_BLOCKED = 2
+import pyric.net.wireless.rfkill_h as rfkh
 
 """
-/**
- * enum rfkill_type - type of rfkill switch.
- *
- * @RFKILL_TYPE_ALL: toggles all switches (requests only - not a switch type)
- * @RFKILL_TYPE_WLAN: switch is on a 802.11 wireless network device.
- * @RFKILL_TYPE_BLUETOOTH: switch is on a bluetooth device.
- * @RFKILL_TYPE_UWB: switch is on a ultra wideband device.
- * @RFKILL_TYPE_WIMAX: switch is on a WiMAX device.
- * @RFKILL_TYPE_WWAN: switch is on a wireless WAN device.
- * @RFKILL_TYPE_GPS: switch is on a GPS device.
- * @RFKILL_TYPE_FM: switch is on a FM radio device.
- * @RFKILL_TYPE_NFC: switch is on an NFC device.
- * @NUM_RFKILL_TYPES: number of defined rfkill types
- */
+ rfkill writes and reads rfkill_event structures to /dev/rfkill using fcntl
+ Results and useful information can be found in /sys/class/rfkill which contains
+ one or more rfkill<n> directories where n is the index of each 'wireless'
+ device. In each rfkill<n> are several files some of which are:
+  o type: type of device i.e. wlan, bluetooth etc
+  o name: in the case of 802.11 cards this is the physical name
 """
-RFKILL_TYPES = ['all','wlan','bluetooth','uwb','wimax','wwan','gps','fm','nfc']
-RFKILL_TYPE_ALL       = 0
-RFKILL_TYPE_WLAN      = 1
-RFKILL_TYPE_BLUETOOTH = 2
-RFKILL_TYPE_UWB       = 3
-RFKILL_TYPE_WIMAX     = 4
-RFKILL_TYPE_WWAN      = 5
-RFKILL_TYPE_GPS       = 6
-RFKILL_TYPE_FM        = 7
-RFKILL_TYPE_NFC       = 8
-NUM_RFKILL_TYPES      = 9
-
-"""
-/**
- * enum rfkill_operation - operation types
- * @RFKILL_OP_ADD: a device was added
- * @RFKILL_OP_DEL: a device was removed
- * @RFKILL_OP_CHANGE: a device's state changed -- userspace changes one device
- * @RFKILL_OP_CHANGE_ALL: userspace changes all devices (of a type, or all)
- */
- """
-RFKILL_OP_ADD        = 0
-RFKILL_OP_DEL        = 1
-RFKILL_OP_CHANGE     = 2
-RFKILL_OP_CHANGE_ALL = 3
-
-"""
-/**
- * struct rfkill_event - events for userspace on /dev/rfkill
- * @idx: index of dev rfkill
- * @type: type of the rfkill struct
- * @op: operation code
- * @hard: hard state (0/1)
- * @soft: soft state (0/1)
- *
- * Structure used for userspace communication on /dev/rfkill,
- * used for events from the kernel and control to the kernel.
- */
-"""
-rfk_rfkill_event = "IBBBB"
-RFKILLEVENTLEN = struct.calcsize(rfk_rfkill_event)
-def rfkill_event(idx,rtype,op,hard=0,soft=0):
-    """
-     create a rkfill event structure
-     :param idx: index of dev rfkill i.e. 0,1
-     :param rtype: type of rfkill
-     :param op: op code
-     :param hard: hard state one of {0=unbloacked|1=blocked}
-     :param soft: soft state one of {0=unblocked|1=blocked}
-     :returns: a rfkill event structure
-    """
-    return struct.pack(rfk_rfkill_event,idx,rtype,op,hard,soft)
+dpath = '/dev/rfkill'
+spath = '/sys/class/rfkill'
 
 def rfkill_list():
     """
@@ -159,10 +68,11 @@ def rfkill_list():
     fcntl.fcntl(fin.fileno(),fcntl.F_SETFL,flags|os.O_NONBLOCK)
     while True:
         try:
-            idx,t,op,s,h = struct.unpack(rfk_rfkill_event,fin.read(RFKILLEVENTLEN))
-            if op == RFKILL_OP_ADD:
+            idx,t,op,s,h = struct.unpack(rfkh.rfk_rfkill_event,
+                                         fin.read(rfkh.RFKILLEVENTLEN))
+            if op == rfkh.RFKILL_OP_ADD:
                 rfks[getname(idx)] = {'idx':idx,
-                                      'type':RFKILL_TYPES[t],
+                                      'type':rfkh.RFKILL_TYPES[t],
                                       'soft':s,
                                       'hard':h}
         except IOError:
@@ -179,7 +89,7 @@ def rfkill_block(idx):
         raise pyric.error(errno.ENODEV,"No device at {0}".format(idx))
     fout = None
     try:
-        rfke = rfkill_event(idx,RFKILL_TYPE_ALL,RFKILL_OP_CHANGE,1,0)
+        rfke = rfkh.rfkill_event(idx,rfkh.RFKILL_TYPE_ALL,rfkh.RFKILL_OP_CHANGE,1,0)
         fout = open(dpath, 'w')
         fout.write(rfke)
     except struct.error as e:
@@ -209,7 +119,7 @@ def rfkill_unblock(idx):
         raise pyric.error(errno.ENODEV, "No device at {0}".format(idx))
     fout = None
     try:
-        rfke = rfkill_event(idx,RFKILL_TYPE_ALL,RFKILL_OP_CHANGE,0,0)
+        rfke = rfkh.rfkill_event(idx,rfkh.RFKILL_TYPE_ALL,rfkh.RFKILL_OP_CHANGE,0,0)
         fout = open(dpath, 'w')
         fout.write(rfke)
     except struct.error as e:
@@ -225,7 +135,7 @@ def rfkill_unblockby(rtype):
      :param rtype: rfkill type one of {'all'|'wlan'|'bluetooth'|'uwb'|'wimax'
       |'wwan'|'gps'|'fm'|'nfc'}
     """
-    if rtype not in RFKILL_TYPES:
+    if rtype not in rfkh.RFKILL_TYPES:
         raise pyric.error(errno.EINVAL,"Type {0} is not valid".format(rtype))
     rfks = rfkill_list()
     for name in rfks:

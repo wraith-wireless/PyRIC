@@ -1,5 +1,6 @@
 #!/usr/bin/env python
-""" net
+""" nlhelp nl80211_h search utlities
+
 Copyright (C) 2016  Dale V. Patterson (wraith.wireless@yandex.com)
 
 This program is free software: you can redistribute it and/or modify it under
@@ -18,17 +19,18 @@ are permitted provided that the following conditions are met:
    contributors may be used to endorse or promote products derived from this
    software without specific prior written permission.
 
- wireless 0.0.1
-  desc: linux port of nl80211.h, nl80211.c
- includes: rfkill_h 0.0.1 nl80211_h 0.0.2 nl80211_c 0.0.1
+Documentation to include lookup functionality for nl80211 commands and attributes
+
+ nlhelp 0.0.1
+ desc: nl80211 attributes and commands search utility
+ includes: attributes.help commands.help nlsearch 0.0.1
  changes:
-  o added nl80211_c to handle attribute policies
-   - added nl80211_parse_freqs to parse out supported frequencies
+  o name changes
 """
 
-__name__ = 'wireless'
+__name__ = 'nlhelp'
 __license__ = 'GPLv3'
-__version__ = '0.0.2'
+__version__ = '0.0.1'
 __date__ = 'April 2016'
 __author__ = 'Dale Patterson'
 __maintainer__ = 'Dale Patterson'

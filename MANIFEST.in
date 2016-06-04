@@ -1,10 +1,8 @@
-# Include license, README, channels, device, rfkill, pyw and user guide
-include LICENSE README.md __init__.py channels.py device.py rfkill.py pyw.py PyRIC.pdf TODO RFI
+# setup paramaters
+include LICENSE README.md TODO
 
 # Include subdirectories
-# device_details.py was not being included without the below recursive include
-recursive-include lib net examples docs tests guide
+recursive-include examples
 recursive-include examples *.py
-recursive-include docs *.help
-recursive-include tests *.py
-recursive-include guide *.tex *.bib *.png
+recursive-include docs *.pdf
+recursive-include pyric/utils/data *.txt

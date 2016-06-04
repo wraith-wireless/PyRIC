@@ -35,7 +35,7 @@ __status__ = 'Production'
 import unittest
 import time
 from pyric import error
-from pyric.channels import ISM_24_F2C,rf2ch
+from pyric.utils.channels import ISM_24_F2C,rf2ch
 from pyric import pyw
 
 # modify below to fit your system

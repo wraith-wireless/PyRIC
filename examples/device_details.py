@@ -6,10 +6,10 @@ Example for displaying device details
 """
 
 import argparse as ap
-import pyric                     # pyric error (and ecode EUNDEF)
-from pyric import pyw            # for iw functionality
-from pyric import device         # for chipset/driver
-from pyric.channels import rf2ch # rf to channel conversion
+import pyric                           # pyric error (and ecode EUNDEF)
+from pyric import pyw                  # for iw functionality
+import pyric.utils.hardware as hw      # for chipset/driver
+from pyric.utils.channels import rf2ch # rf to channel conversion
 
 def execute(dev):
     # ensure dev is a wireless interfaces
@@ -20,8 +20,8 @@ def execute(dev):
     dinfo = pyw.devinfo(dev)
     card = dinfo['card']
     pinfo = pyw.phyinfo(card)
-    driver = device.ifdriver(card.dev)
-    chipset = device.ifchipset(driver)
+    driver = hw.ifdriver(card.dev)
+    chipset = hw.ifchipset(driver)
 
     msg = "Device {0}\n".format(dev)
     msg += "\tDriver: {0} Chipset: {1}\n".format(driver,chipset)
