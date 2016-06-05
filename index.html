@@ -42,7 +42,7 @@
 <a id="pyric-python-radio-interface-controller" class="anchor" href="#pyric-python-radio-interface-controller" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>PyRIC: Python Radio Interface Controller</h1>
 
 <h2>
-<a id="pythonic-iw-and-more-for-the-wireless-pentester" class="anchor" href="#pythonic-iw-and-more-for-the-wireless-pentester" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Pythonic iw (and more) for the Wireless Pentester</h2>
+<a id="linux-wireless-library-for-the-python-wireless-developer-and-pentester" class="anchor" href="#linux-wireless-library-for-the-python-wireless-developer-and-pentester" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Linux wireless library for the Python Wireless Developer and Pentester</h2>
 
 <p><a href="https://github.com/wraith-wireless/PyRIC/blob/master/LICENSE"><img src="https://img.shields.io/pypi/l/PyRIC.svg" alt="License: GPLv3"></a>
 <a href="https://pypi.python.org/pypi/PyRIC"><img src="https://img.shields.io/pypi/v/PyRIC.svg" alt="Current version at PyPI"></a>
@@ -53,68 +53,36 @@
 <h2>
 <a id="1-description" class="anchor" href="#1-description" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>1 DESCRIPTION:</h2>
 
-<p>BLUF: Why use subprocess.Popen, regular expressions and str.find to interact
-with your Wireless Network Interface Card. PyRIC provides the ability to
-manipulate, identify and enumerate your system's wireless cards. It is a pure
-python port of a subset of the functionality provided by iw, ifconfig and iwconfig.
-PyRIC is:</p>
+<p>PyRIC (is a Linux only) library providing wireless developers and pentesters the
+ability to identify, enumerate and manipulate their system's wireless cards
+programmatically in Python. Pentesting applications and scripts written in Python
+have increased dramatically in recent years. However, these tools still rely on
+Linux command lines tools to setup and prepare and restore the system for use.
+Until now. Why use subprocess.Popen, regular expressions and str.find to interact
+with your wireless cards? PyRIC is:</p>
 
-<ul>
-<li>Pythonic: No ctypes, SWIG etc. PyRIC redefines C header files as Python and
-uses netlink (or ioctl) sockets to communicate directly with the kernel.</li>
-<li>Self-sufficient: No third-party files used, PyRIC is completely self-contained</li>
-<li>Fast: (relatively speaking) PyRIC is faster than using iw through subprocess.Popen</li>
-<li>Small: PyRIC is roughly 420kB</li>
-<li>Parseless: Get the output you want without parsing output from iw. Never worry
-about iw updates and rewriting your parsers.</li>
-<li>Easy: If you can use iw, you can use PyRIC</li>
-</ul>
+<ol>
+<li>Pythonic: no ctypes, SWIG etc. PyRIC redefines C header files as Python and
+uses sockets to communicate with the kernel.</li>
+<li>Self-sufficient: No third-party files used. PyRIC is completely self-contained.</li>
+<li>Fast: (relatively speaking) PyRIC is faster than using command line tools
+through subprocess.Popen</li>
+<li>Parseless: Get the output you want without parsing output from command line
+tools. Never worry about newer iw versions and having to rewrite your parsers.</li>
+<li>Easy: If you can use iw, you can use PyRIC.</li>
+</ol>
 
-<p>PyRIC is primarliy and originally a port of a subset of iw but has evolved in
-an attempt to meet the needs of wireless pentesting as it relates to wireless
-network cards. In addition to providing iw related functions, PyRIC implements:</p>
-
-<ul>
-<li>ifconfig functionality such as mac address, ip address, netmask and broadcast
-setting and getting</li>
-<li>rfkill list, block and unblock</li>
-</ul>
-
-<h3>
-<a id="a-background" class="anchor" href="#a-background" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>a. Background</h3>
-
-<p>PyRIC arose out of a need in Wraith (<a href="https://github.com/wraith-wireless/wraith">https://github.com/wraith-wireless/wraith</a>)
-for Python nl80211/netlink and ioctl functionality. Originally, Wraith used
-ifconfig, iwconfig and iw via subprocess.Popen and parsed the output. There
-are obvious shortfalls with this method, especially in terms of iw that is
-actively changing (revisions break the parser) and I started looking for an
-open source alternative. There are several open source projects out there
-such as pyroute, pymnl (and the python files included in the libnl source) but
-they generally have either not been maintained recently or come with warnings.
-I desired a simple interface to the underlying nl80211 kernel support that
-handles the complex operations of netlink seamlessy while maintaining a minimum
-of "code walking" to understand, modify and extend. I decided to write my own
-because I do not need complete netlink functionality, only that provided by
-generic netlink and within the nl80221 family. Additionally, for Wraith, I do
-not need a full blown port of iw et. al. functionality to Python but only
-require the ability to turn a wireless nic on/off, get/set the hwaddr, get/set
-the channel, determine some properties of the card and add/delete interfaces.</p>
-
-<p>So, why did I do this and why is it done "this" way? When I first started to
-explore the idea of moving away from iw output parsing, I looked at the source
-for iw, and existing Python ports. Just to figure out how to get the family id
-for nl80211 required reading through five different source files with no
-comments. To that extent, I have attempted to keep subclassing to a minimum,
-the total number of classes to a minimum, combine files where possible and where
-it makes since and keep the number of files required to be open simulateneously
-in order to understand the methodology and follow the program to a minimum. One
-can understand the PyRIC program flow with only two files open at any time namely,
-pyw and libnl. In fact, only an understanding of pyw is required to add additional
-commands although an understanding of libnl(.py) is helpful especially, if for
-example, the code is to be extended to handle multicast or callbacks.</p>
+<p>At it's heart, PyRIC is a Python port of (a subset of) iw and by extension, a
+Python port of Netlink w.r.t nl80211 functionality. The original goal of PyRIC
+was to provide a simple interface to the underlying nl80211 kernel support,
+handling the complex operations of Netlink seamlessy while maintaining a minimum
+of "code walking" to understand, modify and extend. But, why stop there? Since
+it's initial inception, PyRIC has grown to include ioctl support to replicate
+features of ifconfig such as getting or setting the mac address and has recently
+implemented rkill support to soft block or unblock wireless cards.</p>
 
 <h3>
-<a id="b-additions-to-iw" class="anchor" href="#b-additions-to-iw" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>b. Additions to iw</h3>
+<a id="a-additions-to-iw" class="anchor" href="#a-additions-to-iw" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>a. Additions to iw</h3>
 
 <p>Several "extensions" have been added to iw:</p>
 
@@ -174,7 +142,7 @@ persistent netlink sockets are used with the total time and average hop time nea
 halved.</p>
 
 <h3>
-<a id="c-current-state" class="anchor" href="#c-current-state" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>c. Current State</h3>
+<a id="b-current-state" class="anchor" href="#b-current-state" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>b. Current State</h3>
 
 <p>ATT, PyRIC accomplishes my core needs but it is still a work in progress. It
 currently provides the following:</p>
@@ -202,24 +170,19 @@ currently provides the following:</p>
 the nl80211 header file and may be vague.</p>
 
 <h3>
-<a id="d-what-is-pyric" class="anchor" href="#d-what-is-pyric" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>d. What is PyRIC?</h3>
+<a id="c-what-is-pyric" class="anchor" href="#c-what-is-pyric" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>c. What is PyRIC?</h3>
 
 <p>To avoid confusion, PyRIC is the system as a whole, including all header files
 and "libraries" that are required to communicate with the kernel. pyw is a
 interface to these libraries providing specific funtions.</p>
 
-<p>What it does - defines programmatic access to a subset of iw, ifconfig and iwconfig.
+<p>What it does - defines programmatic access to a subset of iw, ifconfig and rkill.
 In short, PyRIC provides Python wireless pentesters the ability to work with
 wireless cards directly from Python without having to use command line tools
 through Popen.</p>
 
 <h2>
 <a id="2-installingusing" class="anchor" href="#2-installingusing" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>2. INSTALLING/USING:</h2>
-
-<p>Starting with version 0.0.6, the structure (see Section 4) has changed to facilitate
-packaging on PyPI. This restructing has of course led to some minor difficulties
-especially when attempting to install (or even just test) outside of a pip
-installation.</p>
 
 <h3>
 <a id="a-requirements" class="anchor" href="#a-requirements" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>a. Requirements</h3>
@@ -283,10 +246,8 @@ fact not run at all.</p>
 <p>Once installed, see examples/pentest.py which covers most pyw functions or read
 throuhg PyRIC.pdf. However, for those impatient types:</p>
 
-<div class="highlight highlight-source-python"><pre><span class="pl-k">import</span> pyric               <span class="pl-c"># pyric error and EUNDEF error code</span>
-<span class="pl-k">from</span> pyric <span class="pl-k">import</span> device   <span class="pl-c"># driver and chipset lookup</span>
-<span class="pl-k">from</span> pyric <span class="pl-k">import</span> channels <span class="pl-c"># channels, freqs, widths and conversions</span>
-<span class="pl-k">from</span> pyric <span class="pl-k">import</span> pyw      <span class="pl-c"># iw functionality</span></pre></div>
+<div class="highlight highlight-source-python"><pre><span class="pl-k">import</span> pyric          <span class="pl-c"># pyric error and EUNDEF error code</span>
+<span class="pl-k">from</span> pyric <span class="pl-k">import</span> pyw  iw functionality</pre></div>
 
 <p>will import the basic requirements and is assumed for the examples below. It is also assumed
 that the system is in the US and has three devices lo, eth0 and wlan0 (only wlan0 of course
@@ -341,7 +302,7 @@ object for the newly created virtual interface. The card, w0, will be used throu
 the remainder of the examples.</p>
 
 <h4>
-<a id="i-setting-the-mac-address" class="anchor" href="#i-setting-the-mac-address" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>i. Setting The Mac Address</h4>
+<a id="i-setting-mac-and-ip-addresses" class="anchor" href="#i-setting-mac-and-ip-addresses" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>i. Setting Mac and IP Addresses</h4>
 
 <div class="highlight highlight-source-python"><pre>mac <span class="pl-k">=</span> pyw.macget(w0) <span class="pl-c"># get the hw addr</span>
 
@@ -355,12 +316,29 @@ pyw.macset(w0,<span class="pl-s"><span class="pl-pds">'</span>00:1F:32:00:01:00<
 pyw.up(w0) <span class="pl-c"># bring wlan0 back up</span>
 
 pyw.macget(w0) <span class="pl-c"># see if it worked</span>
-<span class="pl-k">=</span><span class="pl-k">&gt;</span> <span class="pl-s"><span class="pl-pds">'</span>00:1F:32:00:01:00<span class="pl-pds">'</span></span></pre></div>
+<span class="pl-k">=</span><span class="pl-k">&gt;</span> <span class="pl-s"><span class="pl-pds">'</span>00:1F:32:00:01:00<span class="pl-pds">'</span></span>
+
+pyw.inetget(w0) <span class="pl-c"># not associated, inet won't return an address</span>
+<span class="pl-k">=</span><span class="pl-k">&gt;</span> (<span class="pl-c1">None</span>, <span class="pl-c1">None</span>, <span class="pl-c1">None</span>)
+
+pyw.inetset(w0,<span class="pl-s"><span class="pl-pds">'</span>192.168.3.23<span class="pl-pds">'</span></span>,<span class="pl-s"><span class="pl-pds">'</span>255.255.255.192<span class="pl-pds">'</span></span>,<span class="pl-s"><span class="pl-pds">'</span>192.168.3.63<span class="pl-pds">'</span></span>)
+<span class="pl-k">=</span><span class="pl-k">&gt;</span> <span class="pl-c1">True</span>
+
+pyw.inetget(w0)
+<span class="pl-k">=</span><span class="pl-k">&gt;</span> (<span class="pl-s"><span class="pl-pds">'</span>192.168.3.23<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>255.255.255.192<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>192.168.3.255<span class="pl-pds">'</span></span>)</pre></div>
+
+<p>It is important to note that (like ifconfig), erroneous values can be set
+when setting the inet addresses: for example you can set the ip address on
+192.168.3.* network with a broadcast address of 10.255.255.255.</p>
 
 <h4>
 <a id="ii-getting-info-on-your-card" class="anchor" href="#ii-getting-info-on-your-card" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>ii. Getting Info On Your Card</h4>
 
-<div class="highlight highlight-source-python"><pre>pyw.txget(w0)
+<div class="highlight highlight-source-python"><pre>pyw.devinfo(w0)
+<span class="pl-k">=</span><span class="pl-k">&gt;</span> {<span class="pl-s"><span class="pl-pds">'</span>wdev<span class="pl-pds">'</span></span>: <span class="pl-c1">4294967297</span>, <span class="pl-s"><span class="pl-pds">'</span>RF<span class="pl-pds">'</span></span>: <span class="pl-c1">None</span>, <span class="pl-s"><span class="pl-pds">'</span>CF<span class="pl-pds">'</span></span>: <span class="pl-c1">None</span>, <span class="pl-s"><span class="pl-pds">'</span>mac<span class="pl-pds">'</span></span>: <span class="pl-s"><span class="pl-pds">'</span>00:c0:ca:59:af:a6<span class="pl-pds">'</span></span>,
+<span class="pl-s"><span class="pl-pds">'</span>mode<span class="pl-pds">'</span></span>: <span class="pl-s"><span class="pl-pds">'</span>managed<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>CHW<span class="pl-pds">'</span></span>: <span class="pl-c1">None</span>, <span class="pl-s"><span class="pl-pds">'</span>card<span class="pl-pds">'</span></span>: Card(<span class="pl-v">phy</span><span class="pl-k">=</span><span class="pl-c1">1</span>,<span class="pl-v">dev</span><span class="pl-k">=</span>alfa0,<span class="pl-v">ifindex</span><span class="pl-k">=</span><span class="pl-c1">4</span>)}
+
+pyw.txget(w0)
 <span class="pl-k">=</span><span class="pl-k">&gt;</span> <span class="pl-c1">20</span>
 
 pyw.modeget(w0)
@@ -379,10 +357,6 @@ pyw.devcmds(w0)
 <span class="pl-s"><span class="pl-k">u</span><span class="pl-pds">'</span>frame<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-k">u</span><span class="pl-pds">'</span>frame_wait_cancel<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-k">u</span><span class="pl-pds">'</span>set_wiphy_netns<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-k">u</span><span class="pl-pds">'</span>set_channel<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-k">u</span><span class="pl-pds">'</span>set_wds_peer<span class="pl-pds">'</span></span>,
 <span class="pl-s"><span class="pl-k">u</span><span class="pl-pds">'</span>probe_client<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-k">u</span><span class="pl-pds">'</span>set_noack_map<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-k">u</span><span class="pl-pds">'</span>register_beacons<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-k">u</span><span class="pl-pds">'</span>start_p2p_device<span class="pl-pds">'</span></span>,
 <span class="pl-s"><span class="pl-k">u</span><span class="pl-pds">'</span>set_mcast_rate<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-k">u</span><span class="pl-pds">'</span>connect<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-k">u</span><span class="pl-pds">'</span>disconnect<span class="pl-pds">'</span></span>]
-
-pyw.devinfo(w0)
-<span class="pl-k">=</span><span class="pl-k">&gt;</span> {<span class="pl-s"><span class="pl-pds">'</span>wdev<span class="pl-pds">'</span></span>: <span class="pl-c1">4294967297</span>, <span class="pl-s"><span class="pl-pds">'</span>RF<span class="pl-pds">'</span></span>: <span class="pl-c1">None</span>, <span class="pl-s"><span class="pl-pds">'</span>CF<span class="pl-pds">'</span></span>: <span class="pl-c1">None</span>, <span class="pl-s"><span class="pl-pds">'</span>mac<span class="pl-pds">'</span></span>: <span class="pl-s"><span class="pl-pds">'</span>00:c0:ca:59:af:a6<span class="pl-pds">'</span></span>,
-<span class="pl-s"><span class="pl-pds">'</span>mode<span class="pl-pds">'</span></span>: <span class="pl-s"><span class="pl-pds">'</span>managed<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>CHW<span class="pl-pds">'</span></span>: <span class="pl-c1">None</span>, <span class="pl-s"><span class="pl-pds">'</span>card<span class="pl-pds">'</span></span>: Card(<span class="pl-v">phy</span><span class="pl-k">=</span><span class="pl-c1">1</span>,<span class="pl-v">dev</span><span class="pl-k">=</span>alfa0,<span class="pl-v">ifindex</span><span class="pl-k">=</span><span class="pl-c1">4</span>)}
 
 pinfo <span class="pl-k">=</span> pyw.phyinfo(w0)
 
@@ -403,7 +377,100 @@ pinfo[<span class="pl-s"><span class="pl-pds">'</span>rts_thresh<span class="pl-
 
 pinfo[<span class="pl-s"><span class="pl-pds">'</span>cov_class<span class="pl-pds">'</span></span>]
 <span class="pl-k">=</span><span class="pl-k">&gt;</span> <span class="pl-c1">0</span>
-</pre></div>
+
+pinfo[<span class="pl-s"><span class="pl-pds">'</span>freqs<span class="pl-pds">'</span></span>]
+<span class="pl-k">=</span><span class="pl-k">&gt;</span>[<span class="pl-c1">2412</span>, <span class="pl-c1">2417</span>, <span class="pl-c1">2422</span>, <span class="pl-c1">2427</span>, <span class="pl-c1">2432</span>, <span class="pl-c1">2437</span>, <span class="pl-c1">2442</span>, <span class="pl-c1">2447</span>, <span class="pl-c1">2452</span>, <span class="pl-c1">2457</span>, <span class="pl-c1">2462</span>, <span class="pl-c1">2467</span>, <span class="pl-c1">2472</span>,
+<span class="pl-c1">2484</span>]</pre></div>
+
+<p>Read the user guide, or type dir(pyw) in your console to get a full listing
+of pyw functions.</p>
+
+<p>c. Miscelleaneous Utilities
+Several additional tools are located in the utils directory. Two of these are:</p>
+
+<ul>
+<li>channels.py: defines ISM and UNII band channels/frequencies and provides
+functions to convert between channel and frequency and vice-versa</li>
+<li>ouifetch.py: retrieves and parses oui.txt from the IEEE website and stores
+the oui data in a file that can be read by hardware.py functions
+The others will be demonstrated in the following functions</li>
+</ul>
+
+<p>i. hardware.py
+Driver, chipset and mac address related functions can be found here:</p>
+
+<div class="highlight highlight-source-python"><pre><span class="pl-k">import</span> pyric.utils.hardware <span class="pl-k">as</span> hw
+
+ouis <span class="pl-k">=</span> hw.parseoui() <span class="pl-c"># load the oui dict</span>
+<span class="pl-c1">len</span>(ouis)
+<span class="pl-k">=</span><span class="pl-k">&gt;</span> <span class="pl-c1">22128</span>
+
+mac <span class="pl-k">=</span> <span class="pl-s"><span class="pl-pds">'</span>a0:88:b4:9e:68:58<span class="pl-pds">'</span></span>
+dev <span class="pl-k">=</span> <span class="pl-s"><span class="pl-pds">'</span>wlan0<span class="pl-pds">'</span></span>
+
+hw.oui(mac)
+<span class="pl-k">=</span><span class="pl-k">&gt;</span> <span class="pl-s"><span class="pl-pds">'</span>a0:88:b4<span class="pl-pds">'</span></span>
+
+hw.ulm(mac)
+<span class="pl-k">=</span><span class="pl-k">&gt;</span> <span class="pl-s"><span class="pl-pds">'</span>9e:68:58<span class="pl-pds">'</span></span>
+
+hw.manufacturer(ouis,mac)
+<span class="pl-k">=</span><span class="pl-k">&gt;</span> <span class="pl-s"><span class="pl-pds">'</span>Intel Corporate<span class="pl-pds">'</span></span>
+
+hw.randhw(ouis) <span class="pl-c"># generate a random mac address</span>
+<span class="pl-k">=</span><span class="pl-k">&gt;</span><span class="pl-s"><span class="pl-pds">'</span>00:03:f0:5a:a1:fc<span class="pl-pds">'</span></span>
+
+hw.manufacturer(ouis,<span class="pl-s"><span class="pl-pds">'</span>00:03:f0:5a:a1:fc<span class="pl-pds">'</span></span>)
+<span class="pl-k">=</span><span class="pl-k">&gt;</span> <span class="pl-s"><span class="pl-pds">'</span>Redfern Broadband Networks<span class="pl-pds">'</span></span>
+
+hw.ifcard(<span class="pl-s"><span class="pl-pds">'</span>wlan0<span class="pl-pds">'</span></span>) <span class="pl-c"># get driver &amp; chipset</span>
+<span class="pl-k">=</span><span class="pl-k">&gt;</span> (<span class="pl-s"><span class="pl-pds">'</span>iwlwifi<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>Intel 4965/5xxx/6xxx/1xxx<span class="pl-pds">'</span></span>)</pre></div>
+
+<p>ii. rfkill.py
+Sometimes, your card has a soft block (or hard block) on it and it is not
+recognized by command line tools or pyw. Use rkill to list, turn on or turn
+off soft blocks.</p>
+
+<div class="highlight highlight-source-python"><pre><span class="pl-k">from</span> pyric.utils <span class="pl-k">import</span> rfkill
+
+rfkill.rfkill_list() <span class="pl-c"># list rfkill devices</span>
+<span class="pl-k">=</span><span class="pl-k">&gt;</span> {<span class="pl-s"><span class="pl-pds">'</span>tpacpi_bluetooth_sw<span class="pl-pds">'</span></span>: {<span class="pl-s"><span class="pl-pds">'</span>soft<span class="pl-pds">'</span></span>: <span class="pl-c1">True</span>, <span class="pl-s"><span class="pl-pds">'</span>hard<span class="pl-pds">'</span></span>: <span class="pl-c1">False</span>, <span class="pl-s"><span class="pl-pds">'</span>type<span class="pl-pds">'</span></span>: <span class="pl-s"><span class="pl-pds">'</span>bluetooth<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>idx<span class="pl-pds">'</span></span>: <span class="pl-c1">1</span>},
+    <span class="pl-s"><span class="pl-pds">'</span>phy3<span class="pl-pds">'</span></span>: {<span class="pl-s"><span class="pl-pds">'</span>soft<span class="pl-pds">'</span></span>: <span class="pl-c1">False</span>, <span class="pl-s"><span class="pl-pds">'</span>hard<span class="pl-pds">'</span></span>: <span class="pl-c1">False</span>, <span class="pl-s"><span class="pl-pds">'</span>type<span class="pl-pds">'</span></span>: <span class="pl-s"><span class="pl-pds">'</span>wlan<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>idx<span class="pl-pds">'</span></span>: <span class="pl-c1">5</span>},
+    <span class="pl-s"><span class="pl-pds">'</span>phy0<span class="pl-pds">'</span></span>: {<span class="pl-s"><span class="pl-pds">'</span>soft<span class="pl-pds">'</span></span>: <span class="pl-c1">False</span>, <span class="pl-s"><span class="pl-pds">'</span>hard<span class="pl-pds">'</span></span>: <span class="pl-c1">False</span>, <span class="pl-s"><span class="pl-pds">'</span>type<span class="pl-pds">'</span></span>: <span class="pl-s"><span class="pl-pds">'</span>wlan<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>idx<span class="pl-pds">'</span></span>: <span class="pl-c1">0</span>}}
+
+idx <span class="pl-k">=</span> rfkill.getidx(<span class="pl-c1">3</span>)
+idx
+<span class="pl-k">=</span><span class="pl-k">&gt;</span> <span class="pl-c1">5</span>
+
+rfkill.getname(idx)
+<span class="pl-k">=</span><span class="pl-k">&gt;</span> phy3
+
+rfkill.gettype(idx)
+<span class="pl-k">=</span><span class="pl-k">&gt;</span> <span class="pl-s"><span class="pl-pds">'</span>wlan<span class="pl-pds">'</span></span>
+
+rfkill.soft_blocked(idx)
+<span class="pl-k">=</span><span class="pl-k">&gt;</span> <span class="pl-c1">False</span>
+
+rfkill.hard_blocked(idx)
+<span class="pl-k">=</span><span class="pl-k">&gt;</span> <span class="pl-c1">False</span>
+
+rfkill.rfkill_block(idx)
+
+rfkill.list()
+<span class="pl-k">=</span><span class="pl-k">&gt;</span> {<span class="pl-s"><span class="pl-pds">'</span>tpacpi_bluetooth_sw<span class="pl-pds">'</span></span>: {<span class="pl-s"><span class="pl-pds">'</span>soft<span class="pl-pds">'</span></span>: <span class="pl-c1">False</span>, <span class="pl-s"><span class="pl-pds">'</span>hard<span class="pl-pds">'</span></span>: <span class="pl-c1">True</span>, <span class="pl-s"><span class="pl-pds">'</span>type<span class="pl-pds">'</span></span>: <span class="pl-s"><span class="pl-pds">'</span>bluetooth<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>idx<span class="pl-pds">'</span></span>: <span class="pl-c1">1</span>},
+    <span class="pl-s"><span class="pl-pds">'</span>phy3<span class="pl-pds">'</span></span>: {<span class="pl-s"><span class="pl-pds">'</span>soft<span class="pl-pds">'</span></span>: <span class="pl-c1">True</span>, <span class="pl-s"><span class="pl-pds">'</span>hard<span class="pl-pds">'</span></span>: <span class="pl-c1">True</span>, <span class="pl-s"><span class="pl-pds">'</span>type<span class="pl-pds">'</span></span>: <span class="pl-s"><span class="pl-pds">'</span>wlan<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>idx<span class="pl-pds">'</span></span>: <span class="pl-c1">5</span>},
+    <span class="pl-s"><span class="pl-pds">'</span>phy0<span class="pl-pds">'</span></span>: {<span class="pl-s"><span class="pl-pds">'</span>soft<span class="pl-pds">'</span></span>: <span class="pl-c1">True</span>, <span class="pl-s"><span class="pl-pds">'</span>hard<span class="pl-pds">'</span></span>: <span class="pl-c1">True</span>, <span class="pl-s"><span class="pl-pds">'</span>type<span class="pl-pds">'</span></span>: <span class="pl-s"><span class="pl-pds">'</span>wlan<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>idx<span class="pl-pds">'</span></span>: <span class="pl-c1">0</span>}}
+
+rfkill.rfkill_unblock(idx)
+
+rfkill.rfkill_list()
+<span class="pl-k">=</span><span class="pl-k">&gt;</span> {<span class="pl-s"><span class="pl-pds">'</span>tpacpi_bluetooth_sw<span class="pl-pds">'</span></span>: {<span class="pl-s"><span class="pl-pds">'</span>soft<span class="pl-pds">'</span></span>: <span class="pl-c1">True</span>, <span class="pl-s"><span class="pl-pds">'</span>hard<span class="pl-pds">'</span></span>: <span class="pl-c1">False</span>, <span class="pl-s"><span class="pl-pds">'</span>type<span class="pl-pds">'</span></span>: <span class="pl-s"><span class="pl-pds">'</span>bluetooth<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>idx<span class="pl-pds">'</span></span>: <span class="pl-c1">1</span>},
+    <span class="pl-s"><span class="pl-pds">'</span>phy3<span class="pl-pds">'</span></span>: {<span class="pl-s"><span class="pl-pds">'</span>soft<span class="pl-pds">'</span></span>: <span class="pl-c1">False</span>, <span class="pl-s"><span class="pl-pds">'</span>hard<span class="pl-pds">'</span></span>: <span class="pl-c1">False</span>, <span class="pl-s"><span class="pl-pds">'</span>type<span class="pl-pds">'</span></span>: <span class="pl-s"><span class="pl-pds">'</span>wlan<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>idx<span class="pl-pds">'</span></span>: <span class="pl-c1">5</span>},
+    <span class="pl-s"><span class="pl-pds">'</span>phy0<span class="pl-pds">'</span></span>: {<span class="pl-s"><span class="pl-pds">'</span>soft<span class="pl-pds">'</span></span>: <span class="pl-c1">False</span>, <span class="pl-s"><span class="pl-pds">'</span>hard<span class="pl-pds">'</span></span>: <span class="pl-c1">False</span>, <span class="pl-s"><span class="pl-pds">'</span>type<span class="pl-pds">'</span></span>: <span class="pl-s"><span class="pl-pds">'</span>wlan<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>idx<span class="pl-pds">'</span></span>: <span class="pl-c1">0</span>}}</pre></div>
+
+<p>Note that rfkill_list lists all 'wireless' devices: wlan, bluetooth, wimax, wwan,
+gps, fm and nfc. Another important thing to note is that the rfkill index is not
+the same as the interface index.</p>
 
 <h4>
 <a id="iii-virtual-interfaces" class="anchor" href="#iii-virtual-interfaces" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>iii. Virtual Interfaces</h4>
@@ -457,7 +524,10 @@ w0
 <p>Extending PyRIC is fun and easy too, see the user guide PyRIC.pdf.</p>
 
 <h2>
-<a id="5-architectureheirarchy-brief-overview-of-the-project-file-structure" class="anchor" href="#5-architectureheirarchy-brief-overview-of-the-project-file-structure" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>5. ARCHITECTURE/HEIRARCHY: Brief Overview of the project file structure</h2>
+<a id="5-architectureheirarchy" class="anchor" href="#5-architectureheirarchy" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>5. ARCHITECTURE/HEIRARCHY:</h2>
+
+<p>Brief Overview of the project file structure. Directories and/or files annotated
+with (-) are not included in pip installs or PyPI downloads</p>
 
 <ul>
 <li>PyRIC                   root Distribution directory
@@ -471,17 +541,20 @@ w0
 <li>device_details.py   display device information</li>
 </ul>
 </li>
-<li>tests                 test folder
+<li>tests (-)             test folder
 
 <ul>
 <li>pyw.unittest.py     unit test for pyw functions</li>
 </ul>
 </li>
-<li>guide                 User Guide resources
+<li>docs                  User Guide resources
 
 <ul>
-<li>PyRIC.tex           User Guide LaTex</li>
-<li>PyRIC.bib           User Guide bibliography</li>
+<li>nlsend.png (-)      image for user guide</li>
+<li>nlsock.png (-)      image for user guide</li>
+<li>PyRIC.tex (-)       User tex file</li>
+<li>PyRIC.bib (-)       User Guide bibliography</li>
+<li>PyRIC.pdf           User Guide</li>
 </ul>
 </li>
 <li>setup.py              install file</li>
@@ -490,18 +563,19 @@ w0
 <li>README.md             this file</li>
 <li>LICENSE               GPLv3 License</li>
 <li>TODO                  todos for PyRIC</li>
-<li>RFI                   comments and observations</li>
-<li>PyRIC.pdf             User Guide</li>
-<li>pyw_unittest.py       unittest for pyw</li>
 <li>pyric                 package directory
 
 <ul>
 <li>__init__.py     initialize pyric module</li>
 <li>pyw.py              wireless nic functionality</li>
-<li>radio.py            consolidate pyw in a class</li>
-<li>channels.py         802.11 ISM/UNII freqs. &amp; channels</li>
-<li>device.py           device/chipset utility functions</li>
-<li>rfkill.py           rfkill port</li>
+<li>utils               utility directory</li>
+<li>__init__.py    initialize utils module</li>
+<li>channels.py        802.11 ISM/UNII freqs. &amp; channels</li>
+<li>hardware.py        device, chipset and mac address utility functions</li>
+<li>rfkill.py          rfkill functions</li>
+<li>ouifetch.py        retrieve and store oui dict from IEEE</li>
+<li>data               data folder for ouis</li>
+<li>oui.txt           oui file fetched from IEEE</li>
 <li>net                 linux header ports
 
 <ul>
@@ -517,6 +591,7 @@ w0
 <li>__init__.py initialize wireless subpackage</li>
 <li>nl80211_h.py    nl80211 constants</li>
 <li>nl80211_c.py    nl80211 attribute policies</li>
+<li>rfkill_h.py     rfkill header file</li>
 </ul>
 </li>
 </ul>
@@ -529,10 +604,10 @@ w0
 <li>libio.py          sockios helper functions</li>
 </ul>
 </li>
-<li>docs                netlinke documentation/help
+<li>nlhelp              netlinke documentation/help
 
 <ul>
-<li>nlhelp.py         nl80211 search</li>
+<li>nsearch.py        nl80211 search</li>
 <li>commands.help     nl80211 commands help data</li>
 <li>attributes.help   nl80211 attributes help data</li>
 </ul>
