@@ -33,7 +33,7 @@ def execute(dev):
     msg += "\tmode: {0}\n".format(dinfo['mode'])
     msg += "\twiphy: {0}\n".format(card.phy)
     if dinfo['mode'] == 'managed':
-        msg += "\tchannel: {0} (1 MHz), width: {2}, CF: {3}\n".format(rf2ch(dinfo['RF']),
+        msg += "\tchannel: {0} ({1} MHz), width: {2}, CF: {3}\n".format(rf2ch(dinfo['RF']),
                                                                       dinfo['RF'],
                                                                       dinfo['CHW'],
                                                                       dinfo['CF'])
