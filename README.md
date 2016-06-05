@@ -34,38 +34,7 @@ it's initial inception, PyRIC has grown to include ioctl support to replicate
 features of ifconfig such as getting or setting the mac address and has recently
 implemented rkill support to soft block or unblock wireless cards.
 
-### a. Background
-PyRIC arose out of a need in Wraith (https://github.com/wraith-wireless/wraith)
-for Python nl80211/netlink and ioctl functionality. Originally, Wraith used
-ifconfig, iwconfig and iw via subprocess.Popen and parsed the output. There
-are obvious shortfalls with this method, especially in terms of iw that is
-actively changing (revisions break the parser) and I started looking for an
-open source alternative. There are several open source projects out there
-such as pyroute, pymnl (and the python files included in the libnl source) but
-they generally have either not been maintained recently or come with warnings.
-I desired a simple interface to the underlying nl80211 kernel support that
-handles the complex operations of netlink seamlessy while maintaining a minimum
-of "code walking" to understand, modify and extend. I decided to write my own
-because I do not need complete netlink functionality, only that provided by
-generic netlink and within the nl80221 family. Additionally, for Wraith, I do
-not need a full blown port of iw et. al. functionality to Python but only
-require the ability to turn a wireless nic on/off, get/set the hwaddr, get/set
-the channel, determine some properties of the card and add/delete interfaces.
-
-So, why did I do this and why is it done "this" way? When I first started to
-explore the idea of moving away from iw output parsing, I looked at the source
-for iw, and existing Python ports. Just to figure out how to get the family id
-for nl80211 required reading through five different source files with no
-comments. To that extent, I have attempted to keep subclassing to a minimum,
-the total number of classes to a minimum, combine files where possible and where
-it makes since and keep the number of files required to be open simulateneously
-in order to understand the methodology and follow the program to a minimum. One
-can understand the PyRIC program flow with only two files open at any time namely,
-pyw and libnl. In fact, only an understanding of pyw is required to add additional
-commands although an understanding of libnl(.py) is helpful especially, if for
-example, the code is to be extended to handle multicast or callbacks.
-
-### b. Additions to iw
+### a. Additions to iw
 Several "extensions" have been added to iw:
 * Persistent sockets: pyw provides the caller with functions & ability to pass
 their own netlink (or ioctl socket) to pyw functions;
@@ -91,7 +60,7 @@ hoptime. Not a big difference. However, the performance increased dramatically w
 persistent netlink sockets are used with the total time and average hop time nearly
 halved.
 
-### c. Current State
+### b. Current State
 ATT, PyRIC accomplishes my core needs but it is still a work in progress. It
 currently provides the following:
 * enumerate interfaces and wireless interfaces
@@ -114,7 +83,7 @@ It also provides limited help functionality concerning nl80211 commands/attribut
 (for those who wish to add additional commands). However, it pulls directly from
 the nl80211 header file and may be vague.
 
-### d. What is PyRIC?
+### c. What is PyRIC?
 
 To avoid confusion, PyRIC is the system as a whole, including all header files
 and "libraries" that are required to communicate with the kernel. pyw is a
@@ -481,7 +450,7 @@ with (-) are not included in pip installs or PyPI downloads
   - MANIFEST.in           used by setup.py
   - README.md             this file
   - LICENSE               GPLv3 License
-  + TODO                  todos for PyRIC
+  - TODO                  todos for PyRIC
   - pyric                 package directory
     + \_\_init\_\_.py     initialize pyric module
     + pyw.py              wireless nic functionality

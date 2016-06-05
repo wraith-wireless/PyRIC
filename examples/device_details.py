@@ -22,9 +22,11 @@ def execute(dev):
     pinfo = pyw.phyinfo(card)
     driver = hw.ifdriver(card.dev)
     chipset = hw.ifchipset(driver)
+    manuf = hw.manufacturer(hw.parseoui(),dinfo['mac'])
 
     msg = "Device {0}\n".format(dev)
     msg += "\tDriver: {0} Chipset: {1}\n".format(driver,chipset)
+    msg += "\tManufacturer: {0}\n".format(manuf)
     msg += "\tifindex: {0}\n".format(card.idx)
     msg += "\twdev: {0}\n".format(dinfo['wdev'])
     msg += "\taddr: {0}\n".format(dinfo['mac'])
@@ -53,9 +55,9 @@ def execute(dev):
     msg += "\tSupported Commands:\n"
     for cmd in pinfo['commands']:
         msg += "\t  * {0}\n".format(cmd)
-    msg += "\tSupported Frequencies:\n"
-    for freq in pinfo['freqs']:
-        msg += "\t  * {0}\n".format(freq)
+    msg += "\tSupported Channels:\n"
+    for ch in map(rf2ch,pinfo['freqs']):
+        msg += "\t  * {0}\n".format(ch)
 
     print msg
 
