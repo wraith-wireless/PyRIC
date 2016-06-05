@@ -141,7 +141,7 @@ https://github.com/wraith-wireless/pyric/releases/ It is not guaranteed to be st
 (as I tend to commit changes periodically while working on the code) and may in
 fact not run at all.
 
-## 3. USING (Work in Progress)
+## 3. USING
 Once installed, see examples/pentest.py which covers most pyw functions or read
 throuhg PyRIC.pdf. However, for those impatient types:
 
