@@ -1,6 +1,11 @@
   1) overall
    o make a cli as well
    o determine if rfkill issue is related only to ubuntu
+   o ethtool uses ioctl but does not follow same pattern as ifconfig seems
+    to use however, see below, may be something worth researching although it
+    is not vital information and therefore of low priority
+    - ethtool -i <dev> gives driver information including firmware-version
+    - ethool -S <dev> gives some statistics
   2) libnl.py
    o see (1) in RFI
   4) pyw

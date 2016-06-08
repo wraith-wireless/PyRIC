@@ -35,9 +35,9 @@ from setuptools import setup, find_packages
 import pyric
 
 long_desc = """
- PyRIC is Linux wireless network interface card library. It provides the ability to
- manipuate, identify and enumerate your system's wireless cards. PyRIC is a pure
- python port of a subset of the functionality provided by iw, ifconfig, iwconfig
+ PyRIC is Linux wireless network interface controller library. It provides the
+ ability to manipuate, identify and enumerate your system's wireless cards. PyRIC
+ is a pure python port of a subset of the functionality provided by iw, ifconfig,
  and rfkill.
 
  PyRIC is:

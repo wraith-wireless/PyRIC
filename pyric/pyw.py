@@ -256,7 +256,7 @@ def regset(rd, *argv):
 
 class Card(tuple):
     """
-     A wireless network interface card - Wrapper around a tuple
+     A wireless network interface controller - Wrapper around a tuple
       t = (physical index,device name, interface index)
      Exposes the following properties: (callable by '.'):
       phy: physical index
