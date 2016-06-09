@@ -794,6 +794,7 @@ def phyinfo(card, *argv):
         nl.nla_put_u32(msg, card.phy, nl80211h.NL80211_ATTR_WIPHY)
         nl.nl_sendmsg(nlsock, msg)
         rmsg = nl.nl_recvmsg(nlsock)
+
     except AttributeError as e:
         raise pyric.error(errno.EINVAL, "Invalid paramter {0}".format(e))
 
