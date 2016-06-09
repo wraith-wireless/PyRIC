@@ -812,7 +812,6 @@ def phyinfo(card, *argv):
     info['scan_ssids'] = nl.nla_find(rmsg, nl80211h.NL80211_ATTR_MAX_NUM_SCAN_SSIDS)
     # nested attributes
     bands = nl.nla_find(rmsg, nl80211h.NL80211_ATTR_WIPHY_BANDS)
-    #info['freqs'] = nl80211_parse_freqs(bands)
     info['freqs'] = _getfreqs_(bands)
     modes = nl.nla_find(rmsg, nl80211h.NL80211_ATTR_SUPPORTED_IFTYPES)
     info['modes'] = [_iftypes_(struct.unpack('>H', mode)[0]) for mode in modes]

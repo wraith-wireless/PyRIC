@@ -472,7 +472,6 @@ def nla_parse(msg,l,mtype,stream,idx):
 
             # Note: we use unpack_from which will ignore the null bytes in numeric
             # datatypes & for strings, strip trailing null bytes
-            #if dt == nlh.NLA_STRING or dt == nlh.NLA_UNSPEC: a = _nla_strip_(a)
             # dt == nlh.NLA_UNSPEC: ignore
             if dt == nlh.NLA_STRING: a = _nla_strip_(a)
             elif dt == nlh.NLA_NESTED: a = nla_parse_nested(a)
@@ -486,6 +485,9 @@ def nla_parse(msg,l,mtype,stream,idx):
         except struct.error:
             # append as Error, stripping null bytes
             nla_put(msg,_nla_strip_(a),atype,nlh.NLA_ERROR)
+        except MemoryError as e:
+            raise pyric.error(pyric.EUNDEF,
+                              "Parsing attr type {0} failed due to {1}",atype,e)
         idx = nlh.NLMSG_ALIGN(idx + alen)  # move index to next attr
 
 def nla_parse_nested(nested):
