@@ -2,7 +2,8 @@
 ## Linux wireless library for the Python Wireless Developer and Pentester
 
 [![License: GPLv3](https://img.shields.io/pypi/l/PyRIC.svg)](https://github.com/wraith-wireless/PyRIC/blob/master/LICENSE)
-[![Current version at PyPI](https://img.shields.io/pypi/v/PyRIC.svg)](https://pypi.python.org/pypi/PyRIC)
+[![GitHub Version](https://img.shields.io/github/tag/strongloop/express.svg?maxAge=2592000)]()
+[![PyPI Version](https://img.shields.io/pypi/v/PyRIC.svg)](https://pypi.python.org/pypi/PyRIC)
 [![Downloads per month on PyPI](https://img.shields.io/pypi/dm/PyRIC.svg)](https://pypi.python.org/pypi/PyRIC)
 ![Supported Python Versions](https://img.shields.io/pypi/pyversions/PyRIC.svg)
 ![Software status](https://img.shields.io/pypi/status/PyRIC.svg)
