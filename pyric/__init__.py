@@ -148,7 +148,7 @@ Requires:
 
 __name__ = 'pyric'
 __license__ = 'GPLv3'
-__version__ = '0.1.2'
+__version__ = '0.1.2.1'
 __date__ = 'June 2016'
 __author__ = 'Dale Patterson'
 __maintainer__ = 'Dale Patterson'
