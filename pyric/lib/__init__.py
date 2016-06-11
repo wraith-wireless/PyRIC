@@ -23,7 +23,7 @@ lib subpackage
 
  lib 0.0.2
   desc: lib subpackage
- includes: libnl 0.0.6 libio 0.0.1
+ includes: libnl 0.0.7 libio 0.0.1
  changes:
   o added libio
   o updated libnl
@@ -35,7 +35,8 @@ lib subpackage
    - remove nla_* from GENLMsg stand-alone functions as this was my original
     intent where the classes should only be 'placeholders', similar to C structs
     and not full blow objects
-
+   - added some error checking to nla_parse_nested, raising and handling error
+    in situations where attribute len is 0
 """
 
 __name__ = 'lib'

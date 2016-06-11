@@ -64,10 +64,10 @@ nla_dts["ctrl_attr"] = {genlh.CTRL_ATTR_UNSPEC:nlh.NLA_UNSPEC,
                         genlh.CTRL_ATTR_VERSION:nlh.NLA_U32,
                         genlh.CTRL_ATTR_HDRSIZE:nlh.NLA_U32,
                         genlh.CTRL_ATTR_MAXATTR:nlh.NLA_U32,
-                        #genlh.CTRL_ATTR_OPS:nlh.NLA_NESTED,
-                        genlh.CTRL_ATTR_OPS: nlh.NLA_UNSPEC,
-                        #genlh.CTRL_ATTR_MCAST_GROUPS:nlh.NLA_NESTED}
-                        genlh.CTRL_ATTR_MCAST_GROUPS: nlh.NLA_UNSPEC}
+                        genlh.CTRL_ATTR_OPS:nlh.NLA_NESTED,
+                        #genlh.CTRL_ATTR_OPS: nlh.NLA_UNSPEC,
+                        genlh.CTRL_ATTR_MCAST_GROUPS:nlh.NLA_NESTED}
+                        #genlh.CTRL_ATTR_MCAST_GROUPS: nlh.NLA_UNSPEC}
 
 #### CTRL_ATTR_OP_*
 nla_dts["ctrl_attr_op"] = {genlh.CTRL_ATTR_OP_UNSPEC:nlh.NLA_UNSPEC,

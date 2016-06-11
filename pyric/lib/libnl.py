@@ -32,8 +32,8 @@ see http://www.carisma.slowglass.com/~tgr/libnl/doc/core.html
 
 __name__ = 'libnl'
 __license__ = 'GPLv3'
-__version__ = '0.0.6'
-__date__ = 'May 2016'
+__version__ = '0.0.7'
+__date__ = 'June 2016'
 __author__ = 'Dale Patterson'
 __maintainer__ = 'Dale Patterson'
 __email__ = 'wraith.wireless@yandex.com'
@@ -485,9 +485,16 @@ def nla_parse(msg,l,mtype,stream,idx):
         except struct.error:
             # append as Error, stripping null bytes
             nla_put(msg,_nla_strip_(a),atype,nlh.NLA_ERROR)
+        except pyric.error as e:
+            if e.errno == errno.EINVAL:
+                # a nested attribute failed to parse correctly
+                nla_put(msg, _nla_strip_(a), atype, nlh.NLA_ERROR)
+            else:
+                raise
         except MemoryError as e:
-            raise pyric.error(pyric.EUNDEF,
-                              "Parsing attr type {0} of pol {1} failed due to {2}",atype,pol,e)
+            # hopefully don't get here
+            emsg = "Attr type {0} of pol {1} failed: {2}".format(atype,pol,e)
+            raise pyric.error(pyric.EUNDEF,emsg)
         idx = nlh.NLMSG_ALIGN(idx + alen)  # move index to next attr
 
 def nla_parse_nested(nested):
@@ -529,6 +536,8 @@ def nla_parse_nested(nested):
         # first byte is the length, including this byte and one pad byte - does
         # not include additional pad bytes for proper alignment
         alen = struct.unpack_from('B',nested,idx)[0]
+        if alen == 0:
+            raise pyric.error(errno.EINVAL,"attribute length is 0")
         ns.append(nested[idx+1:idx+(alen-1)])
         idx = nlh.NLMSG_ALIGN(idx + alen)
     return ns

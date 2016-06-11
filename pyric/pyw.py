@@ -102,8 +102,8 @@ Additional changes in pyw v 0.1.*
 
 __name__ = 'pyw'
 __license__ = 'GPLv3'
-__version__ = '0.1.3'
-__date__ = 'May 2016'
+__version__ = '0.1.4'
+__date__ = 'June 2016'
 __author__ = 'Dale Patterson'
 __maintainer__ = 'Dale Patterson'
 __email__ = 'wraith.wireless@yandex.com'
@@ -794,39 +794,55 @@ def phyinfo(card, *argv):
         nl.nla_put_u32(msg, card.phy, nl80211h.NL80211_ATTR_WIPHY)
         nl.nl_sendmsg(nlsock, msg)
         rmsg = nl.nl_recvmsg(nlsock)
-
     except AttributeError as e:
         raise pyric.error(errno.EINVAL, "Invalid paramter {0}".format(e))
 
     # pull out attributes
-    info = {'scan_ssids':None, 'modes':None, 'freqs':None, 'retry_short':None,
-            'retry_long':None, 'frag_thresh':None, 'rts_thresh':None,
-            'cov_class':None, 'swmodes':None, 'commands':None}
-    # singular attributes
+    info = {'generation':None, 'retry_short':None, 'retry_long':None,
+            'frag_thresh':None, 'rts_thresh':None, 'cov_class':None,
+            'scan_ssids':None,  'freqs':[], 'modes':[], 'swmodes':[],
+            'commands':[]}
     info['generation'] = nl.nla_find(rmsg, nl80211h.NL80211_ATTR_GENERATION)
     info['retry_short'] = nl.nla_find(rmsg, nl80211h.NL80211_ATTR_WIPHY_RETRY_SHORT)
     info['retry_long'] = nl.nla_find(rmsg, nl80211h.NL80211_ATTR_WIPHY_RETRY_LONG)
-    info['retry_short'] = nl.nla_find(rmsg, nl80211h.NL80211_ATTR_WIPHY_RETRY_SHORT)
     info['frag_thresh'] = nl.nla_find(rmsg, nl80211h.NL80211_ATTR_WIPHY_FRAG_THRESHOLD)
     info['rts_thresh'] = nl.nla_find(rmsg, nl80211h.NL80211_ATTR_WIPHY_RTS_THRESHOLD)
     info['cov_class'] = nl.nla_find(rmsg, nl80211h.NL80211_ATTR_WIPHY_COVERAGE_CLASS)
     info['scan_ssids'] = nl.nla_find(rmsg, nl80211h.NL80211_ATTR_MAX_NUM_SCAN_SSIDS)
-    # nested attributes
-    bands = nl.nla_find(rmsg, nl80211h.NL80211_ATTR_WIPHY_BANDS)
-    info['freqs'] = _getfreqs_(bands)
-    modes = nl.nla_find(rmsg, nl80211h.NL80211_ATTR_SUPPORTED_IFTYPES)
-    info['modes'] = [_iftypes_(struct.unpack('>H', mode)[0]) for mode in modes]
-    modes = nl.nla_find(rmsg, nl80211h.NL80211_ATTR_SOFTWARE_IFTYPES)
-    info['swmodes'] = [_iftypes_(struct.unpack('>H', mode)[0]) for mode in modes]
-    cmds = nl.nla_find(rmsg, nl80211h.NL80211_ATTR_SUPPORTED_COMMANDS)
-    info['commands'] = []
-    for cmd in cmds:
-        try:
-            cmd = cmdbynum(struct.unpack_from('>HH', cmd,0)[1])
-            if type(cmd) is type([]): cmd = cmd[0]
-            info['commands'].append(cmd[13:].lower())
-        except KeyError:
-            info['commands'].append("unknown cmd ({0})".format(cmd))
+
+    # nested attributes require additional processing. They must be unpacked
+    # beg-endian and may not be processed correctly by libnl. In the event of an
+    # unparsed nested attribute leave as empty list
+    # get freqs
+    _, bs, d = nl.nla_find(rmsg, nl80211h.NL80211_ATTR_WIPHY_BANDS, False)
+    if d != nlh.NLA_ERROR: info['freqs'] = _getfreqs_(bs)
+
+    # get supported modes
+    _, ms, d = nl.nla_find(rmsg, nl80211h.NL80211_ATTR_SUPPORTED_IFTYPES, False)
+    if d != nlh.NLA_ERROR:
+        info['modes'] = [_iftypes_(struct.unpack('>H', m)[0]) for m in ms]
+
+    # get supported sw modes
+    _, ms, d = nl.nla_find(rmsg, nl80211h.NL80211_ATTR_SOFTWARE_IFTYPES, False)
+    if d != nlh.NLA_ERROR:
+        info['swmodes'] = [_iftypes_(struct.unpack('>H', m)[0]) for m in ms]
+
+    # get supported commands
+    _, cs, d = nl.nla_find(rmsg, nl80211h.NL80211_ATTR_SUPPORTED_COMMANDS, False)
+    if d != nlh.NLA_ERROR:
+        for c in cs:
+            try:
+                # convert the numeric command to the form @NL80211_CMD_<CMD>
+                # Some numeric commands may have multiple string synonyms, in
+                # that case, take the first one. Finally, strip off @NL80211_CMD_
+                # to get only the command name and make it lowercase
+                c = cmdbynum(struct.unpack_from('>HH', c, 0)[1])
+                if type(c) is type([]): c = c[0]
+                info['commands'].append(c[13:].lower())
+            except KeyError:
+                # some cards (atheros) have proprietary commands not found
+                # in nlh8022.h.
+                info['commands'].append("unknown cmd ({0})".format(c))
     return info
 
 #### TX/RX RELATED ####
