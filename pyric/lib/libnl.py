@@ -487,7 +487,7 @@ def nla_parse(msg,l,mtype,stream,idx):
             nla_put(msg,_nla_strip_(a),atype,nlh.NLA_ERROR)
         except MemoryError as e:
             raise pyric.error(pyric.EUNDEF,
-                              "Parsing attr type {0} failed due to {1}",atype,e)
+                              "Parsing attr type {0} of pol {1} failed due to {2}",atype,pol,e)
         idx = nlh.NLMSG_ALIGN(idx + alen)  # move index to next attr
 
 def nla_parse_nested(nested):

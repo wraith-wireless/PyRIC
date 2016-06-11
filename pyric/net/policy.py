@@ -56,14 +56,18 @@ def nla_datatype(policy,attr):
 nla_dts = {}
 
 #### CTRL_ATTR_*
+# commented out below to determine if nested _OPS and _MCAST_GROUPS
+# was causing an infinite loop in nla_parse_nested
 nla_dts["ctrl_attr"] = {genlh.CTRL_ATTR_UNSPEC:nlh.NLA_UNSPEC,
                         genlh.CTRL_ATTR_FAMILY_ID:nlh.NLA_U16,
                         genlh.CTRL_ATTR_FAMILY_NAME:nlh.NLA_STRING,
                         genlh.CTRL_ATTR_VERSION:nlh.NLA_U32,
                         genlh.CTRL_ATTR_HDRSIZE:nlh.NLA_U32,
                         genlh.CTRL_ATTR_MAXATTR:nlh.NLA_U32,
-                        genlh.CTRL_ATTR_OPS:nlh.NLA_NESTED,
-                        genlh.CTRL_ATTR_MCAST_GROUPS:nlh.NLA_NESTED}
+                        #genlh.CTRL_ATTR_OPS:nlh.NLA_NESTED,
+                        genlh.CTRL_ATTR_OPS: nlh.NLA_UNSPEC,
+                        #genlh.CTRL_ATTR_MCAST_GROUPS:nlh.NLA_NESTED}
+                        genlh.CTRL_ATTR_MCAST_GROUPS: nlh.NLA_UNSPEC}
 
 #### CTRL_ATTR_OP_*
 nla_dts["ctrl_attr_op"] = {genlh.CTRL_ATTR_OP_UNSPEC:nlh.NLA_UNSPEC,
