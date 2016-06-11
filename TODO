@@ -16,9 +16,11 @@
     - move to netlink (using ip ?) or is better to keep as ioctl since this
      allows us to set erroneous values for netmask, broadcast whereas ip forces
      validity
-   o Can we find the current channel of a radio in monitor mode that is actively
-     scanning?
    o parse NL80211_ATTR_WIPHY_BANDS (have workaround currently in place)
+   o iw dev wlan0 link sends two commands the first is to initiate a command,
+    the second is @NL80211_CMD_GET_STATION. The return from the kernel is a
+    @NL80211_CMD_NEW_STATION, one of the attributes of which is a @NL80211_ATTR_STA_INFO
+    What is this?
 
 ------- Request For Information RFI ----------
 
