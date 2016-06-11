@@ -6,3 +6,4 @@ recursive-include examples
 recursive-include examples *.py
 recursive-include docs *.pdf
 recursive-include pyric/utils/data *.txt
+recursive-include pyric/nlhelp *.help
