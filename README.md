@@ -1,5 +1,6 @@
 # PyRIC: Python Radio Interface Controller
 ## Linux wireless library for the Python Wireless Developer and Pentester
+![](docs/logo.png?raw=true)
 
 [![License: GPLv3](https://img.shields.io/pypi/l/PyRIC.svg)](https://github.com/wraith-wireless/PyRIC/blob/master/LICENSE)
 [![PyPI Version](https://img.shields.io/pypi/v/PyRIC.svg)](https://pypi.python.org/pypi/PyRIC)
