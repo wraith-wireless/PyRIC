@@ -122,7 +122,7 @@ Requires:
   changes:
    o production release
 
- pyric 0.1.1 t0 0.1.1-1
+ pyric 0.1.1 t0 0.1.1-*
   desc: wireless nic library: wireless radio identification, manipulation, enumeration
   includes:  /nlhelp /lib /net /utils pyw 0.1.2
   changes:
@@ -133,11 +133,22 @@ Requires:
    o added block/unblock to pyw
    o updated pyw to handle the newest version of libnl.py's processing of nested
      attributes
+
+ pyric 0.1.2
+  desc: wireless nic library: wireless radio identification, manipulation, enumeration
+  includes: /nlhelp /lib /net /utils pyw 0.1.4
+  changes:
+   o fixed install issues via pip where data files were not being loaded onto
+    the user's system
+   o identified and fixed error with ouifetch with invalid path of default oui file
+   o moved parseoui from hardware to ouifetch renaming to parse
+   o removed ouifetch execution ability - parse and fetch must be called w/in
+    python console. Will eventually add this capability as as top-level program
 """
 
 __name__ = 'pyric'
 __license__ = 'GPLv3'
-__version__ = '0.1.1-2'
+__version__ = '0.1.2'
 __date__ = 'June 2016'
 __author__ = 'Dale Patterson'
 __maintainer__ = 'Dale Patterson'

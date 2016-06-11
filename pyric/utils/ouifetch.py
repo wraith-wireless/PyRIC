@@ -34,22 +34,48 @@ __email__ = 'wraith.wireless@yandex.com'
 __status__ = 'Production'
 
 import urllib2,os,sys,datetime,time
-import argparse as ap
+#import argparse as ap
+import pyric
 
 OUIURL = 'http://standards-oui.ieee.org/oui.txt'
-OUIPATH = os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                       os.path.abspath('data/oui.txt'))
+OUIPATH = os.path.join(os.path.dirname(os.path.abspath(__file__)),'data/oui.txt')
 
-def fetch(path=None,verbose=False):
+def parse(opath=None):
+    """
+     parse oui.txt file
+     :param opath: path of oui text file
+     :returns: oui dict {oui:manuf} for each oui in path or empty dict
+    """
+    fin = None
+    ouis = {}
+
+    if not opath: opath = OUIPATH
+
+    try:
+        fin = open(opath)
+        for line in fin.readlines()[1:]:
+            o,m = line.strip().split('\t')
+            ouis[o.lower()] = m[0:100]
+        fin.close()
+    except IndexError:
+        pass
+    except IOError as e:
+        raise pyric.error(e.errno,e.strerror)
+    finally:
+        if fin and not fin.closed: fin.close()
+    return ouis
+
+
+def fetch(opath=None,verbose=False):
     """
      retrieves oui.txt from IEEE and writes to data file
-     :param path: fullpath of oui.txt
+     :param opath: fullpath of oui.txt
      :param verbose: write updates to stdout
     """
     # determine if data path is legit
-    if path is None: path = OUIPATH
-    if not os.path.isdir(os.path.dirname(path)):
-        print "Path to data is incorrect {0}".format(path)
+    if opath is None: opath = OUIPATH
+    if not os.path.isdir(os.path.dirname(opath)):
+        print "Path to data is incorrect {0}".format(opath)
         sys.exit(1)
 
     # fetch oui file from ieee
@@ -64,8 +90,8 @@ def fetch(path=None,verbose=False):
         res = urllib2.urlopen(req)
         if verbose: print "Parsing OUI file"
 
-        if verbose: print "Opening data file {0} for writing".format(path)
-        fout = open(path,'w')
+        if verbose: print "Opening data file {0} for writing".format(opath)
+        fout = open(opath,'w')
         gen = datetime.datetime.utcnow().isoformat() # use current time as the first line
         fout.write(gen+'\n')
 
@@ -95,16 +121,16 @@ def fetch(path=None,verbose=False):
     finally:
         if fout: fout.close()
 
-if __name__ == '__main__':
-    # create arg parser and parse command line args
-    print "OUI Fetch {0}".format(__version__)
-    argp = ap.ArgumentParser(description="IEEE OUI fetch and parse")
-    argp.add_argument('-p','--path',help="Path to write parsed file")
-    argp.add_argument('-v','--verbose',action='store_true',help="Display operations to stdout")
-    argp.add_argument('--version',action='version',version="OUI Fetch {0}".format(__version__))
-    args = argp.parse_args()
-    verbose = args.verbose
-    path = args.path
+#if __name__ == '__main__':
+#    # create arg parser and parse command line args
+#    print "OUI Fetch {0}".format(__version__)
+#    argp = ap.ArgumentParser(description="IEEE OUI fetch and parse")
+#    argp.add_argument('-p','--path',help="Path to write parsed file")
+#    argp.add_argument('-v','--verbose',action='store_true',help="Display operations to stdout")
+#    argp.add_argument('--version',action='version',version="OUI Fetch {0}".format(__version__))
+#    args = argp.parse_args()
+#    verbose = args.verbose
+#    path = args.path
 
     # execute
-    fetch(path,verbose)
+#    fetch(path,verbose)

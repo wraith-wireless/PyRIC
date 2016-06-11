@@ -35,6 +35,7 @@
 \usepackage{caption}
 \usepackage{geometry}
 \usepackage{color}
+\usepackage{graphicx}
 \usepackage[titletoc,toc,title]{appendix}
 \usepackage[T1]{fontenc}
  
@@ -72,7 +73,7 @@
     basicstyle=\footnotesize
 }
 
-\title{PyRIC v0.1.1: User Manual}
+\title{\includegraphics[scale=1]{logo}\\ PyRIC v0.1.2: User Manual}
 \author{Dale V. Patterson\\ wraith.wireless@yandex.com}
 
 \begin{document}
@@ -840,7 +841,7 @@ channel (value) pairs
 \item rf2ch(f): convert frequency f to channel
 \end{enumerate}
 
-\section{API: hardware.py}\label{sec:deviceapi}
+\section{API: hardware.py}\label{sec:hardwareapi}
 Hardware related: driver, chipset, manufacturer and mac address utility functions 
 can be found in device.py.
 
@@ -852,12 +853,12 @@ can be found in device.py.
 
 \subsection{Functions}
 \begin{enumerate}
-\item parseoui(path): reads and stores oui data from optional <path> into a dict
 \item oui(mac): returns the oui portion of address <mac>
 \item ulm(mac): returns the ulm portion of address <mac>
 \item manufacturer(ouis,mac): returns the manufacturer name of <mac> given the
 dict of <ouis>
-\item randhw(ouis): returns a random mac address given a dict of <ouis>
+\item randhw([ouis]): returns a random mac address. If the dict ouis is specified 
+will select a random oui from the dict otherwise will generate one
 \item ifcard(dev): returns the device driver and chipset
 \item ifdriver(dev): returns the device driver
 \item ifchipset(driver): returns the chipset associated with driver
@@ -867,13 +868,25 @@ dict of <ouis>
 The file ouifetch.py retrieves and saves a tab seperated file of oui to 
 manufacturer name for use by hardware.py functions. From a command line, type: \\
 
-\texttt{python ouifetch.py}\\
+\subsection{Constants}
+\begin{enumerate}
+\item \textbf{OUIURL}: url of IEEE oui file
+\item \textbf{OUIPATH}: path to default location PyRIC oui.txt file
+\end{enumerate}
 
-Optional arguments path and verbose can also be specified.
+\subsection{Functions}
+\begin{enumerate}
+\item parse([opath]): returns a dict of oui:manufacturer key->value pairs stored
+in the text file at opath. If opath is not specified, uses the default
+\item fetch([opath]): retrieves oui.txt from the IEEE website, parses the files
+and stores the results in a PyRIC friendly format in opath. If opath is not 
+specified, uses the default. User must have root permissions in order to write
+to default opath 
+\end{enumerate}
 
 \section{API: rfkill.py}\label{sec:rfkillapi}
 A port of the command line tool rfkill, rfkill.py writes and reads rfkill\_event 
-structures to /dev/rfkill using fcntl provding functionality to block and unblock 
+structures to /dev/rfkill using fcntl providing functionality to block and unblock 
 devices. 
 
 \subsection{Constants}

@@ -21,10 +21,11 @@ are permitted provided that the following conditions are met:
 
  utils 0.0.1
   desc: utilities
-  includes: hardware 0.0.4 ouifetch 0.0.1 channels 0.0.1 rfkill 0.0.1
+  includes: hardware 0.0.5 ouifetch 0.0.1 channels 0.0.1 rfkill 0.0.1
   changes:
    o added mac address related to hardware.py
-
+   o randhw does not force an ouis dict, if not present, randomly generates the
+    oui and the ulm
 """
 
 __name__ = 'utils'

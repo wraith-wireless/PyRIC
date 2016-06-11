@@ -2,6 +2,8 @@
 include LICENSE README.md TODO
 
 # Include subdirectories
+# note to self: even including recursive-include here, have to follow up by
+# ensuring data (non .py) files are also referenced in setup.py
 recursive-include examples
 recursive-include examples *.py
 recursive-include docs *.pdf

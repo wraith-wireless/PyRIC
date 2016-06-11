@@ -26,7 +26,7 @@ Defines device hardware related functions: mac address, driver, chipset
 
 __name__ = 'hardware'
 __license__ = 'GPLv3'
-__version__ = '0.0.4'
+__version__ = '0.0.5'
 __date__ = 'June 2016'
 __author__ = 'Dale Patterson'
 __maintainer__ = 'Dale Patterson'
@@ -35,36 +35,9 @@ __status__ = 'Production'
 
 import os
 import random
-import pyric
 
 dpath = '/proc/net/dev' # system device details
 drvpath = '/sys/class/net/{0}/device/driver/module/drivers' # format w/ device name
-
-def parseoui(path=None):
-    """
-     parse oui.txt file
-     :param path: path of oui text file
-     :returns: oui dict {oui:manuf} for each oui in path or empty dict
-    """
-    fin = None
-    ouis = {}
-
-    if not path:
-        path = os.path.join(os.path.dirname(os.path.abspath(__file__)),'data/oui.txt')
-
-    try:
-        fin = open(path)
-        for line in fin.readlines()[1:]:
-            o,m = line.strip().split('\t')
-            ouis[o.lower()] = m[0:100]
-        fin.close()
-    except IndexError:
-        pass
-    except IOError as e:
-        raise pyric.error(e.errno,e.strerror)
-    finally:
-        if fin and not fin.closed: fin.close()
-    return ouis
 
 def oui(mac):
     """
@@ -92,13 +65,16 @@ def manufacturer(ouis,mac):
     except KeyError:
         return "unknown"
 
-def randhw(ouis):
+def randhw(ouis=None):
     """
      generate a random hw address
-     :param ouis: oui dict to use
+     :param ouis: oui dict to use (if any)
      :returns: random hw address
     """
-    o = random.choice(ouis.keys())
+    if ouis is None or ouis == []:
+        o = ":".join(['{0:02x}'.format(random.randint(0,255)) for _ in xrange(3)])
+    else:
+        o = random.choice(ouis.keys())
     u = ":".join(['{0:02x}'.format(random.randint(0,255)) for _ in xrange(3)])
     return o + ':' + u
 
