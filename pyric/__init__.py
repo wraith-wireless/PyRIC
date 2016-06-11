@@ -122,7 +122,7 @@ Requires:
   changes:
    o production release
 
- pyric 0.1.1
+ pyric 0.1.1 t0 0.1.1-1
   desc: wireless nic library: wireless radio identification, manipulation, enumeration
   includes:  /nlhelp /lib /net /utils pyw 0.1.2
   changes:
@@ -137,7 +137,7 @@ Requires:
 
 __name__ = 'pyric'
 __license__ = 'GPLv3'
-__version__ = '0.1.1'
+__version__ = '0.1.1-1'
 __date__ = 'June 2016'
 __author__ = 'Dale Patterson'
 __maintainer__ = 'Dale Patterson'
