@@ -976,7 +976,7 @@ def modeset(card, mode, flags=None, *argv):
             raise pyric.error(errno.EINVAL, 'Can only set flags in monitor mode')
         for flag in flags:
             if flag not in MNTRFLAGS:
-                raise pyric.error(errno.EINVAL, 'Invalid flag: {0}', format(flag))
+                raise pyric.error(errno.EINVAL, 'Invalid flag: {0}'.format(flag))
     else: flags = []
 
     try:
@@ -1043,7 +1043,7 @@ def devadd(card, vdev, mode, flags=None, *argv):
             raise pyric.error(errno.EINVAL, 'Can only set flags in monitor mode')
         for flag in flags:
             if flag not in MNTRFLAGS:
-                raise pyric.error(errno.EINVAL, 'Invalid flag: {0}', format(flag))
+                raise pyric.error(errno.EINVAL, 'Invalid flag: {0}'.format(flag))
     else: flags = []
 
     try:
