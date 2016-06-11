@@ -131,7 +131,8 @@ Requires:
    o added mac address related functions to hardware
    o split rfkill into functions file and definition file
    o added block/unblock to pyw
-
+   o updated pyw to handle the newest version of libnl.py's processing of nested
+     attributes
 """
 
 __name__ = 'pyric'
