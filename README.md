@@ -294,6 +294,9 @@ pinfo['cov_class']
 pinfo['freqs']
 =>[2412, 2417, 2422, 2427, 2432, 2437, 2442, 2447, 2452, 2457, 2462, 2467, 2472,
 2484]
+
+pinfo['ciphers']
+=> ['WEP-40', 'WEP-104', 'TKIP', 'CCMP']
 ```
 
 Read the user guide, or type dir(pyw) in your console to get a full listing
@@ -485,6 +488,7 @@ with (-) are not included in pip installs or PyPI downloads
         - nl80211_h.py    nl80211 constants
         - nl80211_c.py    nl80211 attribute policies
         - rfkill_h.py     rfkill header file
+        - ieee80211_h.py  ieee80211.h port (subset of)
     + lib                 library subpackages
       * \_\_init\_\_.py   initialize lib subpackage
       * libnl.py          netlink helper functions

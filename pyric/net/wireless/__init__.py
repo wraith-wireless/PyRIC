@@ -20,7 +20,7 @@ are permitted provided that the following conditions are met:
 
  wireless 0.0.1
   desc: linux port of nl80211.h, nl80211.c
- includes: rfkill_h 0.0.1 nl80211_h 0.0.2 nl80211_c 0.0.1
+ includes: rfkill_h 0.0.1 nl80211_h 0.0.2 nl80211_c 0.0.1 ieee80211_h 0.0.1
  changes:
   o added nl80211_c to handle attribute policies
    - added nl80211_parse_freqs to parse out supported frequencies

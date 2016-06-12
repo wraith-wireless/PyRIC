@@ -43,60 +43,25 @@ makes sense for the caller to create a socket one time only & use the same
 socket. However, if the caller is only using pyw periodically and/or does not
 want to bothered with socket maintenance, the one-time flavor would be better.
 
-Previously (v 0.0.*), two functions were used, one named <cmd> & one named
-<cmd>ex (which took an additional argument, namely the socket). This yielded
-additional code, was unwieldy to use & did not look "pretty".
-
-pyw v 0.1.* uses (for lack of a better naming convention) templates & a stub
-to accomplish this.
-
-A stripped-down function template (for netlink) is defined as:
-
-def fcttemplate(arg0,arg1,...,argn,*argv):
-    # parameter validation if necessary
-    try:
-        nlsock = argv[0]
-    except IndexError:
-        return _nlstub_(fcttemplate,arg0,arg1,...argn)
-
-    # command execution
-    ...
-    return results
-
-If argv has a netlink socket at index 0, the template will jump to execution.
-If there is no socket, execute the stub to create one. (Also, if something
-other than a socket is at argv[0], an error will rise during execution.) at The
-stub function is then defined as:
-
-def _nlstub_(fct,*argv):
-    nlsock = None
-    try:
-        nlsock = nlsock = nl.nl_socket_alloc()
-        argv = list(argv) + [nlsock]
-        return fct(*argv)
-    except pyric.error: raise # catch & release
-    finally:
-        if nlsock: nl.nl_socket_free(nlsock)
-
-which creates a NLSocket & "recalls" the template with the socket now in *argv.
-so, callers can now call for example,
+for one-time execution, for example use
 
 regset('US')
 
-for one-time execution, or
+for persistent execution, use
 
-regset('US',<nlsocket>)
+regset('US',nlsocket)
 
-for persistent execution.
+where nlsocket is created with libnl.nl_socket_alloc()
 
-Additional changes in pyw v 0.1.*
+NOTE:
  1) All functions (excluding wireless core related) will use a Card object
     which encapsulates the physical index, device name and interface index
     (ifindex) under a tuple rather than a device name or physical index or
     ifindex as this will not require the caller to remember if a dev or a phy
     or a ifindex is needed. The only exception to this is devinfo which by
     necessity will accept a Card or a device name
- 2) All functions allow pyric errors to pass through.
+ 2) All functions allow pyric errors to pass through. Callers must catch these
+  if they desire
 
 """
 
@@ -120,6 +85,7 @@ import pyric.utils.hardware as hw               # device related
 import pyric.net.netlink_h as nlh               # netlink definition
 import pyric.net.genetlink_h as genlh           # genetlink definition
 import pyric.net.wireless.nl80211_h as nl80211h # nl80211 definition
+import pyric.net.wireless.ieee80211_h as dotllh # ieee80211 definition
 import pyric.net.sockios_h as sioch             # sockios constants
 import pyric.net.if_h as ifh                    # ifreq structure
 import pyric.lib.libnl as nl                    # netlink functions
@@ -781,6 +747,7 @@ def phyinfo(card, *argv):
       cov_class -> coverage class
       swmodes -> supported software modes
       commands -> supported commands
+      ciphers -> supported ciphers
     """
     try:
         nlsock = argv[0]
@@ -802,7 +769,7 @@ def phyinfo(card, *argv):
     info = {'generation':None, 'retry_short':None, 'retry_long':None,
             'frag_thresh':None, 'rts_thresh':None, 'cov_class':None,
             'scan_ssids':None,  'freqs':[], 'modes':[], 'swmodes':[],
-            'commands':[]}
+            'commands':[],'ciphers':[]}
     info['generation'] = nl.nla_find(rmsg, nl80211h.NL80211_ATTR_GENERATION)
     info['retry_short'] = nl.nla_find(rmsg, nl80211h.NL80211_ATTR_WIPHY_RETRY_SHORT)
     info['retry_long'] = nl.nla_find(rmsg, nl80211h.NL80211_ATTR_WIPHY_RETRY_LONG)
@@ -811,13 +778,18 @@ def phyinfo(card, *argv):
     info['cov_class'] = nl.nla_find(rmsg, nl80211h.NL80211_ATTR_WIPHY_COVERAGE_CLASS)
     info['scan_ssids'] = nl.nla_find(rmsg, nl80211h.NL80211_ATTR_MAX_NUM_SCAN_SSIDS)
 
-    # nested attributes require additional processing. They must be unpacked
-    # beg-endian and may not be processed correctly by libnl. In the event of an
-    # unparsed nested attribute leave as empty list
+    # sets or arrays of attributes
     # get freqs
     _, bs, d = nl.nla_find(rmsg, nl80211h.NL80211_ATTR_WIPHY_BANDS, False)
     if d != nlh.NLA_ERROR: info['freqs'] = _getfreqs_(bs)
 
+    # get cipher suites
+    _, cs, d = nl.nla_find(rmsg, nl80211h.NL80211_ATTR_CIPHER_SUITES, False)
+    if d != nlh.NLA_ERROR: info['ciphers'] = _ciphers_(cs)
+
+    # nested attributes require additional processing. They must be unpacked
+    # beg-endian and may not be processed correctly by libnl. In the event of an
+    # unparsed nested attribute leave as empty list
     # get supported modes
     _, ms, d = nl.nla_find(rmsg, nl80211h.NL80211_ATTR_SUPPORTED_IFTYPES, False)
     if d != nlh.NLA_ERROR:
@@ -1198,70 +1170,6 @@ def _unsetf_(flags, flag):
     """
     return flags & ~flag
 
-def _getfreqs_(band):
-    """
-     extract list of supported freqs packed byte stream band
-     :param band: packed byte string from NL80211_ATTR_WIPHY_BANDS
-     :returns: list of supported frequencies
-
-     NOTE: this is actually faster than nl80211_c.nl80211_parse_freqs
-    """
-    rfs = []
-    for freq in channels.freqs():
-        if band.find(struct.pack("I", freq)) != -1:
-            rfs.append(freq)
-    return rfs
-
-def _familyid_(nlsock):
-    """
-     extended version: get the family id
-     :param nlsock: netlink socket
-     :returns: the family id of nl80211
-     NOTE:
-      In addition to the family id, we get:
-       CTRL_ATTR_FAMILY_NAME = nl80211\x00
-       CTRL_ATTR_VERSION = \x01\x00\x00\x00 = 1
-       CTRL_ATTR_HDRSIZE = \x00\x00\x00\x00 = 0
-       CTRL_ATTR_MAXATTR = \xbf\x00\x00\x00 = 191
-       CTRL_ATTR_OPS
-       CTRL_ATTR_MCAST_GROUPS
-      but for now, these are not used
-    """
-    global _FAM80211ID_
-    if _FAM80211ID_ is None:
-        # family id is not instantiated, do so now
-        msg = nl.nlmsg_new(nltype=genlh.GENL_ID_CTRL,
-                           cmd=genlh.CTRL_CMD_GETFAMILY,
-                           flags=nlh.NLM_F_REQUEST | nlh.NLM_F_ACK)
-        nl.nla_put_string(msg, nl80211h.NL80211_GENL_NAME,
-                          genlh.CTRL_ATTR_FAMILY_NAME)
-        nl.nl_sendmsg(nlsock, msg)
-        rmsg = nl.nl_recvmsg(nlsock)
-        _FAM80211ID_ = nl.nla_find(rmsg, genlh.CTRL_ATTR_FAMILY_ID)
-    return _FAM80211ID_
-
-def _ifindex_(dev, *argv):
-    """
-     gets the ifindex for device
-     :param dev: device name:
-     :param argv: ioctl socket at argv[0] (or empty)
-     :returns: ifindex of device
-     NOTE: the ifindex can aslo be found in /sys/class/net/<nic>/ifindex
-    """
-    try:
-        iosock = argv[0]
-    except IndexError:
-        return _iostub_(_ifindex_, dev)
-
-    try:
-        flag = sioch.SIOCGIFINDEX
-        ret = io.io_transfer(iosock, flag, ifh.ifreq(dev, flag))
-        return struct.unpack_from(ifh.ifr_ifindex, ret, ifh.IFNAMELEN)[0]
-    except AttributeError as e:
-        raise pyric.error(errno.EINVAL, "Invalid parameter {0}".format(e))
-    except struct.error as e:
-        raise pyric.error(pyric.EUNDEF, "error parsing results {0}".format(e))
-
 def _flagsget_(dev, *argv):
     """
      gets the device's flags
@@ -1305,6 +1213,8 @@ def _flagsset_(dev, flags, *argv):
     except struct.error as e:
         raise pyric.error(pyric.EUNDEF, "error parsing results {0}".format(e))
 
+#### ADDITIONAL PARSING FOR PHYINFO ####
+
 def _iftypes_(i):
     """
      wraps the IFTYPES list to handle index errors
@@ -1315,6 +1225,92 @@ def _iftypes_(i):
         return IFTYPES[i]
     except IndexError:
         return "Unknown mode ({0})".format(i)
+
+def _getfreqs_(band):
+    """
+     extract list of supported freqs packed byte stream band
+     :param band: packed byte string from NL80211_ATTR_WIPHY_BANDS
+     :returns: list of supported frequencies
+
+     NOTE: this is actually faster than nl80211_c.nl80211_parse_freqs
+    """
+    rfs = []
+    for freq in channels.freqs():
+        if band.find(struct.pack("I", freq)) != -1:
+            rfs.append(freq)
+    return rfs
+
+def _ciphers_(cipher):
+    """
+     parses the cipher stream returning a list of supported ciphers
+     :param cipher: the cipher suite stream
+     :returns: a list of supported ciphers
+    """
+    # to understand fully, see ieee80211_h.py. Basically cipher is a set
+    # of ciphers each cipher being 4 bytes, unpack each cipher as a u32
+    # and find the value in the suite dict
+    ss = []
+    for i in xrange(len(cipher) /  dotllh.WLAN_CIPHER_SUITE_LEN):
+        s = struct.unpack_from('I', cipher, i * dotllh.WLAN_CIPHER_SUITE_LEN)[0]
+        try:
+            ss.append(dotllh.WLAN_CIPHER_SUITE_SELECTORS[s])
+        except KeyError as e:
+            # we could do nothing, or append 'rsrv' but we'll add a little
+            # for testing/future identificaion purposes
+            ss.append('RSRV-{}'.format(e))
+    return ss
+
+#### NETLINK/IOCTL PARAMETERS ####
+
+def _ifindex_(dev, *argv):
+    """
+     gets the ifindex for device
+     :param dev: device name:
+     :param argv: ioctl socket at argv[0] (or empty)
+     :returns: ifindex of device
+     NOTE: the ifindex can aslo be found in /sys/class/net/<nic>/ifindex
+    """
+    try:
+        iosock = argv[0]
+    except IndexError:
+        return _iostub_(_ifindex_, dev)
+
+    try:
+        flag = sioch.SIOCGIFINDEX
+        ret = io.io_transfer(iosock, flag, ifh.ifreq(dev, flag))
+        return struct.unpack_from(ifh.ifr_ifindex, ret, ifh.IFNAMELEN)[0]
+    except AttributeError as e:
+        raise pyric.error(errno.EINVAL, "Invalid parameter {0}".format(e))
+    except struct.error as e:
+        raise pyric.error(pyric.EUNDEF, "error parsing results {0}".format(e))
+
+def _familyid_(nlsock):
+    """
+     extended version: get the family id
+     :param nlsock: netlink socket
+     :returns: the family id of nl80211
+     NOTE:
+      In addition to the family id, we get:
+       CTRL_ATTR_FAMILY_NAME = nl80211\x00
+       CTRL_ATTR_VERSION = \x01\x00\x00\x00 = 1
+       CTRL_ATTR_HDRSIZE = \x00\x00\x00\x00 = 0
+       CTRL_ATTR_MAXATTR = \xbf\x00\x00\x00 = 191
+       CTRL_ATTR_OPS
+       CTRL_ATTR_MCAST_GROUPS
+      but for now, these are not used
+    """
+    global _FAM80211ID_
+    if _FAM80211ID_ is None:
+        # family id is not instantiated, do so now
+        msg = nl.nlmsg_new(nltype=genlh.GENL_ID_CTRL,
+                           cmd=genlh.CTRL_CMD_GETFAMILY,
+                           flags=nlh.NLM_F_REQUEST | nlh.NLM_F_ACK)
+        nl.nla_put_string(msg, nl80211h.NL80211_GENL_NAME,
+                          genlh.CTRL_ATTR_FAMILY_NAME)
+        nl.nl_sendmsg(nlsock, msg)
+        rmsg = nl.nl_recvmsg(nlsock)
+        _FAM80211ID_ = nl.nla_find(rmsg, genlh.CTRL_ATTR_FAMILY_ID)
+    return _FAM80211ID_
 
 #### TRANSLATION FUNCTIONS ####
 

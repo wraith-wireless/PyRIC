@@ -9,6 +9,7 @@ import argparse as ap
 import pyric                           # pyric error (and ecode EUNDEF)
 from pyric import pyw                  # for iw functionality
 import pyric.utils.hardware as hw      # for chipset/driver
+from pyric.utils import ouifetch       # for oui dict
 from pyric.utils.channels import rf2ch # rf to channel conversion
 
 def execute(dev):
@@ -22,7 +23,8 @@ def execute(dev):
     pinfo = pyw.phyinfo(card)
     driver = hw.ifdriver(card.dev)
     chipset = hw.ifchipset(driver)
-    manuf = hw.manufacturer(hw.parseoui(),dinfo['mac'])
+
+    manuf = hw.manufacturer(ouifetch.parse(),dinfo['mac'])
 
     msg = "Device {0}\n".format(dev)
     msg += "\tDriver: {0} Chipset: {1}\n".format(driver,chipset)
@@ -58,6 +60,9 @@ def execute(dev):
     msg += "\tSupported Channels:\n"
     for ch in map(rf2ch,pinfo['freqs']):
         msg += "\t  * {0}\n".format(ch)
+    msg += "\tSupported Ciphers:\n"
+    for cipher in pinfo['ciphers']:
+        msg += "\t  * {0}\n".format(cipher)
 
     print msg
 

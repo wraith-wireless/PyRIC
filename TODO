@@ -2,6 +2,7 @@
 2) rfkill - unblocks/blocks all devices (as does the cli rfkill) Is this an
   an ubuntu, kernel or overall issue
 3) parse NL80211_ATTR_WIPHY_BANDS (have workaround currently in place)
+ - after figuring out _CIPHER_SUITES, may be able to get a solution for the bands
 4) RFI (1)
 5) Should we move to netlink for setting ip address?
  - ioctl allows us to set erroneous values for netmask, broadcast whereas netlink
