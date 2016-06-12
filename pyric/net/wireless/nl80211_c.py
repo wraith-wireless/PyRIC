@@ -208,6 +208,27 @@ nl80211_policy = {
     #nl80211h.NL80211_ATTR_PBSS:nlh.NLA_FLAG
 }
 
+# policy for sta_info
+# static struct nla_policy stats_policy[NL80211_STA_INFO_MAX + 1] = {
+nl80211_sta_info_polcy = {
+    nl80211h.NL80211_STA_INFO_INACTIVE_TIME:nlh.NLA_U32,
+    nl80211h.NL80211_STA_INFO_RX_BYTES:nlh.NLA_U32,
+    nl80211h.NL80211_STA_INFO_TX_BYTES:nlh.NLA_U32,
+    nl80211h.NL80211_STA_INFO_RX_PACKETS:nlh.NLA_U32,
+    nl80211h.NL80211_STA_INFO_TX_PACKETS:nlh.NLA_U32,
+    nl80211h.NL80211_STA_INFO_SIGNAL:nlh.NLA_U8,
+    nl80211h.NL80211_STA_INFO_TX_BITRATE:nlh.NLA_NESTED,
+    nl80211h.NL80211_STA_INFO_LLID:nlh.NLA_U16,
+    nl80211h.NL80211_STA_INFO_PLID:nlh.NLA_U16,
+    nl80211h.NL80211_STA_INFO_PLINK_STATE:nlh.NLA_U8
+}
+
+#static struct nla_policy rate_policy[NL80211_RATE_INFO_MAX + 1] = {
+#[NL80211_RATE_INFO_BITRATE]      = { .type = NLA_U16  },
+#[NL80211_RATE_INFO_MCS]          = { .type = NLA_U8   },
+#[NL80211_RATE_INFO_40_MHZ_WIDTH] = { .type = NLA_FLAG },
+#[NL80211_RATE_INFO_SHORT_GI]     = { .type = NLA_FLAG },
+#};
 
 # policy for the key attributes
 #static const struct nla_policy nl80211_key_policy[NL80211_KEY_MAX + 1] = {

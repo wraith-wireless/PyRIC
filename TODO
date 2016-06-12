@@ -20,7 +20,12 @@
    o iw dev wlan0 link sends two commands the first is to initiate a command,
     the second is @NL80211_CMD_GET_STATION. The return from the kernel is a
     @NL80211_CMD_NEW_STATION, one of the attributes of which is a @NL80211_ATTR_STA_INFO
-    What is this?
+    Two questions:
+     - What is this? Looking at nl80211_h line 1648 we find the definition for
+      NL80211_STA_INFO - this has to be the corresponding data
+      Doesn't work, there is something I'm missing but cannot figure out
+     - iw requests info on the BSSID, can we request the info on any STA?
+
 
 ------- Request For Information RFI ----------
 
