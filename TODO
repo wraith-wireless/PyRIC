@@ -1,31 +1,26 @@
-  1) overall
-   o make a cli as well
-   o determine if rfkill issue is related only to ubuntu
-   o ethtool uses ioctl but does not follow same pattern as ifconfig seems
-    to use however, see below, may be something worth researching although it
-    is not vital information and therefore of low priority
-    - ethtool -i <dev> gives driver information including firmware-version
-    - ethool -S <dev> gives some statistics
-  2) libnl.py
-   o see (1) in RFI
-  4) pyw
-   o look at iw dev wlan0 link - has information about the AP connected to
-   o add txget from iw i.e. netlink perspective
-   o find a better way to find the supported standards of a card
-   o for now, using ioctl to set ip addresses
-    - move to netlink (using ip ?) or is better to keep as ioctl since this
-     allows us to set erroneous values for netmask, broadcast whereas ip forces
-     validity
-   o parse NL80211_ATTR_WIPHY_BANDS (have workaround currently in place)
-   o iw dev wlan0 link sends two commands the first is to initiate a command,
-    the second is @NL80211_CMD_GET_STATION. The return from the kernel is a
-    @NL80211_CMD_NEW_STATION, one of the attributes of which is a @NL80211_ATTR_STA_INFO
-    Two questions:
-     - What is this? Looking at nl80211_h line 1648 we find the definition for
-      NL80211_STA_INFO - this has to be the corresponding data
-      Doesn't work, there is something I'm missing but cannot figure out
-     - iw requests info on the BSSID, can we request the info on any STA?
-
+1) add a cli
+2) rfkill - unblocks/blocks all devices (as does the cli rfkill) Is this an
+  an ubuntu, kernel or overall issue
+3) parse NL80211_ATTR_WIPHY_BANDS (have workaround currently in place)
+4) RFI (1)
+5) Should we move to netlink for setting ip address?
+ - ioctl allows us to set erroneous values for netmask, broadcast whereas netlink
+   forces validity
+6) find a better way to get supported standards of a card
+7) code up txget, txset via netlink even though cards don't seem to support it
+8) Two commands that would add information of minor value
+ o ethtool. uses ioctl but does not follow same pattern as ifconfig seems
+    to use
+  - ethtool -i <dev> gives driver information including firmware-version
+  - ethtool -S <dev> gives some statistics on rx/tx
+ o iw dev wlan0 link returns information related to associated station. It sends
+   two commands the first is to initiate a scan, the second is @NL80211_CMD_GET_STATION.
+   The return from the kernel is a @NL80211_CMD_NEW_STATION, one of the attributes
+   is a @NL80211_ATTR_STA_INFO
+  - What is this? Looking at nl80211_h line 1648 we find the definition for
+    NL80211_STA_INFO - this has to be the corresponding data. Doesn't work, there
+    is something I'm missing but cannot figure out
+  - iw requests info on the BSSID, can we request the info on any STA?
 
 ------- Request For Information RFI ----------
 
