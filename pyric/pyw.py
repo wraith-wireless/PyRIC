@@ -102,7 +102,7 @@ Additional changes in pyw v 0.1.*
 
 __name__ = 'pyw'
 __license__ = 'GPLv3'
-__version__ = '0.1.4'
+__version__ = '0.1.5'
 __date__ = 'June 2016'
 __author__ = 'Dale Patterson'
 __maintainer__ = 'Dale Patterson'
@@ -130,6 +130,7 @@ _FAM80211ID_ = None
 # redefine interface types and monitor flags
 IFTYPES = nl80211h.NL80211_IFTYPES
 MNTRFLAGS = nl80211h.NL80211_MNTR_FLAGS
+TXPWRLVLS = nl80211h.NL80211_TX_POWER_LEVELS
 
 ################################################################################
 #### WIRELESS CORE                                                          ####
@@ -847,12 +848,50 @@ def phyinfo(card, *argv):
 
 #### TX/RX RELATED ####
 
+def txset(card, lvl, pwr, *argv):
+    """
+      sets cards tx power (iw phy card.<phy> <lvl> <pwr> * 100)
+     :param card: Card object
+     :param lvl: power level setting oneof {'auto' = automatically determine
+      transmit power|'limit' = limit power by <pwr>|'fixed' = set to <pwr>}
+     :param pwr: desired tx power in dBm or None. NOTE: ignored if lvl is 'auto'
+     :param argv: netlink socket at argv[0] (or empty)
+     :returns: True on success
+     NOTE: this does not work on my card(s) (nor does the corresponding iw
+      command)
+    """
+    # sanity check on power level
+    if lvl not in TXPWRLVLS: raise pyric.error(errno.EINVAL, "Invalid pwr lvl")
+
+    try:
+        nlsock = argv[0]
+    except IndexError:
+        return _nlstub_(txset, card, lvl, pwr)
+
+    try:
+        msg = nl.nlmsg_new(nltype=_familyid_(nlsock),
+                           cmd=nl80211h.NL80211_CMD_SET_WIPHY,
+                           flags=nlh.NLM_F_REQUEST | nlh.NLM_F_ACK)
+        nl.nla_put_u32(msg, card.phy, nl80211h.NL80211_ATTR_WIPHY)
+        if lvl != 'auto':
+            # convert pwr from dBm to mBm
+            nl.nla_put_u32(msg, int(pwr*100),
+                           nl80211h.NL80211_ATTR_WIPHY_TX_POWER_LEVEL)
+        nl.nl_sendmsg(nlsock, msg)
+        nl.nl_recvmsg(nlsock)
+    except ValueError:
+        raise pyric.error(errno.EINVAL, "Invalid txpwr {0}".format(pwr))
+    except AttributeError as e:
+        raise pyric.error(errno.EINVAL, "Invalid paramter {0}".format(e))
+
 def txget(card, *argv):
     """
-     gets the device's transimission power (iwconfig <card.dev> | grep Tx-Power)
+     gets card's transmission power (iwconfig <card.dev> | grep Tx-Power)
      :param card: Card object
      :param argv: ioctl socket at argv[0] (or empty)
      :returns: transmission power in dBm
+     info can be found by cat /sys/kernel/debug/ieee80211/phy<#>/power but
+     how valid is it?
     """
     try:
         iosock = argv[0]
