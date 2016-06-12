@@ -21,10 +21,9 @@
     NL80211_STA_INFO - this has to be the corresponding data. Doesn't work, there
     is something I'm missing but cannot figure out
   - iw requests info on the BSSID, can we request the info on any STA?
- 9) add netlink txget/txset even if they don't work on my cards
-10) @NL80211_CMD_GET_WIPHY: request information about a wiphy or dump request to
-    get a list of all present wiphys.
-  o can we send attrs we want values for?
+ 11) tried NL80211_CMD_GET_WIPHY, setting _WIPHY_TX_POWER_LEVEL but did
+  not return the current power level - currently cannot find anything in nl80211.h
+  that could be used to get tx power
 
 ------- Request For Information RFI ----------
 
