@@ -86,8 +86,9 @@ In utils, several helpers can be found that can be used to:
 * manipulate mac addresses and generate random ones
 * fetch and parse the IEEE oui text file
 * further rfkill operations to include listing all rfkill devices
+
 For a full listing of every function offered by pyw and helpers see the user
-guide PyRIC.pdf
+guide PyRIC.pdf.
 
 PyRIC also provides limited help functionality concerning nl80211 commands/attributes
 for those who wish to add additional commands. However, it pulls directly from
