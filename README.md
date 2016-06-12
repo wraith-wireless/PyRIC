@@ -64,7 +64,7 @@ halved.
 
 ### b. Current State
 ATT, PyRIC accomplishes my core needs but it is still a work in progress. It
-currently provides the following:
+currently pyw provides the following:
 * enumerate interfaces and wireless interfaces
 * identify a cards chipset and driver
 * get/set hardware address
@@ -81,9 +81,17 @@ currently provides the following:
 * enumerate ISM and UNII channels
 * block/unblock rfkill devices
 
-It also provides limited help functionality concerning nl80211 commands/attributes
-(for those who wish to add additional commands). However, it pulls directly from
-the nl80211 header file and may be vague.
+In utils, several helpers can be found that can be used to:
+* enumerate channels and frequencies and convert between the two
+* manipulate mac addresses and generate random ones
+* fetch and parse the IEEE oui text file
+* further rfkill operations to include listing all rfkill devices
+For a full listing of every function offered by pyw and helpers see the user
+guide PyRIC.pdf
+
+PyRIC also provides limited help functionality concerning nl80211 commands/attributes
+for those who wish to add additional commands. However, it pulls directly from
+the comments nl80211 header file and may be vague.
 
 ### c. What is PyRIC?
 
