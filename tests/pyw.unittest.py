@@ -172,6 +172,21 @@ class DownTestCase(CardTestCase):
     def test_down(self): self.assertTrue(pyw.down(self.card))
     def test_invalidcardarg(self): self.assertRaises(error,pyw.down,'bad0')
 
+# test get power_save
+class GetSetPwrSave(CardTestCase):
+    def test_getsetpwrsave(self):
+        self.assertIsInstance(pyw.getpwrsave(self.card),bool)
+        pyw.setpwrsave(self.card,True)
+        self.assertTrue(pyw.getpwrsave(self.card))
+        pyw.setpwrsave(self.card, False)
+        self.assertFalse(pyw.getpwrsave(self.card))
+        pyw.setpwrsave(self.card,True)
+    def testinvalidcardarg(self):
+        self.assertRaises(error,pyw.getpwrsave,'bad0')
+        self.assertRaises(error, pyw.setpwrsave,'bad0',True)
+    def testinvalidonval(self):
+        self.assertRaises(error,pyw.setpwrsave,self.card,'b')
+
 # test get freqs
 class DevFreqsTestCase(CardTestCase):
     def test_devfreqs(self):
@@ -309,27 +324,3 @@ class DevAddDelTestCase(CardTestCase):
 
 if __name__ == '__main__':
     unittest.main()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

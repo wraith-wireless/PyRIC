@@ -297,8 +297,66 @@ pinfo['freqs']
 
 pinfo['ciphers']
 => ['WEP-40', 'WEP-104', 'TKIP', 'CCMP']
+
+pyw.getpwrsave(w0)
+=> True
+
+pyw.setpwrsave(w0,False)
+
+pyw.getpwrsave(w0)
+False
+
 ```
 
+#### iii. Virtual Interfaces
+In my experience, virtual interfaces are primarily used to recon, attack or some
+other tomfoolery but can also be used to analyze your wireless network. In either
+case, it is generally advised to create a virtual monitor interface and delete
+all others (on the same phy) - this makes sure that some external process like
+NetworkManager does not interfere with your shenanigans. In the below example,
+in addition to creating an interface in monitor mode, we find all interfaces
+on the same physical index and delete them. You may not need to do this.
+
+NOTE: When creating a device in monitor mode, you can also set flags (see
+NL80211_MNTR_FLAGS in nl80211_h), although some cards (usually atheros) do not
+always obey these requests.
+
+```python
+'monitor' in pyw.devmodes(w0) # make sure we can set wlan0 to monitor
+=> True
+
+m0 = pyw.devadd(w0,'mon0','monitor') # create mon0 in monitor mode
+
+for iface in pyw.ifaces(w0): # delete all interfaces
+    pyw.devdel(iface[0])     # on the this phy
+
+pyw.up(m0) # bring the new card up to use
+
+pyw.chset(m0,6,None) # and set the card to channel 6
+=> True
+
+m0
+=> Card(phy=0,dev='mon0',ifindex=3)
+```
+
+Of course, once you are done, you will probably want to restore your original set
+up.
+
+```python
+w0 = pyw.devadd(m0,'wlan0','managed') # restore wlan0 in managed mode
+
+pyw.devdel(m0) # delete the monitor interface
+
+pyw.setmac(w0,mac) # restore the original mac address
+
+pyw.up(w0) # and bring the card up
+
+w0
+=> Card(phy0,dev='wlan0',ifindex=4)
+
+```
+
+#### iv. Additional Functions
 Read the user guide, or type dir(pyw) in your console to get a full listing
 of pyw functions.
 
@@ -389,54 +447,6 @@ rfkill.rfkill_list()
 Note that rfkill_list lists all 'wireless' devices: wlan, bluetooth, wimax, wwan,
 gps, fm and nfc. Another important thing to note is that the rfkill index is not
 the same as the interface index.
-
-#### iii. Virtual Interfaces
-In my experience, virtual interfaces are primarily used to recon, attack or some
-other tomfoolery but can also be used to analyze your wireless network. In either
-case, it is generally advised to create a virtual monitor interface and delete
-all others (on the same phy) - this makes sure that some external process like
-NetworkManager does not interfere with your shenanigans. In the below example,
-in addition to creating an interface in monitor mode, we find all interfaces
-on the same physical index and delete them. You may not need to do this.
-
-NOTE: When creating a device in monitor mode, you can also set flags (see
-NL80211_MNTR_FLAGS in nl80211_h), although some cards (usually atheros) do not
-always obey these requests.
-
-```python
-'monitor' in pyw.devmodes(w0) # make sure we can set wlan0 to monitor
-=> True
-
-m0 = pyw.devadd(w0,'mon0','monitor') # create mon0 in monitor mode
-
-for iface in pyw.ifaces(w0): # delete all interfaces
-    pyw.devdel(iface[0])     # on the this phy
-
-pyw.up(m0) # bring the new card up to use
-
-pyw.chset(m0,6,None) # and set the card to channel 6
-=> True
-
-m0
-=> Card(phy=0,dev='mon0',ifindex=3)
-```
-
-Of course, once you are done, you will probably want to restore your original set
-up.
-
-```python
-w0 = pyw.devadd(m0,'wlan0','managed') # restore wlan0 in managed mode
-
-pyw.devdel(m0) # delete the monitor interface
-
-pyw.setmac(w0,mac) # restore the original mac address
-
-pyw.up(w0) # and bring the card up
-
-w0
-=> Card(phy0,dev='wlan0',ifindex=4)
-
-```
 
 ## 4. EXTENDING:
 

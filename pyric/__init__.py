@@ -144,6 +144,8 @@ Requires:
    o moved parseoui from hardware to ouifetch renaming to parse
    o removed ouifetch execution ability - parse and fetch must be called w/in
     python console. Will eventually add this capability as as top-level program
+   o added supported ciphers to pyw.phyinfo dict
+   o added functions getpwrsave and setpwrsave pyw
 """
 
 __name__ = 'pyric'

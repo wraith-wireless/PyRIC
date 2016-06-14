@@ -601,6 +601,56 @@ def unblock(card):
     except AttributeError:
         raise pyric.error(errno.ENODEV, "Device no longer registered")
 
+def getpwrsave(card, *argv):
+    """
+     returns card's power save state
+     :param card: Card object
+     :param argv: netlink socket at argv[0] (or empty)
+     :returns: True if power save is on, False otherwise
+    """
+    try:
+        nlsock = argv[0]
+    except IndexError:
+        return _nlstub_(getpwrsave, card)
+
+    try:
+        msg = nl.nlmsg_new(nltype=_familyid_(nlsock),
+                           cmd=nl80211h.NL80211_CMD_GET_POWER_SAVE,
+                           flags=nlh.NLM_F_REQUEST | nlh.NLM_F_ACK)
+        nl.nla_put_u32(msg, card.idx, nl80211h.NL80211_ATTR_IFINDEX)
+        nl.nl_sendmsg(nlsock, msg)
+        rmsg = nl.nl_recvmsg(nlsock)
+    except AttributeError as e:
+        raise pyric.error(errno.EINVAL, "Invalid paramter {0}".format(e))
+
+    return nl.nla_find(rmsg, nl80211h.NL80211_ATTR_PS_STATE) == 1
+
+def setpwrsave(card, on, *argv):
+    """
+     REQUIRES ROOT PRIVILEGES
+     sets card's power save state
+     :param card: Card object
+     :param on: {True = on|False = off}
+     :param argv: netlink socket at argv[0] (or empty)
+    """
+    try:
+        nlsock = argv[0]
+    except IndexError:
+        return _nlstub_(setpwrsave, card, on)
+
+    try:
+        msg = nl.nlmsg_new(nltype=_familyid_(nlsock),
+                           cmd=nl80211h.NL80211_CMD_SET_POWER_SAVE,
+                           flags=nlh.NLM_F_REQUEST | nlh.NLM_F_ACK)
+        nl.nla_put_u32(msg, card.idx, nl80211h.NL80211_ATTR_IFINDEX)
+        nl.nla_put_u32(msg, int(on), nl80211h.NL80211_ATTR_PS_STATE)
+        nl.nl_sendmsg(nlsock, msg)
+        _ = nl.nl_recvmsg(nlsock)
+    except AttributeError as e:
+        raise pyric.error(errno.EINVAL, "Invalid paramter {0}".format(e))
+    except ValueError:
+        raise pyric.error(errno.EINVAL, "Invalid parameter on")
+
 #### INFO RELATED ####
 
 def devfreqs(card, *argv):

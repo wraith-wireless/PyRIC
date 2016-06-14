@@ -745,6 +745,10 @@ down
 \item block(card): (rfkill block <rfkill\_idx>) type: N/A, soft blocks card
 \item unblock(card): (rfkill unblock <rfkill\_idx>) type: N/A, removes the soft 
 block on card
+\item getpwrsave(card,[nlsock]) (iw dev card.<dev> get power\_save) type: netlink
+get card's power save state True = on, False = off
+\item setpwrsave(card,on,[nlsock]) (iw dev card.<dev> set power\_save <on>) type:
+netlink set card's power save state True = on, False = off
 \item inetget(card,[iosock]): (ifconfig card.<dev>), type: ioctl, get ip4 address,
 netmask and broadcast address of card
 \item inetset(card,ipaddr,netmask,broadcast,[iosock]): (ifconfig card/<dev> <ipaddr>
