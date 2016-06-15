@@ -554,6 +554,7 @@ def nla_put(msg,v,a,d):
     msg['attrs'].append((a,v,d))
 
 # nla_put_* append data of specified datatype
+def nla_put_flag(msg,a): nla_put(msg,None,a,nlh.NLA_FLAG)
 def nla_put_unspec(msg,v,a): nla_put(msg,v,a,nlh.NLA_UNSPEC)
 def nla_put_u8(msg,v,a): nla_put(msg,v,a,nlh.NLA_U8)
 def nla_put_u16(msg,v,a): nla_put(msg,v,a,nlh.NLA_U16)
