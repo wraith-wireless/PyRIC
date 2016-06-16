@@ -74,7 +74,7 @@ setup(name='PyRIC',
                    'Operating System :: POSIX :: Linux',
                    'Programming Language :: Python',
                    'Programming Language :: Python :: 2.7'],
-    keywords='Linux nl80211 iw wireless pentest',
+    keywords='Linux Python nl80211 iw iwconfig ifconfig wireless WLAN WiFi pentest',
     packages=find_packages(),
     package_data={'pyric':['nlhelp/*.help','utils/data/*.txt']}
 )

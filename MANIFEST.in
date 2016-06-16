@@ -1,5 +1,5 @@
 # setup paramaters
-include LICENSE README.md TODO
+include LICENSE CHANGES README.md TODO
 
 # Include subdirectories
 # note to self: even including recursive-include here, have to follow up by

@@ -424,16 +424,17 @@ def nlmsg_new(nltype=None,cmd=None,seq=None,pid=None,flags=None,attrs=None):
                     'cmd':cmd or genlh.CTRL_CMD_UNSPEC,
                     'attrs':attrs or []})
 
-def nlmsg_fromstream(stream):
+def nlmsg_fromstream(stream,override=False):
     """
      create a GENLMsg from a stream
      :param stream: packed binary data
+     :param override: override ack processings - DO NOT USE for debugging only
      :returns: a GENLMsg
     """
     # parse out netlink/generic netlink headers
     try:
         l,t,fs,s,p = struct.unpack_from(nlh.nl_nlmsghdr,stream,0)
-        if t == nlh.NLMSG_ERROR or l == nlh.NLMSGACKLEN:
+        if t == nlh.NLMSG_ERROR or (l == nlh.NLMSGACKLEN and not override):
             # have an (possible) ack/nack i.e. error msg
             e = struct.unpack_from(nlh.nl_nlmsgerr,stream,nlh.NLMSGHDRLEN)[0]
             raise pyric.error(abs(e),strerror(abs(e)))
@@ -554,7 +555,7 @@ def nla_put(msg,v,a,d):
     msg['attrs'].append((a,v,d))
 
 # nla_put_* append data of specified datatype
-def nla_put_flag(msg,a): nla_put(msg,None,a,nlh.NLA_FLAG)
+def nla_put_flag(msg,a): nla_put(msg,)
 def nla_put_unspec(msg,v,a): nla_put(msg,v,a,nlh.NLA_UNSPEC)
 def nla_put_u8(msg,v,a): nla_put(msg,v,a,nlh.NLA_U8)
 def nla_put_u16(msg,v,a): nla_put(msg,v,a,nlh.NLA_U16)

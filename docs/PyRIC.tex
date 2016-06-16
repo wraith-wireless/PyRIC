@@ -19,7 +19,7 @@
 %
 % __name__ = 'User Guide'
 %__license__ = 'GPLv3'
-%__version__ = '0.0.3'
+%__version__ = '0.0.4'
 %__date__ = 'June 2016'
 %__author__ = 'Dale Patterson'
 %__maintainer__ = 'Dale Patterson'
@@ -73,7 +73,7 @@
     basicstyle=\footnotesize
 }
 
-\title{\includegraphics[scale=1]{logo}\\ PyRIC v0.1.2: User Manual}
+\title{\includegraphics[scale=1]{logo}\\ PyRIC v0.1.3: User Manual}
 \author{Dale V. Patterson\\ wraith.wireless@yandex.com}
 
 \begin{document}
@@ -687,6 +687,7 @@ Everything else is handled behind the scenes by libnl.py.
 \subsection{Constants}
 \begin{itemize}
 \item \textbf{\_FAM80211ID\_}: Global netlink family id of nl80211. Do not touch
+\item \textbf{\_MAXTHRESH\_}: defines limit for thresholds or 'off'. Do not touch
 \item \textbf{IFTYPES}: redefined (from nl80211\_h.py) interface modes
 \item \textbf{MNTRFLAGS}: redefined (from nl80211\_h.py) monitor mode flags
 \item \textbf{IPADDR}: Regular Expression for ip4 address validation
@@ -745,10 +746,20 @@ down
 \item block(card): (rfkill block <rfkill\_idx>) type: N/A, soft blocks card
 \item unblock(card): (rfkill unblock <rfkill\_idx>) type: N/A, removes the soft 
 block on card
-\item getpwrsave(card,[nlsock]) (iw dev card.<dev> get power\_save) type: netlink
+\item pwrsaveget(card,[nlsock]) (iw dev card.<dev> get power\_save) type: netlink
 get card's power save state True = on, False = off
-\item setpwrsave(card,on,[nlsock]) (iw dev card.<dev> set power\_save <on>) type:
+\item pwrsaveset(card,on,[nlsock]) (iw dev card.<dev> set power\_save <on>) type:
 netlink set card's power save state True = on, False = off
+\item covclassset(card,cc,[nlsock]) (iw phy card.<phy> set coverage <cc>) type:
+netlink set card's coverage class
+\item retryshortset(card,lim,[nlsock]) (iw phy card.<phy> set retry short <lim>)
+type:netlink set card's retry short limit
+\item retrylongset(card,lim,[nlsock]) (iw phy card.<phy> set retry long <lim>)
+type:netlink set card's retry long limit
+\item rtsthreshset(card,thresh,[nlsock]) (iw phy card.<phy> set rts <thresh>) type: 
+netlink set card's RTS threshold
+\item fragthreshset(card,thresh,[nlsock]) (iw phy card.<phy> set frag <thresh>) type: 
+netlink set card's fragmentation threshold
 \item inetget(card,[iosock]): (ifconfig card.<dev>), type: ioctl, get ip4 address,
 netmask and broadcast address of card
 \item inetset(card,ipaddr,netmask,broadcast,[iosock]): (ifconfig card/<dev> <ipaddr>
@@ -1069,7 +1080,7 @@ control call flag to the kernel and returns the received ifreq structure
 \end{enumerate}
 
 \section{Copyright and License}\label{sec:copy}
-PYRIC: Python Radio Interface Controller v0.1.0\\
+PYRIC: Python Radio Interface Controller v0.1.3\\
 
 Copyright (C) 2016  Dale V. Patterson (wraith.wireless@yandex.com)\\
 

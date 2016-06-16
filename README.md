@@ -357,10 +357,13 @@ w0
 ```
 
 #### iv. Additional Functions
+PyRIC also provides functions to change Radio Parameters: coverage class, rts and
+frag thresholds, and retry limits short and long
+
 Read the user guide, or type dir(pyw) in your console to get a full listing
 of pyw functions.
 
-c. Miscelleaneous Utilities
+**** v. Miscelleaneous Utilities
 Several additional tools are located in the utils directory. Two of these are:
  * channels.py: defines ISM and UNII band channels/frequencies and provides
  functions to convert between channel and frequency and vice-versa

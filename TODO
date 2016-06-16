@@ -25,6 +25,8 @@
  11) tried NL80211_CMD_GET_WIPHY, setting _WIPHY_TX_POWER_LEVEL but did
   not return the current power level - currently cannot find anything in nl80211.h
   that could be used to get tx power
+ 12) add set retry short and long, set rts and set frag
+ 13) replace hardcoded values like cc limits in setcovclass to constants
 
 ------- Request For Information RFI ----------
 
