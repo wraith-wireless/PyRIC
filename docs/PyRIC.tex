@@ -736,13 +736,16 @@ to rd
 object for dev
 \item validcard(card,[nlsock]): (N/A), type: (hyrbrid netlink and ioctl), verify
 card is still valid
-\item macget(card,[iosock]): (ifconfig card.<dev>), type: ioctl get card's hw
-address
+\item macget(card,[iosock]): (ifconfig), type: ioctl, determine if card is up
+or down
 \item macset(card,mac,[iosock]): (ifconfig card.<dev> hw ether <mac>), type: 
 ioctl, set card's hw address to mac
+\item isup(card,[iosock]): (ifconfig card.<dev>) 
 \item up(card,[iosock]) (ifconfig card.<dev> up), type: ioctl, bring card up
 \item down(card,[iosock]): (ifconfig card.<dev> down), type: ioctl, bring card 
 down
+\item isblocked(card): (rfkill list <rfkill\_idx>): type N/A returns tuple 
+(Soft Block State, Hard Block State) 
 \item block(card): (rfkill block <rfkill\_idx>) type: N/A, soft blocks card
 \item unblock(card): (rfkill unblock <rfkill\_idx>) type: N/A, removes the soft 
 block on card
@@ -787,6 +790,8 @@ for dev
 for phy
 \item ifaces(card,[nlsock]): (APX iw card.dev | grep phy\#), type: netlink, get all
 cards (w/ modes) of interfaces sharing the same phy as card
+\item txset(card,pwr,lvl,[nlsock]) (iw phy phy0 set txpower <lvl> <pwr>), type: 
+netlink,sets the tx power to pwr (in dBm) with level setting lvl 
 \item txget(card,[iosock]): (iwconfig card.<dev> | grep Tx-Power card), type: 
 ioctl, get card's transmission power
 \item chget(card,[nlsock]): (iw dev <card.dev> info | grep channelS), type: 

@@ -196,7 +196,6 @@ def regset(rd, *argv):
      sets the current regulatory domain (iw reg set <rd>)
      :param rd: regulatory domain code
      :param argv: netlink socket at argv[0] (or empty)
-     :returns: True on success
     """
     if len(rd) != 2: raise pyric.error(errno.EINVAL, "Invalid reg. domain")
     try:
@@ -210,7 +209,6 @@ def regset(rd, *argv):
     nl.nla_put_string(msg, rd.upper(), nl80211h.NL80211_ATTR_REG_ALPHA2)
     nl.nl_sendmsg(nlsock, msg)
     nl.nl_recvmsg(nlsock) # throws exception on failure
-    return True           # we got here-it worked (or there were no complaints)
 
 ################################################################################
 #### CARD RELATED ####
@@ -385,7 +383,6 @@ def inetset(card, ipaddr, netmask, broadcast, *argv):
      :param netmask: netmask to set
      :param broadcast: broadcast to set
      :param argv: ioctl socket at argv[0] (or empty)
-     :returns: True on success
      NOTE:
       1) throws error if setting netmask or broadcast and card does not have
        an ip assigned
@@ -422,7 +419,6 @@ def inetset(card, ipaddr, netmask, broadcast, *argv):
         raise pyric.error(errno.EINVAL, "Invalid Card object")
     except struct.error as e:
         raise pyric.error(pyric.EUNDEF, "Ifreq error {0}".format(e))
-    return True
 
 def ip4set(card, ipaddr, *argv):
     """
@@ -536,13 +532,29 @@ def broadcastset(card, broadcast, *argv):
 #### ON/OFF ####
 ################################################################################
 
+def isup(card, *argv):
+    """
+     determine on/off state of card
+     :param card: Card object
+     :param argv: ioctl socet at argv[0] (or empty)
+     :returns: True if card is up, False otherwise
+    """
+    try:
+        iosock = argv[0]
+    except IndexError:
+        return _iostub_(isup, card)
+
+    try:
+        return _issetf_(_flagsget_(card.dev, iosock), ifh.IFF_UP)
+    except AttributeError:
+        raise pyric.error(errno.EINVAL, "Invalid Card object")
+
 def up(card, *argv):
     """
      REQUIRES ROOT PRIVILEGES
      turns dev on (ifconfig <card.dev> up)
      :param card: Card object
      :param argv: ioctl socket at argv[0] (or empty)
-     :returns: True on succes, throws exception otherwise
     """
     try:
         iosock = argv[0]
@@ -555,7 +567,6 @@ def up(card, *argv):
             _flagsset_(card.dev, _setf_(flags, ifh.IFF_UP), iosock)
     except AttributeError:
         raise pyric.error(errno.EINVAL, "Invalid Card object")
-    return True
 
 def down(card, *argv):
     """
@@ -563,7 +574,6 @@ def down(card, *argv):
      turns def off (ifconfig <card.dev> down)
      :param card: Card object
      :param argv: ioctl socket at argv[0] (or empty)
-     :returns: True on succes, throws exception otherwise
     """
     try:
         iosock = argv[0]
@@ -576,7 +586,19 @@ def down(card, *argv):
             _flagsset_(card.dev, _unsetf_(flags, ifh.IFF_UP), iosock)
     except AttributeError:
         raise pyric.error(errno.EINVAL, "Invalid Card object")
-    return True
+
+def isblocked(card):
+    """
+     determines blocked state of Card
+     :param card: Card object
+     :returns: tuple (Soft={True if soft blocked|False otherwise},
+                      Hard={True if hard blocked|False otherwise})
+    """
+    try:
+        idx = rfkill.getidx(card.phy)
+        return rfkill.soft_blocked(idx), rfkill.hard_blocked(idx)
+    except AttributeError:
+        raise pyric.error(errno.ENODEV, "Device is no longer regsitered")
 
 def block(card):
     """
@@ -757,7 +779,7 @@ def rtsthreshset(card, thresh, *argv):
     """
      REQUIRES ROOT PRIVILEGES
      sets the RTS threshold. If off, RTS is disabled. If an integer, sets the
-     smallest packet  for which card will send an RTS prior to each transmission
+     smallest packet for which card will send an RTS prior to each transmission
      :param card: Card object
      :param thresh: rts threshold limit
      :param argv: netlink socket at argv[0] (or empty)
@@ -1042,13 +1064,13 @@ def phyinfo(card, *argv):
 #### TX/RX RELATED ####
 ################################################################################
 
-def txset(card, lvl, pwr, *argv):
+def txset(card, pwr, lvl, *argv):
     """
       sets cards tx power (iw phy card.<phy> <lvl> <pwr> * 100)
      :param card: Card object
+     :param pwr: desired tx power in dBm or None. NOTE: ignored if lvl is 'auto'
      :param lvl: power level setting oneof {'auto' = automatically determine
       transmit power|'limit' = limit power by <pwr>|'fixed' = set to <pwr>}
-     :param pwr: desired tx power in dBm or None. NOTE: ignored if lvl is 'auto'
      :param argv: netlink socket at argv[0] (or empty)
      :returns: True on success
      NOTE: this does not work on my card(s) (nor does the corresponding iw
@@ -1060,7 +1082,7 @@ def txset(card, lvl, pwr, *argv):
     try:
         nlsock = argv[0]
     except IndexError:
-        return _nlstub_(txset, card, lvl, pwr)
+        return _nlstub_(txset, card, pwr, lvl)
 
     try:
         msg = nl.nlmsg_new(nltype=_familyid_(nlsock),
@@ -1150,7 +1172,6 @@ def freqset(card, rf, chw=None, *argv):
      :param rf: frequency
      :param chw: channel width oneof {[None|'HT20'|'HT40-'|'HT40+'}
      :param argv: netlink socket at argv[0] (or empty)
-     :returns: True on success
     """
     if rf not in channels.freqs(): raise pyric.error(errno.EINVAL, "Invalid frequency")
     if chw not in channels.CHWIDTHS: raise pyric.error(errno.EINVAL, "Invalid channel width")
@@ -1171,7 +1192,6 @@ def freqset(card, rf, chw=None, *argv):
         nl.nl_recvmsg(nlsock)
     except AttributeError:
         raise pyric.error(errno.EINVAL,"Invalid Card object")
-    return True
 
 #### INTERFACE & MODE RELATED ####
 
@@ -1201,7 +1221,6 @@ def modeset(card, mode, flags=None, *argv):
      :param flags: list of monitor flags (can only be used if card is being set
       to monitor mode)
      :param argv: netlink socket at argv[0] (or empty)
-     :returns: True on success
     """
     if mode not in IFTYPES: raise pyric.error(errno.EINVAL, 'Invalid mode')
     if flags:
@@ -1230,7 +1249,6 @@ def modeset(card, mode, flags=None, *argv):
         nl.nl_recvmsg(nlsock)
     except AttributeError:
         raise pyric.error(errno.EINVAL, "Invalid Card object")
-    return True
 
 def ifaces(card, *argv):
     """
@@ -1306,7 +1324,6 @@ def devdel(card, *argv):
      deletes the device (dev <card.dev> del
      :param card: Card object
      :param argv: netlink socket at argv[0] (or empty)
-     :returns: True on success
      NOTE: the original card is no longer valid (i.e. the phy will still be present
      but the device name and ifindex are no longer 'present' in the system
     """
@@ -1324,7 +1341,6 @@ def devdel(card, *argv):
         nl.nl_recvmsg(nlsock)
     except AttributeError:
         raise pyric.error(errno.EINVAL, "Invalid Card object")
-    return True
 
 ################################################################################
 #### FILE PRIVATE                                                           ####
@@ -1578,7 +1594,6 @@ def _fut_chset(card, ch, chw, *argv):
      :param ch: channel number
      :param chw: channel width oneof {None|'HT20'|'HT40-'|'HT40+'}
      :param argv: netlink socket at argv[0] (or empty)
-     :returns: True on success
      uses the newer NL80211_CMD_SET_CHANNEL vice iw's depecrated version which
      uses *_SET_WIPHY however, ATT does not work raise Errno 22 Invalid Argument
     """
@@ -1597,4 +1612,3 @@ def _fut_chset(card, ch, chw, *argv):
     nl.nla_put_u32(msg, channels.CHWIDTHS.index(chw), nl80211h.NL80211_ATTR_WIPHY_CHANNEL_TYPE)
     nl.nl_sendmsg(nlsock, msg)
     nl.nl_recvmsg(nlsock)
-    return True

@@ -153,162 +153,204 @@ https://github.com/wraith-wireless/pyric/releases/ It is not guaranteed to be st
 fact not run at all.
 
 ## 3. USING
-Once installed, see examples/pentest.py which covers most pyw functions or read
-throuhg PyRIC.pdf. However, for those impatient types:
+To use PyRIC, see the examples folder or read throuhg PyRIC.pdf. However, for
+those impatient types:
 
 ```python
 import pyric          # pyric error and EUNDEF error code
 from pyric import pyw  iw functionality
 ```
 
-will import the basic requirements and is assumed for the examples below. It is also assumed
-that the system is in the US and has three devices lo, eth0 and wlan0 (only wlan0 of course
-being wireless). Keep in mind that these examples use one-time sockets.
+will import the basic requirements and unless otherwise stated is assumed for the
+examples below. It is also assumed that the system is in the US and has three
+devices lo, eth0 and wlan0 (only wlan0 of course being wireless). Keep in mind
+that these examples use one-time sockets.
 
-### a. Wireless Core Functionality
+Although not all functions require root, we assume that the below have been
+executed with root permissions.
+
+### a. System/Wireless Core Functionality
 These functions do not work with a specific device rather with the system.
 
 ```python
-
-pyw.interfaces() # get all system interfaces
-=> ['lo','eth0','wlan']
-
-pyw.isinterface('eth0') # deterimine if eth0 is an interface
-=> True
-
-pyw.isinterface('bob0')
-=> False
-
-pyw.winterfaces() # get all system wireless interfaces
-=> ['wlan0']
-
-pyw.isinterface('eth0') # check eth0 for wireless
-=> False
-
-pyw.iswinterface('wlan0')
-=> True
-
-pyw.regget() # get the regulatory domain
-=> 'US'
-
-pyw.regset('BO') # set the regulatory domain
-
-pyw.regget()
-=> 'BO'
+>>> pyw.interfaces() # get all system interfaces
+['lo','eth0','wlan']
+>>> pyw.isinterface('eth0') # deterimine if eth0 is an interface
+True
+>>> pyw.isinterface('bob0')
+False
+>>> pyw.winterfaces() # get all system wireless interfaces
+['wlan0']
+>>> pyw.isinterface('eth0') # check eth0 for wireless
+False
+>>> pyw.iswinterface('wlan0')
+True
+>>> pyw.regget() # get the regulatory domain
+'US'
+>>> pyw.regset('BO') # set the regulatory domain
+True
+>>> pyw.regget()
+'BO'
+>>>
 ```
 
 ### b. Interface Specific
-Recall that PyRIC utilizes a Card object - this removes the necessity of having  to
-remember what to pass each function i.e. whether it is a device name, physical index
-or ifindex.
+Recall that PyRIC utilizes a Card object - this removes the necessity of having
+to remember what to pass each function i.e. whether you have to pass a device name,
+physical index or ifindex. Unless otherwise stated, we will be using the card
+w0 instantiated as:
 
 ```python
-w0 = pyw.getcard('wlan0') # get a card for wlan0
-
-w0
-=> Card(phy=0,dev='wlan0',ifindex=2)
+>>> w0 = pyw.getcard('wlan0') # get a card for wlan0
+>>> w0
+Card(phy=0,dev='wlan0',ifindex=2)
 ```
 
-You can also use pyw.devinfo to get a Card object and pyw.devadd will return a card
-object for the newly created virtual interface. The card, w0, will be used throughout
-the remainder of the examples.
+There are other methods to get a Card object: pyw.devinfo, in addition to
+information, will return a Card object, pyw.devadd returns a card object for the
+newly created virtual interface and pyw.ifaces returns a lists of Cards for every
+interface sharing the same phy.
 
-#### i. Setting Mac and IP Addresses
+Before continuing you may find that a Card can become invalid. For example, I
+have an older system where the USB tends to fall out. You can confirm that your
+card is still valid:
 
 ```python
-mac = pyw.macget(w0) # get the hw addr
+>>> pyw.validcard(w0)
+True
+>>>
+```
 
-mac
-=> 'a0:b1:c2:d3:e4:f5'
+#### i. Why is my Card not Working?
+Sometimes you may need to turn your Card on, or possibly unblock it.
 
-pyw.down(w0) # turn the card off to set the mac
+```python
+>>> pyw.isup(w0)
+True
+>>> pyw.down(w0)
+>>> pyw.isup(w0)
+False
+>>> pyw.up(w0)
+>>> pyw.isblocked(w0)
+(True,False)
+>>> pyw.unblock(w0) # turn off the softblock
+>>> pyw.block(w0)
+>>>
+```
 
-pyw.macset(w0,'00:1F:32:00:01:00') # lets be a nintendo device
+#### ii. Working with Mac and IP Addresses
 
-pyw.up(w0) # bring wlan0 back up
-
-pyw.macget(w0) # see if it worked
-=> '00:1F:32:00:01:00'
-
-pyw.inetget(w0) # not associated, inet won't return an address
-=> (None, None, None)
-
-pyw.inetset(w0,'192.168.3.23','255.255.255.192','192.168.3.63')
-=> True
-
-pyw.inetget(w0)
-=> ('192.168.3.23', '255.255.255.192', '192.168.3.255')
+```python
+>>> mac = pyw.macget(w0) # get the hw addr
+>>> mac
+'a0:b1:c2:d3:e4:f5'
+>>>
+>>> pyw.down(w0): # turn the card off to set the mac
+>>> pyw.macset(w0,'00:1F:32:00:01:00') # lets be a nintendo device
+>>> pyw.up(w0) # bring wlan0 back up
+>>> pyw.macget(w0) # see if it worked
+'00:1F:32:00:01:00'
+>>>
+>>> pyw.inetget(w0) # not associated, inet won't return an address
+(None, None, None)
+>>> # NOTE: to set the inet, bcast or netmask, the card does not have to be down
+...
+>>> pyw.inetset(w0,'192.168.3.23','255.255.255.192','192.168.3.63')
+True
+>>> pyw.inetget(w0)
+('192.168.3.23', '255.255.255.192', '192.168.3.255')
+>>>
+>>> # You can also use ip4set, netmaskset and broadcastset
 ```
 
 It is important to note that (like ifconfig), erroneous values can be set
 when setting the inet addresses: for example you can set the ip address on
 192.168.3.* network with a broadcast address of 10.255.255.255.
 
-#### ii. Getting Info On Your Card
+#### iii. WLAN Radio Properties
+You may want to set power management or other radio properties when pentesting.
+Particulary, if you are configuring a rogue AP.
 
 ```python
-pyw.devinfo(w0)
-=> {'wdev': 4294967297, 'RF': None, 'CF': None, 'mac': '00:c0:ca:59:af:a6',
-'mode': 'managed', 'CHW': None, 'card': Card(phy=1,dev=alfa0,ifindex=4)}
-
-pyw.txget(w0)
-=> 20
-
-pyw.modeget(w0)
-=> 'managed'
-
-pyw.devstds(w0)
-=> ['b', 'g', 'n']
-
-pyw.devmodes(w0)
-=> ['ibss', 'managed', 'AP', 'AP VLAN', 'wds', 'monitor', 'mesh']
-
-pyw.devcmds(w0)
-=> [u'new_interface', u'set_interface', u'new_key', u'start_ap', u'new_station',
-u'new_mpath', u'set_mesh_config', u'set_bss', u'authenticate', u'associate',
-u'deauthenticate', u'disassociate', u'join_ibss', u'join_mesh', u'set_tx_bitrate_mask',
-u'frame', u'frame_wait_cancel', u'set_wiphy_netns', u'set_channel', u'set_wds_peer',
-u'probe_client', u'set_noack_map', u'register_beacons', u'start_p2p_device',
-u'set_mcast_rate', u'connect', u'disconnect']
-
-pinfo = pyw.phyinfo(w0)
-
-pinfo['scan_ssids']
-=> 4
-
-pinfo['retry_short']
-=> 7
-
-pinfo['retry_long']
-=> 4
-
-pinfo['frag_thresh']
-=> 4294967295
-
-pinfo['rts_thresh']
-=> 4294967295
-
-pinfo['cov_class']
-=> 0
-
-pinfo['freqs']
-=>[2412, 2417, 2422, 2427, 2432, 2437, 2442, 2447, 2452, 2457, 2462, 2467, 2472,
-2484]
-
-pinfo['ciphers']
-=> ['WEP-40', 'WEP-104', 'TKIP', 'CCMP']
-
-pyw.getpwrsave(w0)
-=> True
-
-pyw.setpwrsave(w0,False)
-
-pyw.getpwrsave(w0)
+>>> pyw.pwrsaveget(w0)
+True
+>>> pyw.pwrsaveset(w0, False) # turn off powermanagement
+>>> pyw.pwrsaveget(w0)
 False
-
+>>> pyw.covclassset(w0, 1) # set the coverage class
+pyric.error: [Errno 95] Operation not supported
+>>> # My internal intel card does not support setting the coverage class
+...
+>>> pyw.retryshortset(w0, 5)
+>>> pyw.retrylongset(w0, 5)
+>>> # We'll check these values out shortly
+...
+>>> pyw.rtsthreshset(w0, 1024)
+>>> pyw.fragthreshset(w0, 8000)
+>>>
 ```
 
-#### iii. Virtual Interfaces
+For a brief description of coverage class and retry limits,
+see http://www.computerhope.com/unix/iwconfig.htm. For a description of the RTS
+and Fragmentation thresholds see http://resources.infosecinstitute.com/rts-threshold-configuration-improved-wireless-network-performance/
+
+#### iv. Getting Info On Your Card
+
+```python
+>>> dinfo = pyw.devinfo(w0)
+>>> for d in dinfo: print d, dinfo[d]
+...
+wdev 1
+RF None
+CF None
+mac 00:1F:32:00:01:00
+mode managed
+CHW None
+card Card(phy=0,dev=wlan0,ifindex=3)
+>>> # NOTE: since we are not associated, RF, CF and CHW are None
+...
+>>> pyw.txget(w0)
+20
+>>> pyw.devstds(w0)
+['b', 'g', 'n']
+>>> pinfo = pyw.phyinfo(w0) # returns a dict with 12 key->value pairs
+>>> for p in pinfo: print p, pinfo[p]
+...
+>>> pinfo['retry_short'], pinfo['retry_long']
+(5, 5)
+>>> pinfo['rts_thresh'], pinfo['frag_thresh']
+(1024, 8000)
+>>> pinfo['cov_class']
+0
+>>> pinfo['generation']
+1
+>>> pinfo['scan_ssids']
+20
+>>> pinfo['ciphers']
+['WEP-40', 'WEP-104', 'TKIP', 'CCMP']
+>>>
+>>> pinfo['modes']
+['ibss', 'managed', 'AP', 'AP VLAN', 'monitor']
+>>> pinfo['swmodes']
+['AP VLAN', 'monitor']
+>>>
+>>> pinfo['commands']
+[u'new_interface', u'set_interface', u'new_key', u'start_ap', u'new_station',
+u'new_mpath', u'set_mesh_config', u'set_bss', u'authenticate', u'associate',
+u'deauthenticate', u'disassociate', u'join_ibss', u'join_mesh',
+u'set_tx_bitrate_mask', u'frame', u'frame_wait_cancel', u'set_wiphy_netns',
+u'set_channel', u'set_wds_peer', u'probe_client', u'set_noack_map',
+u'register_beacons', u'start_p2p_device', u'set_mcast_rate', u'connect',
+u'disconnect']
+>>>
+>>> pinfo['freqs']
+[2412, 2417, 2422, 2427, 2432, 2437, 2442, 2447, 2452, 2457, 2462, 2467, 2472,
+5180, 5200, 5220, 5240, 5260, 5280, 5300, 5320, 5500, 5520, 5540, 5560, 5580,
+5600, 5620, 5640, 5660, 5680, 5700, 5745, 5765, 5785, 5805, 5825]
+>>>
+```
+
+#### v. Virtual Interfaces
 In my experience, virtual interfaces are primarily used to recon, attack or some
 other tomfoolery but can also be used to analyze your wireless network. In either
 case, it is generally advised to create a virtual monitor interface and delete
@@ -319,59 +361,63 @@ on the same physical index and delete them. You may not need to do this.
 
 NOTE: When creating a device in monitor mode, you can also set flags (see
 NL80211_MNTR_FLAGS in nl80211_h), although some cards (usually atheros) do not
-always obey these requests.
+always obey these flag requests.
 
 ```python
-'monitor' in pyw.devmodes(w0) # make sure we can set wlan0 to monitor
-=> True
-
-m0 = pyw.devadd(w0,'mon0','monitor') # create mon0 in monitor mode
-
-for iface in pyw.ifaces(w0): # delete all interfaces
-    pyw.devdel(iface[0])     # on the this phy
-
-pyw.up(m0) # bring the new card up to use
-
-pyw.chset(m0,6,None) # and set the card to channel 6
-=> True
-
-m0
-=> Card(phy=0,dev='mon0',ifindex=3)
+>>> 'monitor' in pyw.devmodes(w0) # make sure we can set wlan0 to monitor
+True
+>>>
+>>> m0 = pyw.devadd(w0,'mon0','monitor') # create mon0 in monitor mode
+>>> m0
+Card(phy=0,dev=mon0,ifindex=4)
+>>> pyw.winterfaces()
+['mon0', 'wlan0']
+>>> for iface in pyw.ifaces(w0):       # delete all interfaces
+...     print iface
+...     if not iface[0].dev == m0.dev: # that are not our monitor
+...         pyw.devdel(iface[0])       # on the this phy
+...
+(Card(phy=0,dev=mon0,ifindex=4), 'monitor')
+(Card(phy=0,dev=wlan0,ifindex=3), 'managed')
+>>>
+>>>
+>>> pyw.txget(w0)
+15
+>>> pyw.txset(w0,30,'fixed')
+>>> # NOTE: my card does not support setting the tx power.
+...
+>>> pyw.up(m0) # bring the new card up to use
+>>> pyw.chset(m0,6,None) # and set the card to channel 6
+True
+>>>
 ```
 
-Of course, once you are done, you will probably want to restore your original set
-up.
+NOTE: If you don't want to add a virtual interface, you can set the mode of a current
+one with modeset.
+
+Once you are done, you will probably want to delete the virtual interface and
+restore your original one.
 
 ```python
-w0 = pyw.devadd(m0,'wlan0','managed') # restore wlan0 in managed mode
-
-pyw.devdel(m0) # delete the monitor interface
-
-pyw.setmac(w0,mac) # restore the original mac address
-
-pyw.up(w0) # and bring the card up
-
-w0
-=> Card(phy0,dev='wlan0',ifindex=4)
-
+>>> w0 = pyw.devadd(m0,'wlan0','managed') # restore wlan0 in managed mode
+>>> pyw.devdel(m0) # delete the monitor interface
+True
+>>> pyw.up(w0) # and bring the card up
+>>>
 ```
-
-#### iv. Additional Functions
-PyRIC also provides functions to change Radio Parameters: coverage class, rts and
-frag thresholds, and retry limits short and long
 
 Read the user guide, or type dir(pyw) in your console to get a full listing
 of pyw functions.
 
-**** v. Miscelleaneous Utilities
+**** vi. Miscelleaneous Utilities
 Several additional tools are located in the utils directory. Two of these are:
  * channels.py: defines ISM and UNII band channels/frequencies and provides
  functions to convert between channel and frequency and vice-versa
  * ouifetch.py: retrieves and parses oui.txt from the IEEE website and stores
   the oui data in a file that can be read by hardware.py functions
-The others will be demonstrated in the following functions
+The others will be demonstrated in the following
 
-i. hardware.py
+hardware.py
 Driver, chipset and mac address related functions can be found here:
 
 ``` python
@@ -403,7 +449,7 @@ hw.ifcard('wlan0') # get driver & chipset
 => ('iwlwifi', 'Intel 4965/5xxx/6xxx/1xxx')
 ```
 
-ii. rfkill.py
+rfkill.py
 Sometimes, your card has a soft block (or hard block) on it and it is not
 recognized by command line tools or pyw. Use rkill to list, turn on or turn
 off soft blocks.

@@ -52,7 +52,7 @@ long_desc = """
 
 setup(name='PyRIC',
       version=pyric.__version__,
-      description="Python Wireless Card Library",
+      description="Python Wireless Library",
       long_description=long_desc,
       url='http://wraith-wireless.github.io/pyric',
       download_url="https://github.com/wraith-wireless/pyric/archive/"+pyric.__version__+".tar.gz",
