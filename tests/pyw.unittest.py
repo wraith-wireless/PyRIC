@@ -35,8 +35,10 @@ __status__ = 'Production'
 import unittest
 import time
 from pyric import error
-from pyric.utils.channels import ISM_24_F2C,rf2ch
 from pyric import pyw
+from pyric.utils.channels import ISM_24_F2C,rf2ch
+from pyric.net.wireless import wlan
+
 
 # modify below to fit your system
 pri = {'dev':'alfa0',
@@ -64,54 +66,44 @@ newregdom = 'BO'
 # test functions interfaces and isinterface
 class InterfaceTestCase(unittest.TestCase):
     def test_enuminterfaces(self):
-        self.assertEqual(nics,pyw.interfaces())
+        for nic in nics: self.assertTrue(nic in pyw.interfaces())
     def test_isinterface(self):
-        for nic in nics:
-            self.assertTrue(pyw.isinterface(nic))
+        for nic in pyw.interfaces(): self.assertTrue(pyw.isinterface(nic))
     def test_not_isinterface(self):
-        for inic in inics:
-            self.assertFalse(pyw.isinterface(inic))
+        for inic in inics: self.assertFalse(pyw.isinterface(inic))
     def test_ininterfaces(self):
-        for nic in nics:
-            self.assertIn(nic,pyw.interfaces())
+        for nic in nics: self.assertIn(nic,pyw.interfaces())
 
 # test functions winterfaces and iswireless
 class WInterfaceTestCase(unittest.TestCase):
     def test_enumwinterfaces(self):
-        self.assertEqual(wnics,pyw.winterfaces())
+        for wnic in wnics: self.assertTrue(wnic in pyw.winterfaces())
     def test_iswinterface(self):
-        for wnic in wnics:
-            self.assertTrue(pyw.iswireless(wnic))
+        for wnic in pyw.winterfaces(): self.assertTrue(pyw.iswireless(wnic))
     def test_not_iswinterface(self):
-        for nic in inics + enics:
-            self.assertFalse(pyw.iswireless(nic))
+        for nic in inics + enics: self.assertFalse(pyw.iswireless(nic))
     def test_inwinterfaces(self):
-        for wnic in wnics:
-            self.assertIn(wnic,pyw.winterfaces())
+        for wnic in pyw.winterfaces(): self.assertIn(wnic,pyw.winterfaces())
 
 # test regget, regset
 class RegDomTestCase(unittest.TestCase):
-    def test_regget(self):
-        self.assertEqual(regdom,pyw.regget())
+    def test_regget(self): self.assertEqual(regdom,pyw.regget())
     def test_regset(self):
-        self.assertTrue(pyw.regset(newregdom))
+        self.assertEqual(None,pyw.regset(newregdom))
         time.sleep(0.25) # give sleep time
         self.assertEqual(newregdom,pyw.regget())
-        self.assertTrue(pyw.regset(regdom))
+        self.assertEqual(None,pyw.regset(regdom))
         time.sleep(0.25) # give sleep time
         self.assertEqual(regdom, pyw.regget())
 
 # test getcard,validcard
 class GetCardTestCase(unittest.TestCase):
     def test_getcard(self):
-        for wnic in wnics:
-            self.assertIsNotNone(pyw.getcard(wnic))
+        for wnic in wnics: self.assertIsNotNone(pyw.getcard(wnic))
     def test_notacard(self):
-        for enic in enics:
-            self.assertRaises(error,pyw.getcard,enic)
+        for enic in enics: self.assertRaises(error,pyw.getcard,enic)
     def test_validcard(self):
-        for wnic in wnics:
-            self.assertTrue(pyw.validcard(pyw.getcard(wnic)))
+        for wnic in wnics: self.assertTrue(pyw.validcard(pyw.getcard(wnic)))
 
 # super class for test cases requiring a Card object
 class CardTestCase(unittest.TestCase):
@@ -147,14 +139,11 @@ class MacSetTestCase(CardTestCase):
 #  broadcastset
 class InetGetSetTestCase(CardTestCase):
     def test_inetgetset(self):
-        self.assertTrue(pyw.inetset(self.card,pri['ip'],pri['mask'],pri['bcast']),
-                        "InetGetSetTestCase.inetgetset->inetset Failed")
-        self.assertEqual(pri['ip'],pyw.inetget(self.card)[0],
-                         "InetGetSetTestCase.inetgetset->inetget Failed")
+        self.assertEquals(None,pyw.inetset(self.card,pri['ip'],pri['mask'],pri['bcast']))
+        self.assertEqual(pri['ip'],pyw.inetget(self.card)[0])
     def test_invalidcardarg(self):
         self.assertRaises(error,pyw.inetget,'bad0')
-        self.assertRaises(error,pyw.inetset,'bad0',pri['ip'],
-                                            pri['mask'],pri['bcast'])
+        self.assertRaises(error,pyw.inetset,'bad0',pri['ip'],pri['mask'],pri['bcast'])
     def test_invalidiparg(self):
         self.assertRaises(error,pyw.inetset,self.card,'192.168',pri['mask'],pri['bcast'])
     def test_invalidmaskarg(self):
@@ -162,30 +151,124 @@ class InetGetSetTestCase(CardTestCase):
     def test_invalidbcastarg(self):
         self.assertRaises(error,pyw.inetset,self.card,pri['ip'],pri['mask'],'192.168')
 
-# test up
+# isup, test only card check
+class IsUpTestCase(CardTestCase):
+    def test_invalidcardarg(self): self.assertRaises(error,pyw.isup,'bad0')
+
+# test up/isup
 class UpTestCase(CardTestCase):
-    def test_up(self): self.assertTrue(pyw.up(self.card))
+    def test_up(self):
+        self.assertEquals(None,pyw.up(self.card))
+        self.assertTrue(pyw.isup(self.card))
     def test_invalidcardarg(self): self.assertRaises(error,pyw.up,'bad0')
 
 # test down
 class DownTestCase(CardTestCase):
-    def test_down(self): self.assertTrue(pyw.down(self.card))
+    def test_down(self):
+        self.assertEqual(None,pyw.down(self.card))
+        self.assertFalse(pyw.isup(self.card))
     def test_invalidcardarg(self): self.assertRaises(error,pyw.down,'bad0')
 
-# test get power_save
+# isblocked, test only card check
+class IsBlockedTestCase(unittest.TestCase):
+    def test_invalidcardarg(self): self.assertRaises(error,pyw.isup,'bad0')
+
+# test block/isblocked
+class BlockTestCase(CardTestCase):
+    def test_block(self):
+        self.assertEquals(None,pyw.block(self.card))
+        self.assertTrue(pyw.isblocked(self.card))
+        self.assertEquals(None,pyw.unblock(self.card))
+    def test_invalidcardarg(self): self.assertRaises(error,pyw.block,'bad0')
+
+# test block/isblocked
+class UnblockTestCase(CardTestCase):
+    def test_unblock(self):
+        self.assertEquals(None,pyw.unblock(self.card))
+        self.assertFalse(pyw.isblocked(self.card)[0])
+    def test_invalidcardarg(self): self.assertRaises(error,pyw.block,'bad0')
+
+# test get/set power_save
 class GetSetPwrSave(CardTestCase):
     def test_getsetpwrsave(self):
-        self.assertIsInstance(pyw.getpwrsave(self.card),bool)
-        pyw.setpwrsave(self.card,True)
-        self.assertTrue(pyw.getpwrsave(self.card))
-        pyw.setpwrsave(self.card, False)
-        self.assertFalse(pyw.getpwrsave(self.card))
-        pyw.setpwrsave(self.card,True)
+        pyw.pwrsaveset(self.card,True)
+        self.assertTrue(pyw.pwrsaveget(self.card))
+        pyw.pwrsaveset(self.card, False)
+        self.assertFalse(pyw.pwrsaveget(self.card))
+        pyw.pwrsaveset(self.card,True)
     def testinvalidcardarg(self):
-        self.assertRaises(error,pyw.getpwrsave,'bad0')
-        self.assertRaises(error, pyw.setpwrsave,'bad0',True)
+        self.assertRaises(error,pyw.pwrsaveget,'bad0')
+        self.assertRaises(error,pyw.pwrsaveset,'bad0',True)
     def testinvalidonval(self):
-        self.assertRaises(error,pyw.setpwrsave,self.card,'b')
+        self.assertRaises(error,pyw.pwrsaveset,self.card,'b')
+
+# test covclass
+# NOTE: cannot currently test set as my cards do not support it
+# NOTEL covclassget uses phyinfo - if that works covclassget works
+
+# test get/set retryshort
+class RetryShortTestCase(CardTestCase):
+    def test_retryshort(self):
+        rs = pyw.retryshortget(self.card)
+        self.assertEqual(None,pyw.retryshortset(self.card,5))
+        self.assertEqual(5,pyw.retryshortget(self.card))
+        self.assertEqual(None,pyw.retryshortset(self.card,rs))
+        self.assertEqual(rs,pyw.retryshortget(self.card))
+    def test_invalidcardarg(self):
+        self.assertRaises(error,pyw.retryshortget,'bad0')
+        self.assertRaises(error,pyw.retryshortset,'bad0',0)
+    def test_invalidlim(self):
+        self.assertRaises(error,pyw.retryshortset,self.card,wlan.RETRY_MIN-1)
+        self.assertRaises(error,pyw.retryshortset,self.card,wlan.RETRY_MAX+1)
+
+# test get/set retrylong
+class RetryLongTestCase(CardTestCase):
+    def test_retrylong(self):
+        rs = pyw.retrylongget(self.card)
+        self.assertEqual(None,pyw.retrylongset(self.card,5))
+        self.assertEqual(5,pyw.retrylongget(self.card))
+        self.assertEqual(None,pyw.retrylongset(self.card,rs))
+        self.assertEqual(rs,pyw.retrylongget(self.card))
+    def test_invalidcardarg(self):
+        self.assertRaises(error,pyw.retrylongget,'bad0')
+        self.assertRaises(error,pyw.retrylongset,'bad0',0)
+    def test_invalidlim(self):
+        self.assertRaises(error,pyw.retrylongset,self.card,wlan.RETRY_MIN-1)
+        self.assertRaises(error,pyw.retrylongset,self.card,wlan.RETRY_MAX+1)
+
+# test get/set RTS thresh
+class RTSThreshTestCase(CardTestCase):
+    def test_rtsthresh(self):
+        rt = pyw.rtsthreshget(self.card)
+        self.assertEqual(None,pyw.rtsthreshset(self.card,5))
+        self.assertEqual(5,pyw.rtsthreshget(self.card))
+        self.assertEqual(None,pyw.rtsthreshset(self.card,'off'))
+        self.assertEqual('off',pyw.rtsthreshget(self.card))
+        self.assertEqual(None,pyw.rtsthreshset(self.card,rt))
+    def test_invalidcardarg(self):
+        self.assertRaises(error,pyw.rtsthreshget,'bad0')
+        self.assertRaises(error,pyw.rtsthreshset,'bad0',5)
+    def test_invalidthresh(self):
+        self.assertRaises(error,pyw.rtsthreshset,self.card,wlan.RTS_THRESHOLD_MIN-1)
+        self.assertRaises(error,pyw.rtsthreshset,self.card,wlan.RTS_THRESHOLD_MAX+1)
+        self.assertRaises(error, pyw.rtsthreshset,self.card,'on')
+
+# test get/set RTS thresh
+class FragThreshTestCase(CardTestCase):
+    def test_fragthresh(self):
+        ft = pyw.fragthreshget(self.card)
+        self.assertEqual(None,pyw.fragthreshset(self.card,800))
+        self.assertEqual(800,pyw.fragthreshget(self.card))
+        self.assertEqual(None,pyw.fragthreshset(self.card,'off'))
+        self.assertEqual('off',pyw.fragthreshget(self.card))
+        self.assertEqual(None,pyw.fragthreshset(self.card,ft))
+    def test_invalidcardarg(self):
+        self.assertRaises(error,pyw.fragthreshget,'bad0')
+        self.assertRaises(error,pyw.fragthreshset,'bad0',800)
+    def test_invalidthresh(self):
+        self.assertRaises(error,pyw.fragthreshset,self.card,wlan.FRAG_THRESHOLD_MIN-1)
+        self.assertRaises(error,pyw.fragthreshset,self.card,wlan.FRAG_THRESHOLD_MAX+1)
+        self.assertRaises(error,pyw.fragthreshset,self.card,'on')
 
 # test get freqs
 class DevFreqsTestCase(CardTestCase):
@@ -238,6 +321,9 @@ class PhyInfoTestCase(CardTestCase):
     def test_invalidcardarg(self):
         self.assertRaises(error,pyw.phyinfo,'bad0')
 
+# test txset
+# currently txset is not supported by my cards
+
 # test txget
 class TXGetTestCase(CardTestCase):
     def test_txget(self):
@@ -255,7 +341,7 @@ class CHGetSetTestCase(CardTestCase):
         pyw.down(self.card)
         pyw.modeset(self.card,'monitor')
         pyw.up(self.card)
-        self.assertTrue(pyw.chset(self.card,1))
+        self.assertEqual(None,pyw.chset(self.card,1))
         self.assertIsInstance(pyw.chget(self.card),int)
         pyw.down(self.card)
         pyw.modeset(self.card,'managed')
@@ -287,8 +373,8 @@ class ModeGetTestCase(CardTestCase):
 class ModeSetTestCase(CardTestCase):
     def test_modeset(self):
         pyw.down(self.card)
-        self.assertTrue(pyw.modeset(self.card,'monitor'))
-        self.assertTrue(pyw.modeset(self.card,'managed'))
+        self.assertEquals(None,pyw.modeset(self.card,'monitor'))
+        self.assertEquals(None,pyw.modeset(self.card,'managed'))
         pyw.up(self.card)
     def test_invalidcardarg(self):
         self.assertRaises(error,pyw.modeset,'bad0','monitor')

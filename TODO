@@ -25,8 +25,10 @@
  11) tried NL80211_CMD_GET_WIPHY, setting _WIPHY_TX_POWER_LEVEL but did
   not return the current power level - currently cannot find anything in nl80211.h
   that could be used to get tx power
- 12) add set retry short and long, set rts and set frag
- 13) replace hardcoded values like cc limits in setcovclass to constants
+ 14) look at udevadm info --query=all --path /sys/class/net/<dev>
+  o has devie driver, name and some other details
+ 15) fix unittest
+ 16) look into readthedocs.
 
 ------- Request For Information RFI ----------
 
@@ -147,3 +149,6 @@ dev <devname> set txpower <auto|fixed|limit> [<tx power in mBm>]
 phy <phyname> set txpower <auto|fixed|limit> [<tx power in mBm>]
 		Specify transmit power level and setting type.
 
+6) Passwords
+ On ubuntu at least passwords for APs are stored in /etc/NetworkManager/system-connections
+ under directory for ssid

@@ -44,10 +44,12 @@ from os import getpid,strerror
 import struct
 import socket
 from binascii import hexlify
-import pyric, errno
+import errno
 import pyric.net.netlink_h as nlh
 import pyric.net.genetlink_h as genlh
 from pyric.net.policy import nla_datatype
+
+class error(EnvironmentError): pass
 
 BUFSZ = 32768 # Generic default buffersize
 
@@ -87,7 +89,7 @@ class NLSocket(dict):
     @tx.setter
     def tx(self,v):
         if v < 128 or v > _maxbufsz_():
-            raise pyric.error(errno.EINVAL,"Invalid buffer size")
+            raise error(errno.EINVAL,"Invalid buffer size")
         self['sock'].setsockopt(socket.SOL_SOCKET,socket.SO_SNDBUF,v)
 
     @property
@@ -96,7 +98,7 @@ class NLSocket(dict):
     @rx.setter
     def rx(self,v):
         if v < 128 or v > _maxbufsz_():
-            raise pyric.error(errno.EINVAL,"Invalid buffer size")
+            raise error(errno.EINVAL,"Invalid buffer size")
         self['sock'].setsockopt(socket.SOL_SOCKET,socket.SO_RCVBUF,v)
 
     @property
@@ -104,7 +106,7 @@ class NLSocket(dict):
 
     @pid.setter
     def pid(self,v):
-        if v < 1: raise pyric.error(errno.EINVAL,"Invalid port id")
+        if v < 1: raise error(errno.EINVAL,"Invalid port id")
         self['pid'] = v
 
     @property
@@ -118,7 +120,7 @@ class NLSocket(dict):
 
     @seq.setter
     def seq(self,v):
-        if v < 1: raise pyric.error(errno.EINVAL,"Invalid sequence number")
+        if v < 1: raise error(errno.EINVAL,"Invalid sequence number")
         self['seq'] = v
 
     @property
@@ -126,7 +128,7 @@ class NLSocket(dict):
 
     @timeout.setter
     def timeout(self,v):
-        if v and v < 0: raise pyric.error(errno.EINVAL,"Invalid timeout value")
+        if v and v < 0: raise error(errno.EINVAL,"Invalid timeout value")
         self['sock'].settimeout(v)
 
     #### wrap socket functions
@@ -170,13 +172,13 @@ def nl_socket_alloc(pid=None,grps=0,seq=None,rx=None,tx=None,timeout=None):
     """
     # set & validate paramaters
     pid = pid or getpid() + int(time()) # allow multiple sockets on this host
-    if pid < 1: raise pyric.error(errno.EINVAL,"Invalid port id")
+    if pid < 1: raise error(errno.EINVAL,"Invalid port id")
     seq = seq or int(time())
-    if seq < 1: raise pyric.error(errno.EINVAL,"Invalid sequence number")
+    if seq < 1: raise error(errno.EINVAL,"Invalid sequence number")
     rx = rx or BUFSZ
-    if rx < 128 or rx > _maxbufsz_(): raise pyric.error(errno.EINVAL,"Invalid rx size")
+    if rx < 128 or rx > _maxbufsz_(): raise error(errno.EINVAL,"Invalid rx size")
     tx = tx or BUFSZ
-    if tx < 128 or tx > _maxbufsz_(): raise pyric.error(errno.EINVAL,"Invalid tx size")
+    if tx < 128 or tx > _maxbufsz_(): raise error(errno.EINVAL,"Invalid tx size")
 
     # create the socket and rturn it
     try:
@@ -186,7 +188,7 @@ def nl_socket_alloc(pid=None,grps=0,seq=None,rx=None,tx=None,timeout=None):
         s.settimeout(timeout)
         s.bind((pid,grps))
     except socket.error as e:
-        raise pyric.error(e.errno,e.strerror)
+        raise error(e.errno,e.strerror)
     return NLSocket({'sock':s,'tx':tx,'rx':rx,'pid':pid,'grpm':grps,'seq':seq})
 
 def nl_socket_free(sock):
@@ -215,7 +217,7 @@ def nl_sendmsg(sock,msg,override=False):
     """
     try:
         # change the msg's pid & seq to that of the sockets prior to sending &
-        # set the ack flag - I can't figure how to tell in recv if the an ack was
+        # set the ack flag - I can't figure how to tell in recv if an ack was
         # requested or not so I force an ACK here
         if not override:
             msg.pid = sock.pid
@@ -223,11 +225,11 @@ def nl_sendmsg(sock,msg,override=False):
         msg.flags = msg.flags | nlh.NLM_F_ACK
         sent = sock.send(msg.tostream())
         if sent != msg.len:
-            raise pyric.error(errno.EBADMSG,"Message sent incomplete")
+            raise error(errno.EBADMSG,"Message sent incomplete")
     except socket.error as e:
-        raise pyric.error(errno.ECOMM, e)
+        raise error(errno.ECOMM, e)
     except AttributeError:
-        raise pyric.error(errno.ENOTSOCK, "Invalid netlink socket")
+        raise error(errno.ENOTSOCK,"Invalid netlink socket")
 
 def nl_recvmsg(sock):
     """
@@ -242,17 +244,17 @@ def nl_recvmsg(sock):
         msg = nlmsg_fromstream(sock.recv())
         try:
             _ = nlmsg_fromstream(sock.recv())
-        except pyric.error as e:
+        except error as e:
             if e.errno == nlh.NLE_SUCCESS: pass
             else: raise
         if sock.seq != msg.seq:
-            raise pyric.error(errno.EBADMSG,"seq. # out of order")
+            raise error(errno.EBADMSG,"seq. # out of order")
         return msg
     except socket.timeout:
-        raise pyric.error(pyric.EUNDEF,"socket timed out")
+        raise error(-1,"socket timed out")
     except socket.error as e:
-        raise pyric.error(errno.ENOTSOCK,e)
-    except pyric.error as e:
+        raise error(errno.ENOTSOCK,e)
+    except error as e:
         if e.errno == nlh.NLE_SUCCESS: return nlh.NLE_SUCCESS
         raise # rethrow
     finally:
@@ -351,7 +353,7 @@ class GENLMsg(dict):
 
     @nltype.setter
     def nltype(self,v):
-        if v < 0: raise pyric.error(errno.ERANGE,"nltype {0} is invalid".format(v))
+        if v < 0: raise error(errno.ERANGE,"nltype {0} is invalid".format(v))
         self['type'] = v
 
     @property
@@ -365,7 +367,7 @@ class GENLMsg(dict):
 
     @seq.setter
     def seq(self,v):
-        if v < 1: raise pyric.error(errno.ERANGE,"invalid seq. number")
+        if v < 1: raise error(errno.ERANGE,"invalid seq. number")
         self['seq'] = v
 
     @property
@@ -373,7 +375,7 @@ class GENLMsg(dict):
 
     @pid.setter
     def pid(self,v):
-        if v < 1: raise pyric.error(errno.ERANGE,"invalid port id")
+        if v < 1: raise error(errno.ERANGE,"invalid port id")
         self['pid'] = v
 
     @property
@@ -381,7 +383,7 @@ class GENLMsg(dict):
 
     @cmd.setter
     def cmd(self,v):
-        if v < 0: raise pyric.error(errno.ERANGE,"invalid cmd")
+        if v < 0: raise error(errno.ERANGE,"invalid cmd")
         self['cmd'] = v
 
     @property
@@ -399,7 +401,7 @@ class GENLMsg(dict):
             try:
                 payload += _attrpack_(attr,v,data)
             except struct.error:
-                raise pyric.error(pyric.EUNDEF,"Packing {0} {1}".format(attr,v))
+                raise error(-1,"Packing {0} {1}".format(attr,v))
         return nlh.nlmsghdr(len(payload),self.nltype,self.flags,self.seq,self.pid) + payload
 
 def nlmsg_new(nltype=None,cmd=None,seq=None,pid=None,flags=None,attrs=None):
@@ -437,10 +439,10 @@ def nlmsg_fromstream(stream,override=False):
         if t == nlh.NLMSG_ERROR or (l == nlh.NLMSGACKLEN and not override):
             # have an (possible) ack/nack i.e. error msg
             e = struct.unpack_from(nlh.nl_nlmsgerr,stream,nlh.NLMSGHDRLEN)[0]
-            raise pyric.error(abs(e),strerror(abs(e)))
+            raise error(abs(e),strerror(abs(e)))
         c,_,_ = struct.unpack_from(genlh.genl_genlmsghdr,stream,nlh.NLMSGHDRLEN)
     except struct.error as e:
-        raise pyric.error(pyric.EUNDEF,"error parsing headers: {0}".format(e))
+        raise error(-1,"error parsing headers: {0}".format(e))
 
     # create a new message with hdr values then parse the attributes
     msg = nlmsg_new(t,c,s,p,fs)
@@ -486,7 +488,7 @@ def nla_parse(msg,l,mtype,stream,idx):
         except struct.error:
             # append as Error, stripping null bytes
             nla_put(msg,_nla_strip_(a),atype,nlh.NLA_ERROR)
-        except pyric.error as e:
+        except error as e:
             if e.errno == errno.EINVAL:
                 # a nested attribute failed to parse correctly
                 nla_put(msg, _nla_strip_(a), atype, nlh.NLA_ERROR)
@@ -494,8 +496,7 @@ def nla_parse(msg,l,mtype,stream,idx):
                 raise
         except MemoryError as e:
             # hopefully don't get here
-            emsg = "Attr type {0} of pol {1} failed: {2}".format(atype,pol,e)
-            raise pyric.error(pyric.EUNDEF,emsg)
+            raise error(-1,"Attr type {0} of pol {1} failed: {2}".format(atype,pol,e))
         idx = nlh.NLMSG_ALIGN(idx + alen)  # move index to next attr
 
 def nla_parse_nested(nested):
@@ -538,7 +539,7 @@ def nla_parse_nested(nested):
         # not include additional pad bytes for proper alignment
         alen = struct.unpack_from('B',nested,idx)[0]
         if alen == 0:
-            raise pyric.error(errno.EINVAL,"attribute length is 0")
+            raise error(errno.EINVAL,"attribute length is 0")
         ns.append(nested[idx+1:idx+(alen-1)])
         idx = nlh.NLMSG_ALIGN(idx + alen)
     return ns
@@ -551,11 +552,11 @@ def nla_put(msg,v,a,d):
      :param a: attribute type
      :param d: attribute datatype
     """
-    if d > nlh.NLA_TYPE_MAX: raise pyric.error(errno.ERANGE,"value type is invalid")
+    if d > nlh.NLA_TYPE_MAX: raise error(errno.ERANGE,"value type is invalid")
     msg['attrs'].append((a,v,d))
 
 # nla_put_* append data of specified datatype
-def nla_put_flag(msg,a): nla_put(msg,)
+def nla_put_flag(msg,a): nla_put(msg,None,a,nlh.NLA_FLAG)
 def nla_put_unspec(msg,v,a): nla_put(msg,v,a,nlh.NLA_UNSPEC)
 def nla_put_u8(msg,v,a): nla_put(msg,v,a,nlh.NLA_U8)
 def nla_put_u16(msg,v,a): nla_put(msg,v,a,nlh.NLA_U16)
@@ -574,7 +575,7 @@ def nla_putat(msg,i,v,a,d):
      :param a: attribute type
      :param d: attribute datatype
     """
-    if d > nlh.NLA_TYPE_MAX: raise pyric.error(errno.ERANGE,"invalid datatype")
+    if d > nlh.NLA_TYPE_MAX: raise error(errno.ERANGE,"invalid datatype")
     msg['attrs'][i] = (a,v,d)
 
 def nla_pop(msg,i):

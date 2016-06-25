@@ -248,6 +248,7 @@ def ifreq(ifrn,ifru=None,param=None):
       form "XXX.XXX.XXX.XXX", if flags must be an integer (c short) or (int)
       respectively
      :returns: packed ifreq
+     NOTE: ifreq will return AttributeError for any caught exception
     """
     # pack the nic
     try:

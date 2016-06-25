@@ -37,7 +37,8 @@ import socket
 import struct
 import errno
 from fcntl import ioctl
-import pyric
+
+class error(EnvironmentError): pass
 
 def io_socket_alloc():
     """
@@ -64,14 +65,14 @@ def io_transfer(iosock,flag,ifreq):
     except (AttributeError,struct.error) as e:
         # either sock is not valid or a bad value passed to ifreq
         # note: should not get these but just in case
-        if e.message.find('fileno'): raise pyric.error(errno.ENOTSOCK,"bad socket")
-        else: raise pyric.error(errno.EINVAL,e)
+        if e.message.find('fileno'): raise error(errno.ENOTSOCK,"bad socket")
+        else: raise error(errno.EINVAL,e)
     except IOError as e:
         # generally device cannot be found sort but can also be
         # permissions etc, catch and reraise as our own
         if e.errno is not None: # just in case we have a none 2-tuple error
-            raise pyric.error(e.errno,e.strerror)
+            raise error(e.errno,e.strerror)
         else:
-            raise pyric.error(pyric.EUNDEF,e)
+            raise error(-1,e)
     except Exception as e:
-        raise pyric.error(pyric.EUNDEF,e.args[0])
+        raise error(-1,e.args[0])

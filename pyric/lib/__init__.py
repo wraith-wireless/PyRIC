@@ -38,6 +38,7 @@ lib subpackage
    - added some error checking to nla_parse_nested, raising and handling error
     in situations where attribute len is 0
    - fixed nlmsg_fromstream to handle non-ack message parsing with a length of 36
+  o libnl and libnl now report their own errors rather than use pyric.error
 """
 
 __name__ = 'lib'

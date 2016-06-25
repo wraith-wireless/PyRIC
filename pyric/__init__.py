@@ -31,8 +31,6 @@ Requires:
   includes: /nlhelp /lib /net /utils pyw 0.1.4
   changes:
    See CHANGES in top-level directory
-   Changes since 1.3:
-    o added isup
 
 """
 

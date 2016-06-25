@@ -1,19 +1,5 @@
 #!/usr/bin/env python
-""" ieee80211_h.py: 802.11 public header
-
-/*
- * IEEE 802.11 defines
- *
- * Copyright (c) 2001-2002, SSH Communications Security Corp and Jouni Malinen
- * <jkmaline@cc.hut.fi>
- * Copyright (c) 2002-2003, Jouni Malinen <jkmaline@cc.hut.fi>
- * Copyright (c) 2005, Devicescape Software, Inc.
- * Copyright (c) 2006, Michael Wu <flamingice@sourmilk.net>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+""" wlan.py: IEEE Std 802.11-2012
 
 Copyright (C) 2016  Dale V. Patterson (wraith.wireless@yandex.com)
 
@@ -33,11 +19,13 @@ are permitted provided that the following conditions are met:
    contributors may be used to endorse or promote products derived from this
    software without specific prior written permission.
 
- python port of ieee80211.h
+Definition of constants et all found in IEEE Std 802.11-2012
+
+Std will refer to IEEE Std 802.11-2012
 
 """
 
-__name__ = 'ieee80211_h'
+__name__ = 'wlan'
 __license__ = 'GPLv3'
 __version__ = '0.0.1'
 __date__ = 'June 2016'
@@ -46,20 +34,18 @@ __maintainer__ = 'Dale Patterson'
 __email__ = 'wraith.wireless@yandex.com'
 __status__ = 'Production'
 
-import struct
-
 """
- cipher suite selectors - decided to (over)document this because it was such a
- hassle to figure out, want to make sure I can come back at a later date and
- figure it out again faster
+ cipher suite selectors - decided to (over)document this because it was such a  hassle to
+ figure out, want to make sure I can come back at a later date and figure it out again
+ faster
 
  From nl80211.h @NL80211_ATTR_CIPHER_SUITES: a set of u32 values indicating the
  supported cipher suites
 
  The returned cipher suite (from phyinfo) for an alfa card is:
      \x01\xac\x0f\x00\x05\xac\x0f\x00\x02\xac\x0f\x00\x04\xac\x0f\x00
- which is not a nested attribute. Does set mean something? I cannot find
- any reference to sets, arrays or lists etc in
+ which is not a nested attribute. Does 'set' mean something? I cannot find any
+ reference to sets, arrays or lists etc in
   http://www.carisma.slowglass.com/~tgr/libnl/doc/core.html
  Another way nl80211 breaks the rules or another way I'm just not getting it?
 
@@ -75,7 +61,7 @@ import struct
  The only reference is in nl80211.h which says:
   @NL80211_KEY_CIPHER: key cipher suite (u32, as defined by IEEE 802.11 section
   7.3.2.25.1, e.g. 0x000FAC04)
- Looking in the standard we find Table 8-99 in IEEE Std 802.11-2012 which defines
+ Looking in the standard we find Table 8-99 in Std which defines
  these values.
 
  Lets look in ieee80211.h and voila we find
@@ -105,7 +91,6 @@ import struct
  say read the source code.
 
 """
-
 WLAN_CIPHER_SUITE_LEN = 4
 WLAN_CIPHER_SUITE_GROUP    = 0x000fac00
 WLAN_CIPHER_SUITE_WEP40    = 0x000fac01
@@ -123,4 +108,35 @@ WLAN_CIPHER_SUITE_SELECTORS = {
     WLAN_CIPHER_SUITE_WEP104:'WEP-104',
     WLAN_CIPHER_SUITE_ACS_CMAC:'AES-CMAC',
     WLAN_CIPHER_SUITE_GCMP:'GCMP',
-    WLAN_CIPHER_SUITE_SMS4:'SMS4'}
+    WLAN_CIPHER_SUITE_SMS4:'SMS4'
+}
+def ciphers(stream):
+    """
+     parses out ciphers from stream
+     :param stream: packed byte string
+     :returns: a list of cipher selectors
+    """
+
+
+""" Coverage Class Limits IAW Std Table 8-56 """
+COVERAGE_CLASS_MIN =  0
+COVERAGE_CLASS_MAX = 31
+
+"""
+ Retry (short and long) Limits IAW Std dot11ShortRetryLimit pg 2133 and
+ dot11LongRetryLimit pg 2134
+"""
+RETRY_MIN = 1
+RETRY_MAX = 255
+
+""" RTS Threshold limits IAW Std dot11RTSThreshold definition pg 2133 """
+RTS_THRESHOLD_MIN = 0
+RTS_THRESHOLD_MAX = 65536
+RTS_THRESHOLD_OFF = 4294967295 #(2^32 -1 or the max value of a u32)
+
+"""
+ Fragmentation Threshold limits IAW Std dot11FragmentThreshold definition pg 2133
+"""
+FRAG_THRESHOLD_MIN = 256
+FRAG_THRESHOLD_MAX = 8000
+FRAG_THRESHOLD_OFF = 4294967295 #(2^32 -1 or the max value of a u32)

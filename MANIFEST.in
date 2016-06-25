@@ -1,4 +1,4 @@
-# setup paramaters
+# setup paramaters for PyRIC via PyPi
 include LICENSE CHANGES README.md TODO
 
 # Include subdirectories

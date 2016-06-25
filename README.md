@@ -1,4 +1,4 @@
-# PyRIC 0.1.2: Python Radio Interface Controller
+# PyRIC 0.1.4: Python Radio Interface Controller
 ## Linux wireless library for the Python Wireless Developer and Pentester
 ![](docs/logo.png?raw=true)
 
@@ -77,6 +77,7 @@ currently pyw provides the following:
 * get phy info
 * get/set regulatory domain
 * get/set mode
+* get/set coverage class, RTS threshold, Fragmentation threshold & retry limits
 * add/delete interfaces
 * enumerate ISM and UNII channels
 * block/unblock rfkill devices

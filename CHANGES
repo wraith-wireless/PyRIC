@@ -90,3 +90,22 @@ v 0.1.3
     - retrylongset
     - rtsthreshset
     - fragthreshset
+
+v 0.1.4
+   o added functions:
+    - isup
+    - covclassget
+    - retryshortget
+    - retrylongget
+   o modified devadd. User is allowed to submit a Card object or a physical index
+   o removed hardcoded values for covclassset, retry(short|long)set, retsthreshet and
+     fragrthreshset
+     - constants defined in 80211.h
+   o removed return True where redundant i.e. when setting mac address we can assume
+    it worked if no error was thrown
+   o renamed ieee80211_h to wlan
+   o didn't like the incestual circular pyric error (libnl shouldn't know about pyric)
+    - replaced pyric.error with defined error in libnl and libio
+    - pyw has to catch libnl and libio errors and reraise as pyric errors
+   o retooled exception messages
+   o added new functions from 0.1.3 and 0.1.4 to unittests
