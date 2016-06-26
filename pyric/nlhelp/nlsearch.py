@@ -48,9 +48,9 @@ commands = None   # cmd -> desc,attributes used dict
 cmdlookup = None  # reverse lookup for command constants
 cin = None
 try:
-    # first two lines are comments, 3rd line is empty
+    # first three lines are comments, 4th line is empty
     cin = open(cmdpath,'r')
-    for _ in xrange(3): _in = cin.readline()
+    for _ in xrange(4): _in = cin.readline()
     commands = json.loads(cin.readline())
     cmdlookup = json.loads(cin.readline())
 except:
@@ -62,16 +62,16 @@ attrpath = os.path.join(fpath,'attributes.help')
 attributes = None # attr -> desc, commands used by, datatype
 attrlookup = None # reverse lookup for attribute constants
 ain = None
-try:
+#try:
     # first two lines are comments, 3rd line is empty
-    ain = open(attrpath,'r')
-    for _ in xrange(3): _in = ain.readline()
-    attributes = json.loads(ain.readline())
-    attrlookup = json.loads(ain.readline())
-except:
-    raise pyric.error(pyric.EUNDEF, "Failed to process attributes.help")
-finally:
-    if ain: ain.close()
+ain = open(attrpath,'r')
+for _ in xrange(4): _in = ain.readline()
+attributes = json.loads(ain.readline())
+attrlookup = json.loads(ain.readline())
+#except:
+#    raise pyric.error(pyric.EUNDEF, "Failed to process attributes.help")
+#finally:
+#    if ain: ain.close()
 
 def command(cmd):
     """

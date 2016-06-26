@@ -22,28 +22,26 @@
     NL80211_STA_INFO - this has to be the corresponding data. Doesn't work, there
     is something I'm missing but cannot figure out
   - iw requests info on the BSSID, can we request the info on any STA?
+  - Line 1806 These attribute types are used with %NL80211_ATTR_STA_INFO
+    when getting information about a station.
  11) tried NL80211_CMD_GET_WIPHY, setting _WIPHY_TX_POWER_LEVEL but did
   not return the current power level - currently cannot find anything in nl80211.h
   that could be used to get tx power
  14) look at udevadm info --query=all --path /sys/class/net/<dev>
-  o has devie driver, name and some other details
- 15) fix unittest
+  o has devie driver, name and some other details but appears to get these
+   the same way PyRIC does
  16) look into readthedocs.
+ 17) distro tests
+  - openSUSE
+  - RedHat/Fedora
+  - Debian (g2g)
+  - Arch
+  - CentOs (?)
+  - slackware
+  - dd-wrt/OpenWRT
+ 18) port structs from new nl80211.h
 
 ------- Request For Information RFI ----------
-
-Reading through the iw source code to figure out how to get the regulatory domain
-is like reading through a ham radio radio manual to figure out how to turn it on.
-Even when I could see what iw was doing there were no comments or directions as
-to why they were doing it a specific way. And, I could not find any definitive
-resources on nl80211 via netlink. Fortunately, Thomas Graf provides excellent
-documentation on libnl at http://www.carisma.slowglass.com/~tgr/libnl/doc/core.html.
-Reading this, I was able to write a simple netlink message class and parser. I still
-cannot follow the iw code but with strace, I was able to copy the hex strings and
-parse the communications to and from the kernel. However, this leaves a lot of
-questions unaswered which is the purpose of this document - to document my
-observations, findings and questions in a central location rather than dispersed
-throughout the code.
 
 1) Odd error on what should be a NLE_PERM
 When running a root level cmd (reg set) as non-root), I get a return message w/
@@ -119,6 +117,8 @@ msg.nla_put_u32(phy,nl80211h.NL80211_ATTR_WIPHY)
 msg.nla_put_u32(channels.ch2rf(ch),nl80211h.NL80211_ATTR_WIPHY_FREQ)
 msg.nla_put_u32(CHWIDTHS.index(chw),nl80211h.NL80211_ATTR_WIPHY_CHANNEL_TYPE)
 
+# Here as found during updating nl80211.h, _CHANNEL_TYPE is not CHANNEL_WIDTH
+
 and results in a 'invalid argument' error. So, am I sending the wrong crap? The
 description for this command in nl80211_h
 
@@ -152,3 +152,13 @@ phy <phyname> set txpower <auto|fixed|limit> [<tx power in mBm>]
 6) Passwords
  On ubuntu at least passwords for APs are stored in /etc/NetworkManager/system-connections
  under directory for ssid
+
+7) Kernel v4 introduces new constants in nl80211.h
+ - OCB support (Operation outside control of BSS) for vehicles in 5.9
+
+8) channel widths
+ line 2638 of nl80211_h defines channels widths "used with the NL80211_ATTR_CHANNEL_WIDTH"
+ but these are not the channels as defined for iw which uses  enum nl80211_channel_type
+ However, they are used in:
+ iw dev <devname> set freq <control freq> [20|40|80|80+80|160] [<center freq 1>] [<center freq 2>]
+

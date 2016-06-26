@@ -109,3 +109,4 @@ v 0.1.4
     - pyw has to catch libnl and libio errors and reraise as pyric errors
    o retooled exception messages
    o added new functions from 0.1.3 and 0.1.4 to unittests
+   o updated nl80211_h w/ additional constants included in kernel v 4 header

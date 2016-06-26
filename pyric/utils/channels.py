@@ -38,6 +38,7 @@ __status__ = 'Production'
 import pyric.net.wireless.nl80211_h as nl80211h
 
 # redefined widths (allowed in nl80211h)
+CHTYPES = nl80211h.NL80211_CHAN_TYPES
 CHWIDTHS = nl80211h.NL80211_CHAN_WIDTHS
 
 # ISM Bands (ieee80211.h-> BAND_ID_2G)

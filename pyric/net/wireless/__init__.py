@@ -20,7 +20,7 @@ are permitted provided that the following conditions are met:
 
  wireless 0.0.1
   desc: linux port of nl80211.h, nl80211.c
- includes: rfkill_h 0.0.1 nl80211_h 0.0.2 nl80211_c 0.0.1 wlan 0.0.2
+ includes: rfkill_h 0.0.1 nl80211_h 0.0.4 nl80211_c 0.0.2 wlan 0.0.2
  changes:
   o added nl80211_c to handle attribute policies
    - added nl80211_parse_freqs to parse out supported frequencies
@@ -28,8 +28,8 @@ are permitted provided that the following conditions are met:
 
 __name__ = 'wireless'
 __license__ = 'GPLv3'
-__version__ = '0.0.2'
-__date__ = 'April 2016'
+__version__ = '0.0.4'
+__date__ = 'June 2016'
 __author__ = 'Dale Patterson'
 __maintainer__ = 'Dale Patterson'
 __email__ = 'wraith.wireless@yandex.com'
