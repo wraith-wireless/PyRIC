@@ -4,11 +4,7 @@
 3) parse NL80211_ATTR_WIPHY_BANDS (have workaround currently in place)
  - after figuring out _CIPHER_SUITES, may be able to get a solution for the bands
 4) RFI (1)
-5) Should we move to netlink for setting ip address?
- - ioctl allows us to set erroneous values for netmask, broadcast whereas netlink
-   forces validity
 6) find a better way to get supported standards of a card
-7) code up txget, txset via netlink even though cards don't seem to support it
 8) Two commands that would add information of minor value
  o ethtool. uses ioctl but does not follow same pattern as ifconfig seems
     to use
@@ -109,18 +105,17 @@ error strings and test for NLE_SUCCESS in netlink error message
 6) Setting the channel/Frequency
 nl80211.h states that using NL80211_CMD_SET_WIPHY to set the channel is deprecated
 in place of NL80211_CMD_SET_CHANNEL. Below is the attempted code:
-phy = devinfoex(nlsock,nic)['phy']
-msg = nl.nlmsg_new(nl_type=_FAM80211ID_,
-                   cmd=nl80211h.NL80211_CMD_SET_CHANNEL,
-                   flags=nlh.NLM_F_REQUEST | nlh.NLM_F_ACK)
-msg.nla_put_u32(phy,nl80211h.NL80211_ATTR_WIPHY)
-msg.nla_put_u32(channels.ch2rf(ch),nl80211h.NL80211_ATTR_WIPHY_FREQ)
-msg.nla_put_u32(CHWIDTHS.index(chw),nl80211h.NL80211_ATTR_WIPHY_CHANNEL_TYPE)
+msg = nl.nlmsg_new(nltype=_familyid_(nlsock),
+                       cmd=nl80211h.NL80211_CMD_SET_CHANNEL,
+                       flags=nlh.NLM_F_REQUEST | nlh.NLM_F_ACK)
+    nl.nla_put_u32(msg, card.idx, nl80211h.NL80211_ATTR_IFINDEX)
+    nl.nla_put_u32(msg, channels.ch2rf(ch), nl80211h.NL80211_ATTR_WIPHY_FREQ)
+    nl.nla_put_u32(msg, channels.CHTYPES.index(chw), nl80211h.NL80211_ATTR_WIPHY_CHANNEL_TYPE)
+    nl.nl_sendmsg(nlsock, msg)
+    nl.nl_recvmsg(nlsock)
 
-# Here as found during updating nl80211.h, _CHANNEL_TYPE is not CHANNEL_WIDTH
-
-and results in a 'invalid argument' error. So, am I sending the wrong crap? The
-description for this command in nl80211_h
+and results in a 'Operation not supported' error.
+The description for this command in nl80211_h
 
  * @NL80211_CMD_SET_CHANNEL: Set the channel (using %NL80211_ATTR_WIPHY_FREQ
  *	and the attributes determining channel width) the given interface
@@ -132,11 +127,7 @@ description for this command in nl80211_h
  *	of any other interfaces, and other interfaces will again take
  *	precedence when they are used.
 
-mentions ifindex. Adding the ifindex with:
-
-msg.nla_put_u32(nl80211h.NL80211_ATTR_IFINDEX,8)
-
-still gives an 'invalid argument' error. Took out channel width and still no go
+This works if the card is in monitor mode
 
 * workaround in place, using the deprecated NL80211_CMD_SET_WIPHY
 

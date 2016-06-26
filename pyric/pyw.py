@@ -1291,7 +1291,6 @@ def chset(card, ch, chw=None, *argv):
         device's channels to be changed
     """
     if ch not in channels.channels(): raise pyric.error(errno.EINVAL, "Invalid channel")
-    if chw not in channels.CHTYPES: raise pyric.error(errno.EINVAL, "Invalid width")
 
     try:
         nlsock = argv[0]
@@ -1310,7 +1309,8 @@ def freqset(card, rf, chw=None, *argv):
      :param argv: netlink socket at argv[0] (or empty)
     """
     if rf not in channels.freqs(): raise pyric.error(errno.EINVAL, "Invalid frequency")
-    if chw not in channels.CHTYPES: raise pyric.error(errno.EINVAL, "Invalid width")
+    if chw in channels.CHTYPES: chw = channels.CHTYPES.index(chw)
+    else: raise pyric.error(errno.EINVAL, "Invalid width")
 
     try:
         nlsock = argv[0]
@@ -1323,8 +1323,7 @@ def freqset(card, rf, chw=None, *argv):
                            flags=nlh.NLM_F_REQUEST | nlh.NLM_F_ACK)
         nl.nla_put_u32(msg, card.phy, nl80211h.NL80211_ATTR_WIPHY)
         nl.nla_put_u32(msg, rf, nl80211h.NL80211_ATTR_WIPHY_FREQ)
-        nl.nla_put_u32(msg, channels.CHTYPES.index(chw),
-                       nl80211h.NL80211_ATTR_WIPHY_CHANNEL_TYPE)
+        nl.nla_put_u32(msg, chw, nl80211h.NL80211_ATTR_WIPHY_CHANNEL_TYPE)
         nl.nl_sendmsg(nlsock, msg)
         nl.nl_recvmsg(nlsock)
     except AttributeError:
@@ -1777,6 +1776,7 @@ def _fut_chset(card, ch, chw, *argv):
      :param argv: netlink socket at argv[0] (or empty)
      uses the newer NL80211_CMD_SET_CHANNEL vice iw's depecrated version which
      uses *_SET_WIPHY however, ATT does not work raise Errno 22 Invalid Argument
+     NOTE: This only works for cards in monitor mode
     """
     if ch not in channels.channels(): raise pyric.error(errno.EINVAL, "Invalid channel")
     if chw not in channels.CHTYPES: raise pyric.error(errno.EINVAL, "Invalid channel width")
@@ -1788,7 +1788,7 @@ def _fut_chset(card, ch, chw, *argv):
     msg = nl.nlmsg_new(nltype=_familyid_(nlsock),
                        cmd=nl80211h.NL80211_CMD_SET_CHANNEL,
                        flags=nlh.NLM_F_REQUEST | nlh.NLM_F_ACK)
-    nl.nla_put_u32(msg, card.phy, nl80211h.NL80211_ATTR_WIPHY)
+    nl.nla_put_u32(msg, card.idx, nl80211h.NL80211_ATTR_IFINDEX)
     nl.nla_put_u32(msg, channels.ch2rf(ch), nl80211h.NL80211_ATTR_WIPHY_FREQ)
     nl.nla_put_u32(msg, channels.CHTYPES.index(chw), nl80211h.NL80211_ATTR_WIPHY_CHANNEL_TYPE)
     nl.nl_sendmsg(nlsock, msg)

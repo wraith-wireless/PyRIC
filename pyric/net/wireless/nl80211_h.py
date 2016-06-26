@@ -422,7 +422,7 @@ NL80211_MULTICAST_GROUP_TESTMODE = "testmode"
  *	mesh config parameters may be given.
  * @NL80211_CMD_LEAVE_MESH: Leave the mesh network -- no special arguments, the
  *	network is determined by the network interface.
- * @NL80211_CMD_UNPROT_DEAUTHENTICATE: Unprotected deauthentication frame
+ * @NL80211_CMD_UNPR_OT_DEAUTHENTICATE: Unprotected deauthentication frame
  *	notification. This event is used to indicate that an unprotected
  *	deauthentication frame was dropped when MFP is in use.
  * @NL80211_CMD_UNPROT_DISASSOCIATE: Unprotected disassociation frame
