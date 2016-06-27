@@ -26,7 +26,7 @@ Requires:
  linux (preferred 3.x kernel)
  Python 2.7
 
- pyric 0.1.3
+ pyric 0.1.4
   desc: wireless nic library: wireless radio identification, manipulation, enumeration
   includes: /nlhelp /lib /net /utils pyw 0.1.4
   changes:
@@ -36,7 +36,7 @@ Requires:
 
 __name__ = 'pyric'
 __license__ = 'GPLv3'
-__version__ = '0.1.3'
+__version__ = '0.1.4'
 __date__ = 'June 2016'
 __author__ = 'Dale Patterson'
 __maintainer__ = 'Dale Patterson'
