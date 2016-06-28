@@ -25,7 +25,6 @@
  14) look at udevadm info --query=all --path /sys/class/net/<dev>
   o has devie driver, name and some other details but appears to get these
    the same way PyRIC does
- 16) look into readthedocs.
  17) distro tests
   - openSUSE
   - RedHat/Fedora
@@ -35,3 +34,4 @@
   - slackware
   - dd-wrt/OpenWRT
  18) port structs from new nl80211.h
+ 19) iw is showing a command that doesn't exist

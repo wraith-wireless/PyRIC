@@ -100,13 +100,15 @@ v 0.1.4
    o modified devadd. User is allowed to submit a Card object or a physical index
    o removed hardcoded values for covclassset, retry(short|long)set, retsthreshet and
      fragrthreshset
-     - constants defined in 80211.h
+     - constants now defined in wlan.h
    o removed return True where redundant i.e. when setting mac address we can assume
     it worked if no error was thrown
    o renamed ieee80211_h to wlan
    o didn't like the incestual circular pyric error (libnl shouldn't know about pyric)
     - replaced pyric.error with defined error in libnl and libio
     - pyw has to catch libnl and libio errors and reraise as pyric errors
-   o retooled exception messages
+    - retooled exception messages
    o added new functions from 0.1.3 and 0.1.4 to unittests
    o updated nl80211_h w/ additional constants included in kernel v 4 header
+   o added propietary concept of set to netlink processing
+    - nl80211 appears to define a set of like-sized elements (see cipher_suites)

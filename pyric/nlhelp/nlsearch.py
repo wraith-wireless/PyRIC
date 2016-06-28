@@ -62,16 +62,16 @@ attrpath = os.path.join(fpath,'attributes.help')
 attributes = None # attr -> desc, commands used by, datatype
 attrlookup = None # reverse lookup for attribute constants
 ain = None
-#try:
-    # first two lines are comments, 3rd line is empty
-ain = open(attrpath,'r')
-for _ in xrange(4): _in = ain.readline()
-attributes = json.loads(ain.readline())
-attrlookup = json.loads(ain.readline())
-#except:
-#    raise pyric.error(pyric.EUNDEF, "Failed to process attributes.help")
-#finally:
-#    if ain: ain.close()
+try:
+    # first three lines are comments, 3th line is empty
+    ain = open(attrpath,'r')
+    for _ in xrange(4): _in = ain.readline()
+    attributes = json.loads(ain.readline())
+    attrlookup = json.loads(ain.readline())
+except:
+    raise pyric.error(pyric.EUNDEF, "Failed to process attributes.help")
+finally:
+    if ain: ain.close()
 
 def command(cmd):
     """

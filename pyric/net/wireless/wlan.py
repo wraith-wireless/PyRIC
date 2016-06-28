@@ -35,9 +35,9 @@ __email__ = 'wraith.wireless@yandex.com'
 __status__ = 'Production'
 
 """
- cipher suite selectors - decided to (over)document this because it was such a  hassle to
- figure out, want to make sure I can come back at a later date and figure it out again
- faster
+ cipher suite selectors - decided to (over)document this because it was such a
+ hassle to figure out, want to make sure I can come back at a later date and
+ figure it out again faster
 
  From nl80211.h @NL80211_ATTR_CIPHER_SUITES: a set of u32 values indicating the
  supported cipher suites
@@ -91,7 +91,7 @@ __status__ = 'Production'
  say read the source code.
 
 """
-WLAN_CIPHER_SUITE_LEN = 4
+#WLAN_CIPHER_SUITE_LEN = 4
 WLAN_CIPHER_SUITE_GROUP    = 0x000fac00
 WLAN_CIPHER_SUITE_WEP40    = 0x000fac01
 WLAN_CIPHER_SUITE_TKIP     = 0x000fac02
@@ -110,13 +110,6 @@ WLAN_CIPHER_SUITE_SELECTORS = {
     WLAN_CIPHER_SUITE_GCMP:'GCMP',
     WLAN_CIPHER_SUITE_SMS4:'SMS4'
 }
-def ciphers(stream):
-    """
-     parses out ciphers from stream
-     :param stream: packed byte string
-     :returns: a list of cipher selectors
-    """
-
 
 """ Coverage Class Limits IAW Std Table 8-56 """
 COVERAGE_CLASS_MIN =  0

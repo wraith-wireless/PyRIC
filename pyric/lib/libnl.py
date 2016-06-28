@@ -32,7 +32,7 @@ see http://www.carisma.slowglass.com/~tgr/libnl/doc/core.html
 
 __name__ = 'libnl'
 __license__ = 'GPLv3'
-__version__ = '0.0.7'
+__version__ = '0.0.8'
 __date__ = 'June 2016'
 __author__ = 'Dale Patterson'
 __maintainer__ = 'Dale Patterson'
@@ -484,13 +484,17 @@ def nla_parse(msg,l,mtype,stream,idx):
             elif dt == nlh.NLA_U64: a = struct.unpack_from("Q",a,0)[0]
             elif dt == nlh.NLA_FLAG: a = ''  # flags should be 0 size
             elif dt == nlh.NLA_MSECS: a = struct.unpack_from("Q",a,0)[0]
+            elif dt == nlh.NLA_SET_U8: a = nla_parse_set(a,nlh.NLA_U8)
+            elif dt == nlh.NLA_SET_U16: a = nla_parse_set(a,nlh.NLA_U16)
+            elif dt == nlh.NLA_SET_U32: a = nla_parse_set(a,nlh.NLA_U32)
+            elif dt == nlh.NLA_SET_U64: a = nla_parse_set(a,nlh.NLA_U64)
             nla_put(msg,a,atype,dt)
         except struct.error:
             # append as Error, stripping null bytes
             nla_put(msg,_nla_strip_(a),atype,nlh.NLA_ERROR)
         except error as e:
             if e.errno == errno.EINVAL:
-                # a nested attribute failed to parse correctly
+                # a nested or set attribute failed to parse correctly
                 nla_put(msg, _nla_strip_(a), atype, nlh.NLA_ERROR)
             else:
                 raise
@@ -544,6 +548,35 @@ def nla_parse_nested(nested):
         idx = nlh.NLMSG_ALIGN(idx + alen)
     return ns
 
+def nla_parse_set(aset,etype):
+    """
+     parses out a set of like sized elements
+     :param aset: a netlink nl80211 set
+     :param etype: data type of each element in the set
+     :returns: list of elements in aset
+    """
+    # get the struct format and element size
+    if etype == nlh.NLA_U8: fmt = "B"
+    elif etype == nlh.NLA_U16: fmt = "H"
+    elif etype == nlh.NLA_U32: fmt = "I"
+    elif etype == nlh.NLA_U64: fmt = "Q"
+    else:
+        raise error(errno.EINVAL,"set elements are not valid datatype")
+    esize = struct.calcsize(fmt)
+
+    ss = []
+    idx = 0
+    asize = len(aset)
+    while idx < asize:
+        if asize - idx < esize: break # don't attempt to parse pad bytes
+        try:
+            s = struct.unpack_from(fmt,aset,idx)[0]
+            ss.append(s)
+            idx += esize
+        except struct.error:
+            raise error(errno.EINVAL,"set elements failed to unpack")
+    return ss
+
 def nla_put(msg,v,a,d):
     """
      append attribute to msg's attribute list
@@ -565,6 +598,10 @@ def nla_put_u64(msg,v,a): nla_put(msg,v,a,nlh.NLA_U64)
 def nla_put_string(msg,v,a): nla_put(msg,v,a,nlh.NLA_STRING)
 def nla_put_msecs(msg,v,a): nla_put(msg,v,a,nlh.NLA_MSECS)
 def nla_put_nested(msg,v,a): nla_put(msg,v,a,nlh.NLA_NESTED)
+def nla_put_set_u8(msg,v,a): nla_put(msg,v,a,nlh.NLA_SET_U8)
+def nla_put_set_u16(msg,v,a): nla_put(msg,v,a,nlh.NLA_SET_U16)
+def nla_put_set_u32(msg,v,a): nla_put(msg,v,a,nlh.NLA_SET_U32)
+def nla_put_set_u64(msg,v,a): nla_put(msg,v,a,nlh.NLA_SET_U64)
 
 def nla_putat(msg,i,v,a,d):
     """
@@ -654,6 +691,13 @@ def _attrpack_(a,v,d):
             nattr = struct.pack('B',nlen) + nested + '\x00'
             nattr += struct.pack("{0}x".format(nlh.NLMSG_ALIGNBY(len(nattr))))
             attr += nattr
+    else:
+        fmt = "" # appease PyCharm
+        if d == nlh.NLA_U8: fmt = "B"
+        elif d == nlh.NLA_U16: fmt = "H"
+        elif d == nlh.NLA_U32: fmt = "I"
+        elif d == nlh.NLA_U64: fmt = "Q"
+        for el in v: attr += struct.pack(fmt,el)
     attr = nlh.nlattrhdr(len(attr),a) + attr
     # this is nlmsg_padlen
     attr += struct.pack("{0}x".format(nlh.NLMSG_ALIGNBY(len(attr))))

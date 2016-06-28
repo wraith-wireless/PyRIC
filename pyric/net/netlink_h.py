@@ -268,7 +268,14 @@ NETLINK_CONNECTED   = 1
 """
 
 # Attribute Datatypes
-NLA_DATATYPES = ['unspec','u8','u16','u32','u64','string','flag','msecs','nested']
+"""
+ I add two datatypes to the netlink definition:
+ NLA_ERROR: designates an attribute that failed during unpacking
+ NLA_SET_*: designates an array of like sized attributes Sets are similar to nested
+  attributes but are not seperated by pad bytes.
+"""
+NLA_DATATYPES = ['unspec','u8','u16','u32','u64','string','flag','msecs','nested',
+                 'set_u8','set_u16','set_u32','set_u64']
 NLA_ERROR      = -1 # my own -> failed to unpack attribute, treat as unspec
 NLA_UNSPEC     =  0	# Unspecified type, binary data chunk
 NLA_U8         =  1  # 8 bit integer
@@ -279,8 +286,12 @@ NLA_STRING     =  5	# NUL terminated character string
 NLA_FLAG       =  6	# Flag
 NLA_MSECS      =  7	# Micro seconds (64bit)
 NLA_NESTED     =  8	# Nested attributes
-__NLA_TYPE_MAX =  9
-NLA_TYPE_MAX   = __NLA_TYPE_MAX - 1
+# the below are my own added to support nl80211 data like cipher_suites
+NLA_SET_U8     =  9 # set of u8s
+NLA_SET_U16    = 10 # set of u16s
+NLA_SET_U32    = 11 # set of u32s
+NLA_SET_U64    = 12 # set of u64s
+NLA_TYPE_MAX   =  NLA_SET_U64
 
 """
 struct nlattr {

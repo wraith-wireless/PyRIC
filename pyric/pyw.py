@@ -290,7 +290,8 @@ def macget(card, *argv):
         flag = sioch.SIOCGIFHWADDR
         ret = io.io_transfer(iosock, flag, ifh.ifreq(card.dev, flag))
         fam = struct.unpack_from(ifh.sa_addr, ret, ifh.IFNAMELEN)[0]
-        if fam == ifh.ARPHRD_ETHER or fam == ifh.AF_UNSPEC:  # confirm hwaddr
+        if fam in [ifh.ARPHRD_ETHER, ifh.AF_UNSPEC,ifh.ARPHRD_IEEE80211_RADIOTAP]:
+        #if fam == ifh.ARPHRD_ETHER or fam == ifh.AF_UNSPEC:  # confirm hwaddr
             return _hex2mac_(ret[18:24])
         else:
             raise pyric.error(errno.EAFNOSUPPORT,
@@ -322,7 +323,8 @@ def macset(card, mac, *argv):
         flag = sioch.SIOCSIFHWADDR
         ret = io.io_transfer(iosock, flag, ifh.ifreq(card.dev, flag, [mac]))
         fam = struct.unpack_from(ifh.sa_addr, ret, ifh.IFNAMELEN)[0]
-        if fam == ifh.ARPHRD_ETHER or fam == ifh.AF_UNSPEC: # confirm hwaddr
+        if fam in [ifh.ARPHRD_ETHER, ifh.AF_UNSPEC, ifh.ARPHRD_IEEE80211_RADIOTAP]:
+        #if fam == ifh.ARPHRD_ETHER or fam == ifh.AF_UNSPEC: # confirm hwaddr
             return _hex2mac_(ret[18:24])
         else:
             raise pyric.error(errno.EAFNOSUPPORT,
@@ -1489,7 +1491,7 @@ def devdel(card, *argv):
         msg = nl.nlmsg_new(nltype=_familyid_(nlsock),
                            cmd=nl80211h.NL80211_CMD_DEL_INTERFACE,
                            flags=nlh.NLM_F_REQUEST | nlh.NLM_F_ACK)
-        nl.nla_put_u32(msg, card.phy, nl80211h.NL80211_ATTR_IFINDEX)
+        nl.nla_put_u32(msg, card.idx, nl80211h.NL80211_ATTR_IFINDEX)
         nl.nl_sendmsg(nlsock, msg)
         nl.nl_recvmsg(nlsock)
     except AttributeError:
@@ -1653,27 +1655,24 @@ def _commands_(command):
             cs.append(cmd[13:].lower()) # skip NL80211_CMD_
         except KeyError:
             # kernel 4 added commands not found in kernel 3 nlh8022.h.
+            # keep this just in case new commands pop up again
             cs.append("unknown cmd ({0})".format(cmd))
     return cs
 
 def _ciphers_(cipher):
     """
-     parses the cipher stream returning a list of supported ciphers
+     identifies supported ciphers
      :param cipher: the cipher suite stream
      :returns: a list of supported ciphers
     """
-    # to understand fully, see ieee80211_h.py. Basically cipher is a set
-    # of ciphers each cipher being 4 bytes, unpack each cipher as a u32
-    # and find the value in the suite dict
     ss = []
-    for i in xrange(len(cipher) /  wlan.WLAN_CIPHER_SUITE_LEN):
-        s = struct.unpack_from('I', cipher, i * wlan.WLAN_CIPHER_SUITE_LEN)[0]
+    for s in cipher:
         try:
             ss.append(wlan.WLAN_CIPHER_SUITE_SELECTORS[s])
         except KeyError as e:
             # we could do nothing, or append 'rsrv' but we'll add a little
             # for testing/future identificaion purposes
-            ss.append('RSRV-{0}'.format(e))
+            ss.append('RSRV-{0}'.format(hex(int(e.__str__()))))
     return ss
 
 #### NETLINK/IOCTL PARAMETERS ####

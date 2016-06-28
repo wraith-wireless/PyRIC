@@ -23,7 +23,7 @@ lib subpackage
 
  lib 0.0.2
   desc: lib subpackage
- includes: libnl 0.0.7 libio 0.0.1
+ includes: libnl 0.0.8 libio 0.0.1
  changes:
   o added libio
   o updated libnl
@@ -39,6 +39,7 @@ lib subpackage
     in situations where attribute len is 0
    - fixed nlmsg_fromstream to handle non-ack message parsing with a length of 36
   o libnl and libnl now report their own errors rather than use pyric.error
+  o added support for NLA_SET
 """
 
 __name__ = 'lib'

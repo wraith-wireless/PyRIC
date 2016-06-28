@@ -162,8 +162,11 @@ IF_LINK_MODE_DORMANT = 1 # limit upward transition to dormant
 #  2) For whatever reason, all ioctl calls accept and return ip4 addresses
 #     prefixed by two null bytes
 
-AF_UNSPEC    = 0  # from socket.h sa_family unspecified
-ARPHRD_ETHER = 1  # from net/if_arp.h sa_family ethernet a.k.a AF_LOCAL
+AF_UNSPEC                 = 0   # from socket.h sa_family unspecified
+ARPHRD_ETHER              = 1   # from net/if_arp.h sa_family ethernet a.k.a AF_LOCAL
+ARPHRD_IEEE80211          = 801 # net/if_arp.h sa_family IEEE 802.11
+ARPHRD_IEEE80211_PRISM    = 802 # net/if_arp.h sa_family Prism2 header
+ARPHRD_IEEE80211_RADIOTAP = 803 # net/if_arp.h sa_family radiotap header
 AF_INET      = 2  # from socket.h ip address (ip4)
 sa_addr = 'H6B'
 def sockaddr(sa_family,sa_data=None):

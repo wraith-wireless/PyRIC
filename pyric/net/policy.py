@@ -54,11 +54,12 @@ def nla_datatype(policy,attr):
 
 # map string names to datatype lists
 nla_dts = {}
+nla_dts_set = {}
 
 #### CTRL_ATTR_*
 # commented out below to determine if nested _OPS and _MCAST_GROUPS
 # was causing an infinite loop in nla_parse_nested
-nla_dts["ctrl_attr"] = {genlh.CTRL_ATTR_UNSPEC:nlh.NLA_UNSPEC,
+nla_dts['ctrl_attr'] = {genlh.CTRL_ATTR_UNSPEC:nlh.NLA_UNSPEC,
                         genlh.CTRL_ATTR_FAMILY_ID:nlh.NLA_U16,
                         genlh.CTRL_ATTR_FAMILY_NAME:nlh.NLA_STRING,
                         genlh.CTRL_ATTR_VERSION:nlh.NLA_U32,
@@ -70,22 +71,22 @@ nla_dts["ctrl_attr"] = {genlh.CTRL_ATTR_UNSPEC:nlh.NLA_UNSPEC,
                         #genlh.CTRL_ATTR_MCAST_GROUPS: nlh.NLA_UNSPEC}
 
 #### CTRL_ATTR_OP_*
-nla_dts["ctrl_attr_op"] = {genlh.CTRL_ATTR_OP_UNSPEC:nlh.NLA_UNSPEC,
+nla_dts['ctrl_attr_op'] = {genlh.CTRL_ATTR_OP_UNSPEC:nlh.NLA_UNSPEC,
                            genlh.CTRL_ATTR_OP_ID:nlh.NLA_U32,
                            genlh.CTRL_ATTR_OP_FLAGS:nlh.NLA_U32}
 
 #### CTRL_ATTR_MCAST_*
-nla_dts["ctrl_attr_mcast"] = {genlh.CTRL_ATTR_MCAST_GRP_UNSPEC:nlh.NLA_UNSPEC,
+nla_dts['ctrl_attr_mcast'] = {genlh.CTRL_ATTR_MCAST_GRP_UNSPEC:nlh.NLA_UNSPEC,
                               genlh.CTRL_ATTR_MCAST_GRP_NAME:nlh.NLA_STRING,
                               genlh.CTRL_ATTR_MCAST_GRP_ID:nlh.NLA_U32}
 
-nla_dts["nl80211_attr"] = nl80211c.nl80211_policy
+nla_dts['nl80211_attr'] = nl80211c.nl80211_policy
 
 # ATT we do include the below as defined in nl80211_c
-#nla_dts["nl80211_key"] = nl80211c.nl80211_key_policy
-#nla_dts["nl80211_wowlan_trig"] = nl80211_wowlan_trig_policy
-#nla_dts["nl80211_wowlan_tcp"] = nl80211_wowlan_tcp_policy
-#nla_dts["nl80211_coalesce"] = nl80211_coalesce_policy
-#nla_dts["nl80211_rekey"] = nl80211_rekey_policy
-#nla_dts["nl80211_match"] = nl80211_match_policy
-#nla_dts["nl80211_plan"] = nl80211_plan_policy
+#nla_dts['nl80211_key'] = nl80211c.nl80211_key_policy
+#nla_dts['nl80211_wowlan_trig'] = nl80211_wowlan_trig_policy
+#nla_dts['nl80211_wowlan_tcp'] = nl80211_wowlan_tcp_policy
+#nla_dts['nl80211_coalesce'] = nl80211_coalesce_policy
+#nla_dts['nl80211_rekey'] = nl80211_rekey_policy
+#nla_dts['nl80211_match'] = nl80211_match_policy
+#nla_dts['nl80211_plan'] = nl80211_plan_policy
