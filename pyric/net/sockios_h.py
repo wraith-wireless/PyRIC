@@ -61,6 +61,9 @@ SIOCRTMSG = 0x890D # call to routing system
 SIOCGIWNAME  = 0x8B01 # get name (standards can be retrieved here)
 SIOCGIWTXPOW = 0x8B27 # get transmit power
 SIOCGIWFREQ	 = 0x8B05 # get frequency
+SIOCSIWSENS	 = 0x8B08 # set sensitivity (dBm) -> not supported
+SIOCGIWSENS	 = 0x8B09 # get sensitivity (dBm) -> not supported
+SIOCSIWTXPOW = 0x8B26 # set transmit power (dBm)
 
 # Socket configuration controls
 SIOCGIFNAME        = 0x8910 # get iface name

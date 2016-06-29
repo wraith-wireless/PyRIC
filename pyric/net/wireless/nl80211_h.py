@@ -555,6 +555,19 @@ NL80211_MULTICAST_GROUP_TESTMODE = "testmode"
  *	other station that transmission must be blocked until the channel
  *	switch is complete.
  #### NEW IN KERNEL VERSION 4 ####
+ * @NL80211_CMD_VENDOR: Vendor-specified command/event. The command is specified
+ *	by the %NL80211_ATTR_VENDOR_ID attribute and a sub-command in
+ *	%NL80211_ATTR_VENDOR_SUBCMD. Parameter(s) can be transported in
+ *	%NL80211_ATTR_VENDOR_DATA.
+ *	For feature advertisement, the %NL80211_ATTR_VENDOR_DATA attribute is
+ *	used in the wiphy data as a nested attribute containing descriptions
+ *	(&struct nl80211_vendor_cmd_info) of the supported vendor commands.
+ *	This may also be sent as an event with the same attributes.
+ * @NL80211_CMD_SET_QOS_MAP: Set Interworking QoS mapping for IP DSCP values.
+ *	The QoS mapping information is included in %NL80211_ATTR_QOS_MAP. If
+ *	that attribute is not included, QoS mapping is disabled. Since this
+ *	QoS mapping is relevant for IP packets, it is only valid during an
+ *	association. This is cleared on disassociation and AP restart.
  * @NL80211_CMD_ADD_TX_TS: Ask the kernel to add a traffic stream for the given
  *	%NL80211_ATTR_TSID and %NL80211_ATTR_MAC with %NL80211_ATTR_USER_PRIO
  *	and %NL80211_ATTR_ADMITTED_TIME parameters.
@@ -2965,7 +2978,7 @@ NL80211_CQM_RSSI_BEACON_LOSS_EVENT    = 2
  * @NL80211_TX_POWER_FIXED: fix TX power to the mBm parameter
  */
 """
-NL80211_TX_POWER_LEVELS = ['auto','limit','fixed']
+NL80211_TX_POWER_SETTINGS = ['auto','limit','fixed']
 NL80211_TX_POWER_AUTOMATIC = 0
 NL80211_TX_POWER_LIMITED   = 1
 NL80211_TX_POWER_FIXED     = 2

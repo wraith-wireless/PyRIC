@@ -400,8 +400,8 @@ class GENLMsg(dict):
         for attr,v,data in self['attrs']:
             try:
                 payload += _attrpack_(attr,v,data)
-            except struct.error:
-                raise error(-1,"Packing {0} {1}".format(attr,v))
+            except struct.error as e:
+                raise error(-1,"Packing {0} {1}: {2}".format(attr,v,e))
         return nlh.nlmsghdr(len(payload),self.nltype,self.flags,self.seq,self.pid) + payload
 
 def nlmsg_new(nltype=None,cmd=None,seq=None,pid=None,flags=None,attrs=None):
@@ -685,7 +685,6 @@ def _attrpack_(a,v,d):
     elif d == nlh.NLA_FLAG: attr = '' # a 0 sized attribute
     elif d == nlh.NLA_MSECS: attr = struct.pack("Q",v)
     elif d == nlh.NLA_NESTED:
-        attr = ''
         for nested in v:
             nlen = len(v) + 2
             nattr = struct.pack('B',nlen) + nested + '\x00'
@@ -693,10 +692,10 @@ def _attrpack_(a,v,d):
             attr += nattr
     else:
         fmt = "" # appease PyCharm
-        if d == nlh.NLA_U8: fmt = "B"
-        elif d == nlh.NLA_U16: fmt = "H"
-        elif d == nlh.NLA_U32: fmt = "I"
-        elif d == nlh.NLA_U64: fmt = "Q"
+        if d == nlh.NLA_SET_U8: fmt = "B"
+        elif d == nlh.NLA_SET_U16: fmt = "H"
+        elif d == nlh.NLA_SET_U32: fmt = "I"
+        elif d == nlh.NLA_SET_U64: fmt = "Q"
         for el in v: attr += struct.pack(fmt,el)
     attr = nlh.nlattrhdr(len(attr),a) + attr
     # this is nlmsg_padlen

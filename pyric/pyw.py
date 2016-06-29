@@ -96,7 +96,7 @@ _FAM80211ID_ = None
 # redefine interface types and monitor flags
 IFTYPES = nl80211h.NL80211_IFTYPES
 MNTRFLAGS = nl80211h.NL80211_MNTR_FLAGS
-TXPWRLVLS = nl80211h.NL80211_TX_POWER_LEVELS
+TXPWRSETTINGS = nl80211h.NL80211_TX_POWER_SETTINGS
 
 ################################################################################
 #### WIRELESS CORE                                                          ####
@@ -1085,8 +1085,8 @@ def devinfo(card, *argv):
 
     try:
         msg = nl.nlmsg_new(nltype=_familyid_(nlsock),
-                       cmd=nl80211h.NL80211_CMD_GET_INTERFACE,
-                       flags=nlh.NLM_F_REQUEST | nlh.NLM_F_ACK)
+                           cmd=nl80211h.NL80211_CMD_GET_INTERFACE,
+                           flags=nlh.NLM_F_REQUEST | nlh.NLM_F_ACK)
         nl.nla_put_u32(msg, idx, nl80211h.NL80211_ATTR_IFINDEX)
         nl.nl_sendmsg(nlsock, msg)
         rmsg = nl.nl_recvmsg(nlsock)
@@ -1196,39 +1196,47 @@ def phyinfo(card, *argv):
 #### TX/RX RELATED ####
 ################################################################################
 
-def txset(card, pwr, lvl, *argv):
+def txset(card, setting, lvl, *argv):
     """
+     ROOT Required
       sets cards tx power (iw phy card.<phy> <lvl> <pwr> * 100)
      :param card: Card object
-     :param pwr: desired tx power in dBm or None. NOTE: ignored if lvl is 'auto'
-     :param lvl: power level setting oneof {'auto' = automatically determine
+     :param setting: power level setting oneof {'auto' = automatically determine
       transmit power|'limit' = limit power by <pwr>|'fixed' = set to <pwr>}
+     :param lvl: desired tx power in dBm or None. NOTE: ignored if lvl is 'auto'
      :param argv: netlink socket at argv[0] (or empty)
      :returns: True on success
      NOTE: this does not work on my card(s) (nor does the corresponding iw
       command)
     """
-    # sanity check on power level
-    if lvl not in TXPWRLVLS: raise pyric.error(errno.EINVAL, "Invalid pwr lvl")
+    # sanity check on power setting and power level
+    if not setting in TXPWRSETTINGS:
+        raise pyric.error(errno.EINVAL, "Invalid power setting {0}".format(setting))
+    if setting != 'auto':
+        if lvl is None:
+            raise pyric.error(errno.EINVAL, "Power level must be specified")
 
     try:
         nlsock = argv[0]
     except IndexError:
-        return _nlstub_(txset, card, pwr, lvl)
+        return _nlstub_(txset, card, setting, lvl)
 
     try:
+        setting = TXPWRSETTINGS.index(setting)
         msg = nl.nlmsg_new(nltype=_familyid_(nlsock),
                            cmd=nl80211h.NL80211_CMD_SET_WIPHY,
                            flags=nlh.NLM_F_REQUEST | nlh.NLM_F_ACK)
-        nl.nla_put_u32(msg, card.phy, nl80211h.NL80211_ATTR_WIPHY)
-        if lvl != 'auto':
-            # convert pwr from dBm to mBm
-            nl.nla_put_u32(msg, int(pwr*100),
-                           nl80211h.NL80211_ATTR_WIPHY_TX_POWER_LEVEL)
+        # neither sending the phy or ifindex works
+        #nl.nla_put_u32(msg, card.phy, nl80211h.NL80211_ATTR_WIPHY)
+        nl.nla_put_u32(msg, card.idx, nl80211h.NL80211_ATTR_IFINDEX)
+        nl.nla_put_u32(msg, setting, nl80211h.NL80211_ATTR_WIPHY_TX_POWER_SETTING)
+        if setting != nl80211h.NL80211_TX_POWER_AUTOMATIC:
+            nl.nla_put_u32(msg, 100*lvl, nl80211h.NL80211_ATTR_WIPHY_TX_POWER_LEVEL)
         nl.nl_sendmsg(nlsock, msg)
         nl.nl_recvmsg(nlsock)
     except ValueError:
-        raise pyric.error(errno.EINVAL, "Invalid txpwr {0}".format(pwr))
+        # only relevent when converting to mbm
+        raise pyric.error(errno.EINVAL, "Invalid txpwr {0}".format(lvl))
     except AttributeError:
         raise pyric.error(errno.EINVAL, "Invalid Card object")
     except nl.error as e:

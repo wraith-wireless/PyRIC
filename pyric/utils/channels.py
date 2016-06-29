@@ -84,8 +84,9 @@ def ch2rf(c):
      :param c:channel
      :returns:frequency in MHz corresponding to channel
     """
-    if c in ISM_24_C2F:return ISM_24_C2F[c]
-    if c in UNII_5_C2F:return UNII_5_C2F[c]
+    if c in ISM_24_C2F: return ISM_24_C2F[c]
+    if c in UNII_5_C2F: return UNII_5_C2F[c]
+    if c in UNII_4_C2F: return UNII_4_C2F[c]
     return None
 
 def rf2ch(f):
@@ -94,6 +95,7 @@ def rf2ch(f):
      :param f:frequency (in MHz)
      :returns:channel number corresponding to frequency
     """
-    if f in ISM_24_F2C:return ISM_24_F2C[f]
-    if f in UNII_5_F2C:return UNII_5_F2C[f]
+    if f in ISM_24_F2C: return ISM_24_F2C[f]
+    if f in UNII_5_F2C: return UNII_5_F2C[f]
+    if f in UNII_4_F2C: return UNII_4_F2C[f]
     return None

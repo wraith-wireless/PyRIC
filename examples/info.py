@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-""" details.py
+""" info.py
 
 Example for displaying device details
 
@@ -36,9 +36,9 @@ def execute(dev):
     msg += "\twiphy: {0}\n".format(card.phy)
     if dinfo['mode'] == 'managed':
         msg += "\tchannel: {0} ({1} MHz), width: {2}, CF: {3}\n".format(rf2ch(dinfo['RF']),
-                                                                      dinfo['RF'],
-                                                                      dinfo['CHW'],
-                                                                      dinfo['CF'])
+                                                                        dinfo['RF'],
+                                                                        dinfo['CHW'],
+                                                                        dinfo['CF'])
     else:
         msg += "\tDevice not associated\n"
     print msg
@@ -57,9 +57,11 @@ def execute(dev):
     msg += "\tSupported Commands:\n"
     for cmd in pinfo['commands']:
         msg += "\t  * {0}\n".format(cmd)
-    msg += "\tSupported Channels:\n"
-    for ch in map(rf2ch,pinfo['freqs']):
-        msg += "\t  * {0}\n".format(ch)
+    msg += "\tSupported Frequencies:\n"
+    for rf in pinfo['freqs']:
+        msg += "\t * {0} ({1})\n".format(rf,rf2ch(rf))
+    #for ch in map(rf2ch,pinfo['freqs']):
+    #    msg += "\t  * {0}\n".format(ch)
     msg += "\tSupported Ciphers:\n"
     for cipher in pinfo['ciphers']:
         msg += "\t  * {0}\n".format(cipher)

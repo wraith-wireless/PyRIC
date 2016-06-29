@@ -34,26 +34,10 @@ __status__ = 'Production'
 from setuptools import setup, find_packages
 import pyric
 
-long_desc = """
- PyRIC is Linux wireless network interface controller library. It provides the
- ability to manipuate, identify and enumerate your system's wireless cards. PyRIC
- is a pure python port of a subset of the functionality provided by iw, ifconfig,
- and rfkill.\n
-
- PyRIC is:\n
- * Pythonic: No ctypes, SWIG etc. PyRIC redefines C header files as Python and
- uses sockets to communicate with kernel.\n
- * Self-sufficient: No third-party files used, PyRIC is completely self-contained\n
- * Fast: (relatively speaking) PyRIC is faster than using iw through subprocess.Popen\n
- * Parseless: Get the output you without parsing output from iw. Never worry about
- iw updates and rewriting your parsers.\n
- * Easy: If you can use iw, you can use PyRIC\n
-"""
-
 setup(name='PyRIC',
       version=pyric.__version__,
       description="Python Wireless Library",
-      long_description=long_desc,
+      long_description=pyric.long_desc,
       url='http://wraith-wireless.github.io/pyric',
       download_url="https://github.com/wraith-wireless/pyric/archive/"+pyric.__version__+".tar.gz",
       author=pyric.__author__,
