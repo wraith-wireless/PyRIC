@@ -43,10 +43,10 @@
     - get Operation not supported for setting tx power (see pyw.txset)
     - have tried using the ifindex and phy. Both methods are accepted, returning
      only Errno 95.
-    - Is the operation not supported by my cards? or is it not supported by the
-     kernel?
    o when using mBm
     - no errors reported but tx power is not changed
+   o Is the operation not supported by my cards? or is it not supported by the
+     kernel?
  23) Unknown Command 104. After updating to kernel 4, iw phy <phy> info returns
   a Unknown command (104). pyw.phyinfo does not return this.
    - iw 3.17 being used
