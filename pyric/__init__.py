@@ -69,10 +69,10 @@ def strerror(errno):
 version = __version__
 # define long description
 long_desc = """
-# PyRIC 0.1.4: Python Radio Interface Controller
-## Linux wireless library for the Python Wireless Developer and Pentester
+PyRIC 0.1.4: Python Radio Interface Controller
+Linux wireless library for the Python Wireless Developer and Pentester
 
-## 1 DESCRIPTION:
+DESCRIPTION:
 PyRIC (is a Linux only) library providing wireless developers and pentesters the
 ability to identify, enumerate and manipulate their system's wireless cards
 programmatically in Python. Pentesting applications and scripts written in Python
@@ -99,33 +99,7 @@ it's initial inception, PyRIC has grown to include ioctl support to replicate
 features of ifconfig such as getting or setting the mac address and has recently
 implemented rkill support to soft block or unblock wireless cards.
 
-### a. Additions to iw
-Several "extensions" have been added to iw:
-* Persistent sockets: pyw provides the caller with functions & ability to pass
-their own netlink (or ioctl socket) to pyw functions;
-* One-time request for the nl80211 family id: pyw stores the family id in a
-global variable
-* Consolidating different "reference" values to wireless NICs in one class
-(Cards are tuples t=(dev,phy #,ifindex)
-
-These are minimal changes but they can improve the performance of any progams
-that needs to access the wireless nic repeatedly as shown in the table below.
-
-| chset      | Total    | Avg    | Longest   | Shortest |
-|------------|----------|--------|-----------|----------|
-| Popen(iw)  | 588.3059 | 0.0588 | 0.0682    | 0.0021   |
-| one-time   | 560.3559 | 0.0560 | 0.0645    | 0.0003   |
-| persistent | 257.8293 | 0.0257 | 0.0354    | 0.0004   |
-
-The table shows benchmarks for hop time on a Alfa AWUS036NH 10000 times. Note that
-there is no implication that PyRIC is faster than iw. Rather, the table shows that
-PyRIC is faster than using Popen to execute iw. Using one-time sockets, there is
-a difference of 28 seconds over Popen and iw with a small decrease in the average
-hoptime. Not a big difference. However, the performance increased dramatically when
-persistent netlink sockets are used with the total time and average hop time nearly
-halved.
-
-### b. Current State
+CURRENT STATE
 ATT, PyRIC accomplishes my core needs but it is still a work in progress. It
 currently pyw provides the following:
 * enumerate interfaces and wireless interfaces
@@ -158,8 +132,7 @@ PyRIC also provides limited help functionality concerning nl80211 commands/attri
 for those who wish to add additional commands. However, it pulls directly from
 the comments nl80211 header file and may be vague.
 
-### c. What is PyRIC?
-
+WHAT IS PyRIC?
 To avoid confusion, PyRIC is the system as a whole, including all header files
 and "libraries" that are required to communicate with the kernel. pyw is a
 interface to these libraries providing specific funtions.
