@@ -23,14 +23,15 @@ Defines the Pyric error class and constants for some errors. All pyric errors
 will follow the 2-tuple form of EnvironmentError
 
 Requires:
- linux (preferred 3.x kernel)
+ linux (3.x or 4.x kernel)
  Python 2.7
 
- pyric 0.1.4
+ pyric 0.1.5
   desc: wireless nic library: wireless radio identification, manipulation, enumeration
-  includes: /nlhelp /lib /net /utils pyw 0.1.4
+  includes: /nlhelp /lib /net /utils pyw.py
   changes:
    See CHANGES in top-level directory
+
 
  WARNING: DO NOT import *
 
@@ -38,7 +39,7 @@ Requires:
 
 __name__ = 'pyric'
 __license__ = 'GPLv3'
-__version__ = '0.1.4'
+__version__ = '0.1.5'
 __date__ = 'June 2016'
 __author__ = 'Dale Patterson'
 __maintainer__ = 'Dale Patterson'

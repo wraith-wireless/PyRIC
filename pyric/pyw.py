@@ -67,7 +67,7 @@ NOTE:
 
 __name__ = 'pyw'
 __license__ = 'GPLv3'
-__version__ = '0.1.5'
+__version__ = '0.1.6'
 __date__ = 'June 2016'
 __author__ = 'Dale Patterson'
 __maintainer__ = 'Dale Patterson'
@@ -566,7 +566,7 @@ def broadcastset(card, broadcast, *argv):
             raise pyric.error(e, e.strerror)
 
 ################################################################################
-#### ON/OFF ####
+#### HARDWARE ON/OFF                                                        ####
 ################################################################################
 
 def isup(card, *argv):
@@ -584,7 +584,7 @@ def isup(card, *argv):
     try:
         return _issetf_(_flagsget_(card.dev, iosock), ifh.IFF_UP)
     except AttributeError:
-        raise pyric.error(pyric.EINVAL, "Invalid Card object")
+        raise pyric.error(pyric.EINVAL, "Invalid Card")
 
 def up(card, *argv):
     """
@@ -603,7 +603,7 @@ def up(card, *argv):
         if not _issetf_(flags, ifh.IFF_UP):
             _flagsset_(card.dev, _setf_(flags, ifh.IFF_UP), iosock)
     except AttributeError:
-        raise pyric.error(pyric.EINVAL, "Invalid Card object")
+        raise pyric.error(pyric.EINVAL, "Invalid Card")
 
 def down(card, *argv):
     """
@@ -622,7 +622,7 @@ def down(card, *argv):
         if _issetf_(flags, ifh.IFF_UP):
             _flagsset_(card.dev, _unsetf_(flags, ifh.IFF_UP), iosock)
     except AttributeError:
-        raise pyric.error(pyric.EINVAL, "Invalid Card object")
+        raise pyric.error(pyric.EINVAL, "Invalid Card")
 
 def isblocked(card):
     """
@@ -683,7 +683,7 @@ def pwrsaveget(card, *argv):
         nl.nl_sendmsg(nlsock, msg)
         rmsg = nl.nl_recvmsg(nlsock)
     except AttributeError:
-        raise pyric.error(pyric.EINVAL, "Invalid Card object")
+        raise pyric.error(pyric.EINVAL, "Invalid Card")
     except nl.error as e:
         raise pyric.error(e.errno, e.strerror)
 
@@ -712,7 +712,7 @@ def pwrsaveset(card, on, *argv):
         nl.nl_sendmsg(nlsock, msg)
         _ = nl.nl_recvmsg(nlsock)
     except AttributeError:
-        raise pyric.error(pyric.EINVAL, "Invalid Card object")
+        raise pyric.error(pyric.EINVAL, "Invalid Card")
     except ValueError:
         raise pyric.error(pyric.EINVAL, "Invalid parameter on")
     except nl.error as e:
@@ -764,7 +764,7 @@ def covclassset(card, cc, *argv):
         nl.nl_sendmsg(nlsock, msg)
         _ = nl.nl_recvmsg(nlsock)
     except AttributeError:
-        raise pyric.error(pyric.EINVAL, "Invalid Card object")
+        raise pyric.error(pyric.EINVAL, "Invalid Card")
     except ValueError:
         raise pyric.error(pyric.EINVAL, "Invalid parameter value for cc")
     except nl.error as e:
@@ -814,7 +814,7 @@ def retryshortset(card, lim, *argv):
         nl.nl_sendmsg(nlsock, msg)
         _ = nl.nl_recvmsg(nlsock)
     except AttributeError:
-        raise pyric.error(pyric.EINVAL, "Invalid Card object")
+        raise pyric.error(pyric.EINVAL, "Invalid Card")
     except ValueError:
         raise pyric.error(pyric.EINVAL, "Invalid parameter value for lim")
     except nl.error as e:
@@ -863,7 +863,7 @@ def retrylongset(card, lim, *argv):
         nl.nl_sendmsg(nlsock, msg)
         _ = nl.nl_recvmsg(nlsock)
     except AttributeError:
-        raise pyric.error(pyric.EINVAL, "Invalid Card object")
+        raise pyric.error(pyric.EINVAL, "Invalid Card")
     except ValueError:
         raise pyric.error(pyric.EINVAL, "Invalid parameter value for lim")
     except nl.error as e:
@@ -914,7 +914,7 @@ def rtsthreshset(card, thresh, *argv):
         nl.nl_sendmsg(nlsock, msg)
         _ = nl.nl_recvmsg(nlsock)
     except AttributeError:
-        raise pyric.error(pyric.EINVAL, "Invalid Card object")
+        raise pyric.error(pyric.EINVAL, "Invalid Card")
     except ValueError:
         raise pyric.error(pyric.EINVAL, "Invalid parameter value for thresh")
     except nl.error as e:
@@ -965,7 +965,7 @@ def fragthreshset(card, thresh, *argv):
         nl.nl_sendmsg(nlsock, msg)
         _ = nl.nl_recvmsg(nlsock)
     except AttributeError:
-        raise pyric.error(pyric.EINVAL, "Invalid Card object")
+        raise pyric.error(pyric.EINVAL, "Invalid Card")
     except nl.error as e:
         raise pyric.error(e.errno, e.strerror)
 
@@ -1091,7 +1091,7 @@ def ifinfo(card, *argv):
                 'inet':ip4, 'bcast':bcast, 'mask':nmask}
     #except pyric.error # allow pyric errors to fall through
     except AttributeError:
-        raise pyric.error(pyric.EINVAL, "Invalid Card object")
+        raise pyric.error(pyric.EINVAL, "Invalid Card")
 
     return info
 
@@ -1181,7 +1181,7 @@ def phyinfo(card, *argv):
         nl.nl_sendmsg(nlsock, msg)
         rmsg = nl.nl_recvmsg(nlsock)
     except AttributeError:
-        raise pyric.error(pyric.EINVAL, "Invalid Card object")
+        raise pyric.error(pyric.EINVAL, "Invalid Card")
     except nl.error as e:
         raise pyric.error(e.errno, e.strerror)
 
@@ -1277,7 +1277,7 @@ def txset(card, setting, lvl, *argv):
         # only relevent when converting to mbm
         raise pyric.error(pyric.EINVAL, "Invalid txpwr {0}".format(lvl))
     except AttributeError:
-        raise pyric.error(pyric.EINVAL, "Invalid Card object")
+        raise pyric.error(pyric.EINVAL, "Invalid Card")
     except nl.error as e:
         raise pyric.error(e.errno, e.strerror)
 
@@ -1376,7 +1376,7 @@ def freqset(card, rf, chw=None, *argv):
         nl.nl_sendmsg(nlsock, msg)
         nl.nl_recvmsg(nlsock)
     except AttributeError:
-        raise pyric.error(pyric.EINVAL, "Invalid Card object")
+        raise pyric.error(pyric.EINVAL, "Invalid Card")
     except nl.error as e:
         raise pyric.error(e.errno, e.strerror)
 
@@ -1436,7 +1436,7 @@ def modeset(card, mode, flags=None, *argv):
         nl.nl_sendmsg(nlsock, msg)
         nl.nl_recvmsg(nlsock)
     except AttributeError:
-        raise pyric.error(pyric.EINVAL, "Invalid Card object")
+        raise pyric.error(pyric.EINVAL, "Invalid Card")
     except nl.error as e:
         raise pyric.error(e.errno, e.strerror)
 
@@ -1460,7 +1460,7 @@ def ifaces(card, *argv):
             if info['card'].phy == card.phy:
                 ifs.append((info['card'], info['mode']))
         except AttributeError:
-            raise pyric.error(pyric.EINVAL, "Invalid Card object")
+            raise pyric.error(pyric.EINVAL, "Invalid Card")
         except nl.error as e:
             raise pyric.error(e.errno, e.strerror)
     return ifs
@@ -1542,7 +1542,50 @@ def devdel(card, *argv):
         nl.nl_sendmsg(nlsock, msg)
         nl.nl_recvmsg(nlsock)
     except AttributeError:
-        raise pyric.error(pyric.EINVAL, "Invalid Card object")
+        raise pyric.error(pyric.EINVAL, "Invalid Card")
+    except nl.error as e:
+        raise pyric.error(e.errno, e.strerror)
+
+################################################################################
+#### STA FUNCTIONS                                                          ####
+################################################################################
+
+def isconnected(card, *argv):
+    """
+     disconnect the card from an AP
+     :param card: Card object
+     :param argv: netlink socket at argv[0] (or empty)
+     NOTE: does not return error if card is not connected
+    """
+    try:
+        nlsock = argv[0]
+    except IndexError:
+        return _nlstub_(isconnected, card)
+
+    return devinfo(card, nlsock)['RF'] is not None
+
+def disconnect(card, *argv):
+    """
+     REQUIRES ROOT PRIVILEGES
+     disconnect the card from an AP
+     :param card: Card object
+     :param argv: netlink socket at argv[0] (or empty)
+     NOTE: does not return error if card is not connected
+    """
+    try:
+        nlsock = argv[0]
+    except IndexError:
+        return _nlstub_(disconnect, card)
+
+    try:
+        msg = nl.nlmsg_new(nltype=_familyid_(nlsock),
+                           cmd=nl80211h.NL80211_CMD_DISCONNECT,
+                           flags=nlh.NLM_F_REQUEST | nlh.NLM_F_ACK)
+        nl.nla_put_u32(msg, card.idx, nl80211h.NL80211_ATTR_IFINDEX)
+        nl.nl_sendmsg(nlsock, msg)
+        nl.nl_recvmsg(nlsock)
+    except AttributeError:
+        raise pyric.error(pyric.EINVAL, "Invalid Card")
     except nl.error as e:
         raise pyric.error(e.errno, e.strerror)
 

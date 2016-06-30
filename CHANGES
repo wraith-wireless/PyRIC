@@ -115,3 +115,8 @@ v 0.1.4
     - nl80211 appears to define a set of like-sized elements (see cipher_suites)
    o modified pyric exceptions
     - imports errno codes into pyric, conforming how functions access error codes
+
+v 0.1.5 Begin STA associated functionality
+  o added functions:
+   - isconnected
+   - disconnect

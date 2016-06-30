@@ -73,7 +73,7 @@
     basicstyle=\footnotesize
 }
 
-\title{\includegraphics[scale=1]{logo}\\ PyRIC v0.1.4: User Manual}
+\title{\includegraphics[scale=1]{logo}\\ PyRIC v0.1.5: User Manual}
 \author{Dale V. Patterson\\ wraith.wireless@yandex.com}
 
 \begin{document}
@@ -793,6 +793,8 @@ list of card's 802.11 supported standards
 netlink, get card's supported modes
 \item devcmds(card,[nlsock]): (iw phy card.phy info | grep commands), type:
 netlink, get card's supported commands
+\item ifinfo(card,[iosock]): (ifconfig card.<dev>), type: ioctl, get hardware 
+related info for card 
 \item devinfo(card,[nlsock]): (iw dev card.<dev> info), type: netlink, get info 
 for dev 
 \item phyinfo(card,[nlsock]): (iw phy card.<phy> info), type: netlink, get info
@@ -819,8 +821,12 @@ get card's mode
 <vnic> type <mode> flags <flags>), type: netlink, creates a new virtual interface
 on card's phy with dev vdev, in mode and using flags. Note: flags are only supported
 in when creating a monitor mode
-\item devdel(card,[nlsock]): (iw card.<dev> del), type: netlink, deletes dev
+\item devdel(card,[nlsock]): (iw card.<dev> del), type: netlink, deletes card
 \begin{itemize}
+\item isconnected(card, [nlsock]): (iw card.<dev> info | grep channel), type: 
+netlink, determines if card is connected
+\item disconnect(card, [nlsock]): (iw card.<dev> disconnect), type: netlink,
+disconnects card from AP 
 \item \_hex2mac\_(v): returns a ':' separated mac address from byte stream v
 \item \_hex2ip4\_(v): returns a '.' separated ip4 address from byte stream v
 \item \_validip4\_(addr): determines if addr is a valid ip4 address
@@ -1097,7 +1103,7 @@ control call flag to the kernel and returns the received ifreq structure
 \end{enumerate}
 
 \section{Copyright and License}\label{sec:copy}
-PYRIC: Python Radio Interface Controller v0.1.4\\
+PYRIC: Python Radio Interface Controller v0.1.5\\
 
 Copyright (C) 2016  Dale V. Patterson (wraith.wireless@yandex.com)\\
 
