@@ -287,6 +287,6 @@ def ifreq(ifrn,ifru=None,param=None):
         else:
             raise AttributeError("ifru {0} not supported".format(ifru))
     except (TypeError,IndexError):
-        raise AttributeError("param is invalid")
+        raise AttributeError("parameters are invalid")
 
     return ifr

@@ -66,13 +66,12 @@ halved.
 ATT, PyRIC accomplishes my core needs but it is still a work in progress. It
 currently pyw provides the following:
 * enumerate interfaces and wireless interfaces
-* identify a cards chipset and driver
+* identify a cards driver, chipset and manufacturer
 * get/set hardware address
 * get/set ip4 address, netmask and or broadcast
 * turn card on/off
-* get supported standards
-* get supported commands
-* get supported modes
+* get supported standards, commands or modes
+* get if info
 * get dev info
 * get phy info
 * get/set regulatory domain
@@ -158,8 +157,8 @@ To use PyRIC, see the examples folder or read throuhg PyRIC.pdf. However, for
 those impatient types:
 
 ```python
-import pyric          # pyric error and EUNDEF error code
-from pyric import pyw  iw functionality
+import pyric           # pyric errors
+from pyric import pyw  # iw functionality
 ```
 
 will import the basic requirements and unless otherwise stated is assumed for the
@@ -169,6 +168,21 @@ that these examples use one-time sockets.
 
 Although not all functions require root, we assume that the below have been
 executed with root permissions.
+
+Before proceeding with the examples, let's talk about pyric error handling. The
+pyric module imports the errorcodes found in the errno module as its own. The 
+pyric error subclasses EnvironmentError and all pyric errors are tuples of the 
+form t = (error code,error message).
+
+```python
+>>> try:
+...     #some pyric code
+... except pyric.error as e:
+...     #handle the error
+```
+
+Work is ongoing to help clarify some of the error messages returned by default
+by os.strerror for example. 
 
 ### a. System/Wireless Core Functionality
 These functions do not work with a specific device rather with the system.
@@ -298,6 +312,17 @@ and Fragmentation thresholds see http://resources.infosecinstitute.com/rts-thres
 #### iv. Getting Info On Your Card
 
 ```python
+>>> iinfo = pyw.ifinfo(w0)
+>>> for i in iinfo: print i, iinfo[i]
+... 
+mask 255.255.255.192
+driver iwlwifi
+hwaddr a0:88:b4:9e:68:58
+chipset Intel 4965/5xxx/6xxx/1xxx
+bcast 192.168.3.63
+inet 192.168.3.7
+manufacturer Intel Corporate
+>>>
 >>> dinfo = pyw.devinfo(w0)
 >>> for d in dinfo: print d, dinfo[d]
 ...

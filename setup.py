@@ -35,11 +35,11 @@ from setuptools import setup, find_packages
 import pyric
 
 setup(name='PyRIC',
-      version=pyric.__version__,
+      version=pyric.version,
       description="Python Wireless Library",
       long_description=pyric.long_desc,
       url='http://wraith-wireless.github.io/pyric',
-      download_url="https://github.com/wraith-wireless/pyric/archive/"+pyric.__version__+".tar.gz",
+      download_url="https://github.com/wraith-wireless/pyric/archive/"+pyric.version+".tar.gz",
       author=pyric.__author__,
       author_email=pyric.__email__,
       maintainer=pyric.__maintainer__,

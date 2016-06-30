@@ -32,6 +32,8 @@ Requires:
   changes:
    See CHANGES in top-level directory
 
+ WARNING: DO NOT import *
+
 """
 
 __name__ = 'pyric'
@@ -43,21 +45,29 @@ __maintainer__ = 'Dale Patterson'
 __email__ = 'wraith.wireless@yandex.com'
 __status__ = 'Production'
 
-from os import strerror
-
-# all exceptions are tuples t=(error code,error message)
-# we use errno.errocodes and use codes < 0 as an undefined error code
-EUNDEF = -1
+# define pyric exceptions
+#  all exceptions are tuples t=(error code,error message)
+#  we use error codes defined in errno, adding -1 to define the undefined error
+#  EUNDEF. I don't like importing all from errno but it provides conformity in
+#  error handling i.e modules using pyric.error do not need to call pyric.EUNDEF
+#  and errno.EINVAL but can call pyric.EUNDEF and pyric.EINVAL
+EUNDEF = -1                # undefined error
+from errno import *        # make all errno errors pyric errors
+errorcode['EUNDEF'] = -1   # add ours to errorcode dicts
 class error(EnvironmentError): pass
+# BELOW IS STILL A WORK IN PRGORESS
+def strerror(errno):
+    import os
+    if errno < 0: return "Undefined error"
+    elif errno == EPERM: return "Superuser privileges required"
+    elif errno == EINVAL: return "Invalid parameter"
+    else:
+        return os.strerror(errno)
 
-def perror(e):
-    """
-    :param e: error code
-    :returns: string description of error code
-    """
-    # anything less than 0 is an unknown
-    return strerror(e)
-
+# for setup.py use
+# redefine version for easier access
+version = __version__
+# define long description
 long_desc = """
 # PyRIC 0.1.4: Python Radio Interface Controller
 ## Linux wireless library for the Python Wireless Developer and Pentester

@@ -97,6 +97,7 @@ v 0.1.4
     - covclassget
     - retryshortget
     - retrylongget
+    - ifinfo
    o modified devadd. User is allowed to submit a Card object or a physical index
    o removed hardcoded values for covclassset, retry(short|long)set, retsthreshet and
      fragrthreshset
@@ -112,3 +113,5 @@ v 0.1.4
    o updated nl80211_h w/ additional constants included in kernel v 4 header
    o added propietary concept of set to netlink processing
     - nl80211 appears to define a set of like-sized elements (see cipher_suites)
+   o modified pyric exceptions
+    - imports errno codes into pyric, conforming how functions access error codes

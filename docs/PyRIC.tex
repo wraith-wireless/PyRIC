@@ -464,7 +464,7 @@ the original (now with a netlink socket) and then destroys the netlink socket.\\
 \begin{lstlisting}[caption={Using Persistent Sockets},
                    label={lst:persistent},
                    language=Python]
- 1: import pyric                      # pyric error (and ecode EUNDEF)
+ 1: import pyric                      # pyric errors
  2: from pyric import pyw             # for iw functionality
  3: from pyric.lib import libnl as nl # for netlink sockets
  4:
@@ -911,7 +911,7 @@ manufacturer name for use by hardware.py functions. From a command line, type: \
 
 \subsection{Functions}
 \begin{enumerate}
-\item parse([opath]): returns a dict of oui:manufacturer key->value pairs stored
+\item load([opath]): returns a dict of oui:manufacturer key->value pairs stored
 in the text file at opath. If opath is not specified, uses the default
 \item fetch([opath]): retrieves oui.txt from the IEEE website, parses the files
 and stores the results in a PyRIC friendly format in opath. If opath is not 

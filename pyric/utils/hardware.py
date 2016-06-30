@@ -84,7 +84,7 @@ def ifcard(dev):
      :returns: tuple t = (driver,chipset)
     """
     driver = ifdriver(dev)
-    return driver, ifchipset(driver)
+    return driver,ifchipset(driver)
 
 def ifdriver(dev):
     """

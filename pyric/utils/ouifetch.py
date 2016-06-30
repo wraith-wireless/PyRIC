@@ -40,7 +40,7 @@ import pyric
 OUIURL = 'http://standards-oui.ieee.org/oui.txt'
 OUIPATH = os.path.join(os.path.dirname(os.path.abspath(__file__)),'data/oui.txt')
 
-def parse(opath=None):
+def load(opath=None):
     """
      parse oui.txt file
      :param opath: path of oui text file
