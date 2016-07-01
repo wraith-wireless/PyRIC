@@ -69,3 +69,9 @@
     NL80211_CMD_SET_QOS_MAP - need to identify a card that supports this command
     and determine that pyw does correctly identify it
   24) confirm download_url in setup.py is valid
+  25) nested attribute handling
+   o parsing iw dev wlan0 link fails on nla_parse_nested(... @NL80211_ATTR_BSS)
+   o parsing on iw dev alfa0 link succeeds
+   o need to try this on the bands structure
+  26) need to parse dumps NLM_F_DUMP, for now we're good with link so long as the
+   card is connected but it will come up eventually

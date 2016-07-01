@@ -120,3 +120,6 @@ v 0.1.5 Begin STA associated functionality
   o added functions:
    - isconnected
    - disconnect
+  o updated nested netlink attribute handling - my understanding of it was incomplete
+   - still having occasional errors.  intel card does not parse CMD_SCAN correctly
+    but alfa does

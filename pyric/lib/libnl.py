@@ -32,8 +32,8 @@ see http://www.carisma.slowglass.com/~tgr/libnl/doc/core.html
 
 __name__ = 'libnl'
 __license__ = 'GPLv3'
-__version__ = '0.0.8'
-__date__ = 'June 2016'
+__version__ = '0.1.0'
+__date__ = 'July 2016'
 __author__ = 'Dale Patterson'
 __maintainer__ = 'Dale Patterson'
 __email__ = 'wraith.wireless@yandex.com'
@@ -224,8 +224,7 @@ def nl_sendmsg(sock,msg,override=False):
             msg.seq = sock.seq
         msg.flags = msg.flags | nlh.NLM_F_ACK
         sent = sock.send(msg.tostream())
-        if sent != msg.len:
-            raise error(errno.EBADMSG,"Message sent incomplete")
+        if sent != msg.len: raise error(errno.EBADMSG,"Message sent incomplete")
     except socket.error as e:
         raise error(errno.ECOMM, e)
     except AttributeError:
@@ -237,11 +236,12 @@ def nl_recvmsg(sock):
      :returns: a GENLMsg received from the socket
     """
     try:
-        # pull of the message and following ack message
-        # NOTE: nlmsg_fromstream will throw an exception if msg is an ack/nack
-        # catch it and test for ack. If it was an ack, return the success code
-        # otherwise, reraise it. If it wasn't an ack/nack, return the message
+        # pull off the message and following ack message NOTE: nlmsg_fromstream
+        # will throw an exception if msg is an ack/nack catch it and test for ack.
+        # If it was an ack, return the success code otherwise, reraise it. If it
+        # wasn't an ack/nack, return the message
         msg = nlmsg_fromstream(sock.recv())
+        #if msg.flags == nlh.NLM_F_DUMP:
         try:
             _ = nlmsg_fromstream(sock.recv())
         except error as e:
@@ -539,13 +539,19 @@ def nla_parse_nested(nested):
     idx = 0
     l = len(nested)
     while idx < l:
-        # first byte is the length, including this byte and one pad byte - does
-        # not include additional pad bytes for proper alignment
-        alen = struct.unpack_from('B',nested,idx)[0]
+        # first byte is the length, including this byte and one pad byte, length
+        # does not include additional pad bytes for proper alignment
+        alen = struct.unpack_from('B', nested, idx)[0]
+        # two options - 1) skip parsing and raise an error or
+        # 2) eat a byte of padding until we get a length
         if alen == 0:
+            # option 1: raise error, treating it as unspec
             raise error(errno.EINVAL,"attribute length is 0")
-        ns.append(nested[idx+1:idx+(alen-1)])
-        idx = nlh.NLMSG_ALIGN(idx + alen)
+            # option 2: eat padding (NOTE: we can't here unless we comment above)
+            idx += 1
+            continue
+        ns.append(nested[idx + 1:idx + alen])
+        idx += nlh.NLMSG_ALIGN(alen)
     return ns
 
 def nla_parse_set(aset,etype):

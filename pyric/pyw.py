@@ -67,8 +67,8 @@ NOTE:
 
 __name__ = 'pyw'
 __license__ = 'GPLv3'
-__version__ = '0.1.6'
-__date__ = 'June 2016'
+__version__ = '0.1.7'
+__date__ = 'July 2016'
 __author__ = 'Dale Patterson'
 __maintainer__ = 'Dale Patterson'
 __email__ = 'wraith.wireless@yandex.com'
@@ -1203,27 +1203,24 @@ def phyinfo(card, *argv):
     if info['frag_thresh'] >= wlan.FRAG_THRESHOLD_MAX: info['frag_thresh'] = 'off'
     if info['rts_thresh'] > wlan.RTS_THRESHOLD_MAX: info['rts_thresh'] = 'off'
 
-    # sets or arrays of attributes
-    # get freqs
+    # complex attributes
     _, bs, d = nl.nla_find(rmsg, nl80211h.NL80211_ATTR_WIPHY_BANDS, False)
     if d != nlh.NLA_ERROR: info['freqs'] = _frequencies_(bs)
 
-    # get cipher suites
     _, cs, d = nl.nla_find(rmsg, nl80211h.NL80211_ATTR_CIPHER_SUITES, False)
     if d != nlh.NLA_ERROR: info['ciphers'] = _ciphers_(cs)
 
-    # nested attributes require additional processing. They must be unpacked
-    # beg-endian and may not be processed correctly by libnl. In the event of an
-    # unparsed nested attribute leave as empty list
-    # get supported modes
+    # nested attributes require additional processing & in the event of an
+    # unparsed nested attribute, leave as empty list
+
+    # supported iftypes, sw iftypes are IAW nl80211.h flags i.e. pad/flag/pad
     _, ms, d = nl.nla_find(rmsg, nl80211h.NL80211_ATTR_SUPPORTED_IFTYPES, False)
     if d != nlh.NLA_ERROR:
-        info['modes'] = [_iftypes_(struct.unpack('>H', m)[0]) for m in ms]
+        info['modes'] = [_iftypes_(struct.unpack_from('B', m, 1)[0]) for m in ms]
 
-    # get supported sw modes
     _, ms, d = nl.nla_find(rmsg, nl80211h.NL80211_ATTR_SOFTWARE_IFTYPES, False)
     if d != nlh.NLA_ERROR:
-        info['swmodes'] = [_iftypes_(struct.unpack('>H', m)[0]) for m in ms]
+        info['swmodes'] = [_iftypes_(struct.unpack_from('B', m, 1)[0]) for m in ms]
 
     # get supported commands
     _, cs, d = nl.nla_find(rmsg, nl80211h.NL80211_ATTR_SUPPORTED_COMMANDS, False)
@@ -1555,13 +1552,13 @@ def isconnected(card, *argv):
      disconnect the card from an AP
      :param card: Card object
      :param argv: netlink socket at argv[0] (or empty)
-     NOTE: does not return error if card is not connected
     """
     try:
         nlsock = argv[0]
     except IndexError:
         return _nlstub_(isconnected, card)
 
+    # dirty hack - using the precence of an RF to determine connected-ness
     return devinfo(card, nlsock)['RF'] is not None
 
 def disconnect(card, *argv):
@@ -1589,9 +1586,45 @@ def disconnect(card, *argv):
     except nl.error as e:
         raise pyric.error(e.errno, e.strerror)
 
+def link(card, *argv):
+    """
+     returns info about link (iw dev card.<dev> link)
+     :param card: Card object
+     :param argv: netlink socket at argv[0] (or empty)
+     :returns: link info or None if not connected
+    """
+    try:
+        nlsock = argv[0]
+    except IndexError:
+        return _nlstub_(link, card)
+
+    # if we're not connected GET_SCAN will dump scan results, we don't want that
+    if not isconnected(card, nlsock): return None
+
+    try:
+        # we need to set additional flags or the kernel will return ERRNO 95
+        flags = nlh.NLM_F_REQUEST | nlh.NLM_F_ACK | nlh.NLM_F_ROOT | nlh.NLM_F_MATCH
+        msg = nl.nlmsg_new(nltype=_familyid_(nlsock),
+                           cmd=nl80211h.NL80211_CMD_GET_SCAN,
+                           flags=flags)
+        nl.nla_put_u32(msg, card.idx, nl80211h.NL80211_ATTR_IFINDEX)
+        nl.nl_sendmsg(nlsock, msg)
+        rmsg = nl.nl_recvmsg(nlsock)
+    except AttributeError:
+        raise pyric.error(pyric.EINVAL, "Invalid Card")
+    except nl.error as e:
+        raise pyric.error(e.errno, e.strerror)
+
+    # link returns multiple attributes but we are only concerned w/ @NL80211_ATTR_BSS
+    #_, bs, d = nl.nla_find(rmsg, nl80211h.NL80211_ATTR_BSS, False)
+    return rmsg
+
 ################################################################################
 #### FILE PRIVATE                                                           ####
 ################################################################################
+
+IPADDR = re.compile("^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$") # re for ip addr
+MACADDR = re.compile("^([0-9a-fA-F]{2}:){5}([0-9a-fA-F]{2})$") # re for mac addr
 
 def _hex2mac_(v):
     """ :returns: a ':' separated mac address from byte stream v """
@@ -1600,9 +1633,6 @@ def _hex2mac_(v):
 def _hex2ip4_(v):
     """ :returns: a '.' separated ip4 address from byte stream v """
     return '.'.join([str(ord(c)) for c in v])
-
-IPADDR = re.compile("^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$") # re for ip addr
-MACADDR = re.compile("^([0-9a-fA-F]{2}:){5}([0-9a-fA-F]{2})$") # re for mac addr
 
 def _validip4_(addr):
     """

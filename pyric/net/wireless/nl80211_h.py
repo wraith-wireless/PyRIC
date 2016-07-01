@@ -52,8 +52,8 @@ NOTE:
 
 __name__ = 'nl80211_h'
 __license__ = 'GPLv3'
-__version__ = '0.0.4'
-__date__ = 'June 2016'
+__version__ = '0.0.5'
+__date__ = 'July 2016'
 __author__ = 'Dale Patterson'
 __maintainer__ = 'Dale Patterson'
 __email__ = 'wraith.wireless@yandex.com'
@@ -1651,8 +1651,7 @@ NL80211_CQM_TXE_MAX_INTVL           = 1800
  * @NL80211_IFTYPE_MAX: highest interface type number currently defined
  * @NUM_NL80211_IFTYPES: number of defined interface types
  *
- * These values are used with the %NL80211_ATTR_IFTYPE
- * to set the type of an interface.
+ * These values are used with the %NL80211_ATTR_IFTYPE to set the type of an interface.
  *
  */
 """

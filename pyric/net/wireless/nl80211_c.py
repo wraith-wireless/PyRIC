@@ -26,14 +26,13 @@ A port of nla_policy definitions found in nl80211.c to python
 
 __name__ = 'nl80211_c'
 __license__ = 'GPLv3'
-__version__ = '0.0.4'
-__date__ = 'June 2016'
+__version__ = '0.0.5'
+__date__ = 'July 2016'
 __author__ = 'Dale Patterson'
 __maintainer__ = 'Dale Patterson'
 __email__ = 'wraith.wireless@yandex.com'
 __status__ = 'Production'
 
-import struct
 import pyric.net.netlink_h as nlh
 import pyric.net.wireless.nl80211_h as nl80211h
 
@@ -184,6 +183,7 @@ nl80211_policy = {
     nl80211h.NL80211_ATTR_SUPPORTED_COMMANDS:nlh.NLA_NESTED,
     nl80211h.NL80211_ATTR_MAX_NUM_SCAN_SSIDS:nlh.NLA_U8,
     nl80211h.NL80211_ATTR_GENERATION:nlh.NLA_U8,
+    nl80211h.NL80211_ATTR_BSS:nlh.NLA_NESTED,
     #nl80211h.NL80211_ATTR_MAC:nlh.NLA_STRING, # we don't want to parse this
     nl80211h.NL80211_ATTR_CIPHER_SUITES:nlh.NLA_SET_U32, # my own - set of U32s
     #### defined in kernel v4 nl80211_h
@@ -317,110 +317,3 @@ nl80211_sched_scan_plan_policy = {
 nl80211_set_policy = {
     nl80211h.NL80211_ATTR_CIPHER_SUITES:nlh.NLA_U32
 }
-
-"""
-Parsing NL80211_ATTR_WIPHY_BANDS
-
-A hack for extracting supported frequencies from the NL80211_ATTR_WIPHY_BANDS
-libnl.nla_parse_nested does not parse the bands structure correctly
-
- 1) Each band( or frequency list) begins with < n > \x01 (\x01 = NL80211_BAND_ATTR_FREQS)
-    where n (starting at 1) appears to be the band number
-  - the first one seems to happen at 209 (on alfa, intel and rosewill cards at
-    least)
-  - there may be erroneous band delimiters
-   o if valid, the first freq is directly following the band delimiter
-  - rosewill card skips \x02\x01, \x03\x01 and uses \x04\x01 for UNII 5 and 4 GHz
-
- 2) Each freq structure appears to be listed as
-
-  +-------+-----+-------+-------+-----------+-----+
-  | buff1 | RF  | [unk] | buff2 | freq data | pad |
-  +-------+-----+-------+-------+-----------+-----+
-      9      4      7      4      <var>       2
-
-  where
-
-   - buff1 =
-
-   +------+-----+------+-----+----------------------+
-   | \x00 | <l> | \x00 | cnt | \x00\x08\x00\x01\x00 |
-   +------+-----+------+-----+----------------------+
-
-   such that l is the length in bytes of the complete freq.structure to include
-   the first and last null byte.and cnt is the number (starting at 0) of the
-   current freq in this band.
-
-   - RF is a 4-octet frequency
-
-   - unk = \x04\x00\x03\x00\x04\x00\x04 if present
-
-   - buff2 = \x08\x00\x06\x00
-
-   - pad = < n > \x00 where < n > has been seen as \x05 and  \x07
-
-  3) we can determine where to start identifying frequencies
-   - find the band marker
-   - if there is buff1 with cnt = 0 4 bytes after the start of the marker
-    o 2 bytes for the band marker and 2 bytes for the null byte and flag
-
-  4) we need to identify something other than band markers to determine where
-    to pull frequencies from
-
-"""
-fSz = 'B'
-iSz = 1
-fCnt = 'B'
-iCnt = 3
-fFreq = 'I'
-iFreq = 9
-first = '\x00{0}\x00\x08\x00\x01\x00'.format(struct.pack(fCnt,0))
-lFirst = len(first)
-def nl80211_parse_freqs(bands):
-    """
-     extracts frequencies from bands
-     :param bands: packed bytes containing band data
-     :returns: list of frequencies found in bands
-    """
-    # get the band markers
-    # for each possible bandmarker determine validity by identifying if there is
-    # a freq structure w/ count = 9 following immediately after the bandmarker
-    # we have to skip the length portion as well of the freq structure. If so
-    # append the index (the end) of the bandmarker
-    bandmarkers = []
-    #for i in _bandmarkers_('\x01\x01',bands) + _bandmarkers_('\x02\x01',bands):
-    #    if bands[i+4:i+4+len(first)] == first: bandmarkers.append(i+2)
-
-    # this works but, how do we know which band number to stop trying?
-    for i in xrange(10):
-        for j in _bandmarkers_(struct.pack('B',i) + '\x01',bands):
-            if bands[j+4:j+4+lFirst] == first:
-                bandmarkers.append(j+2)
-                break
-
-    l = len(bands)
-    rfs = []
-    for bm in bandmarkers:
-        # get freq structure length and parse out freq
-        idx = bm
-        cnt = 0
-        while idx < l:
-            try:
-                sz = struct.unpack_from(fSz,bands,idx+iSz)[0]
-                if cnt != struct.unpack_from(fCnt,bands,idx+iCnt)[0]: break
-                rfs.append(struct.unpack_from(fFreq,bands,idx+iFreq)[0])
-            except (struct.error,IndexError):
-                break
-            cnt += 1
-            idx += sz
-    return rfs
-
-def _bandmarkers_(marker,bands):
-    ms = []
-    idx = 0
-    while idx < len(bands):
-        idx = bands.find(marker,idx)
-        if idx == -1: break
-        ms.append(idx)
-        idx += 2
-    return ms

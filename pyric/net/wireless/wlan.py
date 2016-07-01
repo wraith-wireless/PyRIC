@@ -44,8 +44,8 @@ __status__ = 'Production'
 
  The returned cipher suite (from phyinfo) for an alfa card is:
      \x01\xac\x0f\x00\x05\xac\x0f\x00\x02\xac\x0f\x00\x04\xac\x0f\x00
- which is not a nested attribute. Does 'set' mean something? I cannot find any
- reference to sets, arrays or lists etc in
+ which is not a nested attribute. Does 'set' mean something? There is no set
+ or array or list defined netlink.h and I cannot find any reference to such in
   http://www.carisma.slowglass.com/~tgr/libnl/doc/core.html
  Another way nl80211 breaks the rules or another way I'm just not getting it?
 
@@ -61,8 +61,7 @@ __status__ = 'Production'
  The only reference is in nl80211.h which says:
   @NL80211_KEY_CIPHER: key cipher suite (u32, as defined by IEEE 802.11 section
   7.3.2.25.1, e.g. 0x000FAC04)
- Looking in the standard we find Table 8-99 in Std which defines
- these values.
+ Looking in the standard we find Table 8-99 in Std which defines these values.
 
  Lets look in ieee80211.h and voila we find
  #define WLAN_CIPHER_SUITE_USE_GROUP	0x000FAC00
