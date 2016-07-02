@@ -309,11 +309,3 @@ nl80211_sched_scan_plan_policy = {
     nl80211h.NL80211_SCHED_SCAN_PLAN_INTERVAL:nlh.NLA_U32,
     nl80211h.NL80211_SCHED_SCAN_PLAN_ITERATIONS:nlh.NLA_U32
 }
-
-"""
- set definitions
- NLA_SETs are futher defined here
-"""
-nl80211_set_policy = {
-    nl80211h.NL80211_ATTR_CIPHER_SUITES:nlh.NLA_U32
-}

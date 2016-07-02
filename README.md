@@ -63,8 +63,7 @@ persistent netlink sockets are used with the total time and average hop time nea
 halved.
 
 ### b. Current State
-ATT, PyRIC accomplishes my core needs but it is still a work in progress. It
-currently pyw provides the following:
+ATT, PyRIC provides the following:
 * enumerate interfaces and wireless interfaces
 * identify a cards driver, chipset and manufacturer
 * get/set hardware address
@@ -78,6 +77,8 @@ currently pyw provides the following:
 * get/set mode
 * get/set coverage class, RTS threshold, Fragmentation threshold & retry limits
 * add/delete interfaces
+* determine if a card is connected
+* get link info for a connected card
 * enumerate ISM and UNII channels
 * block/unblock rfkill devices
 

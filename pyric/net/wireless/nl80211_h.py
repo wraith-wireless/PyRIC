@@ -2668,6 +2668,7 @@ NL80211_CHAN_WIDTH_10      = 7
  * @NL80211_BSS_CHAN_WIDTH_5: control channel is 5 MHz wide
  */
 """
+NL80211_BSS_CHAN_WIDTHS = ['20','10','5']
 NL80211_BSS_CHAN_WIDTH_20 = 0
 NL80211_BSS_CHAN_WIDTH_10 = 1
 NL80211_BSS_CHAN_WIDTH_5  = 2
@@ -2740,6 +2741,7 @@ NL80211_BSS_MAX                  = NL80211_BSS_LAST_SEEN_BOOTTIME
  * indicates the status the interface has wrt. this BSS.
  */
 """
+NL80211_BSS_STATUSES = ['authenticated','associated','ibss']
 NL80211_BSS_STATUS_AUTHENTICATED = 0
 NL80211_BSS_STATUS_ASSOCIATED    = 1
 NL80211_BSS_STATUS_IBSS_JOINED   = 2

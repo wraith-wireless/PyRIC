@@ -70,8 +70,12 @@
     and determine that pyw does correctly identify it
   24) confirm download_url in setup.py is valid
   25) nested attribute handling
-   o parsing iw dev wlan0 link fails on nla_parse_nested(... @NL80211_ATTR_BSS)
-   o parsing on iw dev alfa0 link succeeds
-   o need to try this on the bands structure
-  26) need to parse dumps NLM_F_DUMP, for now we're good with link so long as the
-   card is connected but it will come up eventually
+   o parsing link info on intel fails on nla_parse_nested(... @NL80211_ATTR_BSS)
+   o parsing link on alfa and rosewill succeeds
+  26) need to parse dumps NLM_F_DUMP, for now we're good with link etc, so long
+   as the card is connected but it will come up eventually
+  27) fix tostream for some nested structures
+   o if the nested attribute failed to parse correctly, it will not be able to
+    be packed
+  29) parse the information element in pyw.link - there's some good shit in it
+   including the router os, type

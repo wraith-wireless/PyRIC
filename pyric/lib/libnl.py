@@ -397,11 +397,12 @@ class GENLMsg(dict):
     def tostream(self):
         """ :returns packed netlink message """
         payload = genlh.genlmsghdr(self['cmd'])  # nlhsghdr, genlmsghdr end at boundary of 4
-        for attr,v,data in self['attrs']:
+        for a,v,d in self['attrs']:
             try:
-                payload += _attrpack_(attr,v,data)
+                payload += _attrpack_(a,v,d)
             except struct.error as e:
-                raise error(-1,"Packing {0} {1}: {2}".format(attr,v,e))
+                if d == nlh.NLA_NESTED: pass # we need to fix here
+                raise error(-1,"Packing {0} {1}: {2}".format(a,v,e))
         return nlh.nlmsghdr(len(payload),self.nltype,self.flags,self.seq,self.pid) + payload
 
 def nlmsg_new(nltype=None,cmd=None,seq=None,pid=None,flags=None,attrs=None):
@@ -477,7 +478,6 @@ def nla_parse(msg,l,mtype,stream,idx):
             # datatypes & for strings, strip trailing null bytes
             # dt == nlh.NLA_UNSPEC: ignore
             if dt == nlh.NLA_STRING: a = _nla_strip_(a)
-            elif dt == nlh.NLA_NESTED: a = nla_parse_nested(a)
             elif dt == nlh.NLA_U8: a = struct.unpack_from("B",a,0)[0]
             elif dt == nlh.NLA_U16: a = struct.unpack_from("H",a,0)[0]
             elif dt == nlh.NLA_U32: a = struct.unpack_from("I",a,0)[0]
@@ -488,6 +488,9 @@ def nla_parse(msg,l,mtype,stream,idx):
             elif dt == nlh.NLA_SET_U16: a = nla_parse_set(a,nlh.NLA_U16)
             elif dt == nlh.NLA_SET_U32: a = nla_parse_set(a,nlh.NLA_U32)
             elif dt == nlh.NLA_SET_U64: a = nla_parse_set(a,nlh.NLA_U64)
+            elif dt == nlh.NLA_NESTED:
+                a,status = nla_parse_nested(a)
+                if not status: dt = nlh.NLA_ERROR
             nla_put(msg,a,atype,dt)
         except struct.error:
             # append as Error, stripping null bytes
@@ -508,15 +511,11 @@ def nla_parse_nested(nested):
      :param nested: the nested attribute with attribute header removed
      :returns: list of 'packed' nested attributes after length and padding are
       stripped - Callers must parse these themselves
-     NOTE: experimental ATT still determining if nl80211 has taken some
+      NOTE: experimental ATT still determining if nl80211 has taken some
       propietary treament(s) of nested attributes or if this is how nested
       attributes should be handled
 
-     From nl80211.h
-      @NL80211_ATTR_SUPPORTED_IFTYPES: nested attribute containing all
-      supported interface types, each a flag attribute with the number
-      of the interface mode.
-     and from libnl (Thomas Graf)
+      From libnl (Thomas Graf)
       When nesting attributes, the nested attributes are included as payload of
       a container attribute. Attributes are nested by surrounding them with calls
       to nla_nest_start() and nla_nest_end().
@@ -526,33 +525,41 @@ def nla_parse_nested(nested):
        | Attribute Header | Pad |     Payload      | Pad |
        +------------------+-----+------------------+-----+
 
-     Looking at nl80211 nested attributes, it appears that inside the payload
-     there are no dataypes or attribute types, with each nested atrribute as:
+      It seems that a nested attribute (after removing the Attribute header has
+      the form:
 
-      +--------+---------+------+-----+
-      | Length | Payload | Null | Pad |
-      +--------+---------+------+-----+
+       +-----+--------+-----+---------+-----+
+       | Pad | Length | Pad | Payload | Pad |
+       +-----+--------+-----+---------+-----+
 
-     where length is total length of the nested payload exluding the pad bytes.
-    """
+      where Length is the length of the nested attribute (not including padding
+      placed at the end to align the attribute
+
+     """
     ns = []
-    idx = 0
+    idx = lastidx = 0
     l = len(nested)
     while idx < l:
-        # first byte is the length, including this byte and one pad byte, length
-        # does not include additional pad bytes for proper alignment
+        # first byte is the length, including this byte, length does not include
+        # pad bytes for proper alignment
         alen = struct.unpack_from('B', nested, idx)[0]
-        # two options - 1) skip parsing and raise an error or
-        # 2) eat a byte of padding until we get a length
+        # three options:
+        #  1) skip parsing and raise an error
+        #  2) eat a byte of padding until we get a length
+        #  3) return an error code along with correctly parsed elements
         if alen == 0:
             # option 1: raise error, treating it as unspec
-            raise error(errno.EINVAL,"attribute length is 0")
-            # option 2: eat padding (NOTE: we can't here unless we comment above)
-            idx += 1
-            continue
-        ns.append(nested[idx + 1:idx + alen])
+            #raise error(errno.EINVAL,"attribute length is 0")
+            # option 2: eat padding
+            #idx += 1
+            #continue
+            # option 3: return what we have
+            if not ns: ns = [nested]
+            else: ns[len(ns)-1] = nested[lastidx:]
+            return ns, False
+        ns.append(nested[idx+1:idx+alen])
         idx += nlh.NLMSG_ALIGN(alen)
-    return ns
+    return ns, True
 
 def nla_parse_set(aset,etype):
     """
@@ -691,6 +698,8 @@ def _attrpack_(a,v,d):
     elif d == nlh.NLA_FLAG: attr = '' # a 0 sized attribute
     elif d == nlh.NLA_MSECS: attr = struct.pack("Q",v)
     elif d == nlh.NLA_NESTED:
+        # should it be '\x00' + struct.pack('B',nlen) + '\x00' ? & the
+        # pad at the end of '\x00' needs to be removed
         for nested in v:
             nlen = len(v) + 2
             nattr = struct.pack('B',nlen) + nested + '\x00'

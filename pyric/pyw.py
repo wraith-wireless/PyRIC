@@ -1591,7 +1591,17 @@ def link(card, *argv):
      returns info about link (iw dev card.<dev> link)
      :param card: Card object
      :param argv: netlink socket at argv[0] (or empty)
-     :returns: link info or None if not connected
+     :returns: link info as dict  with the following key:value pairs
+       bssid -> AP mac/ net BSSID
+       ssid -> the ssid (Experimental)
+       freq -> BSSID frequency in MHz
+       chw -> width of the BSS control channel
+       rss -> Received signal strength in dBm
+       int -> beacon interval (ms)
+       stat -> status w.r.t of card to BSS one of {'authenticated','associated','ibss'}
+      or None if the card is not connected
+     NOTE: if the nested attribute was not parsed correctly will attempt to pull
+      out the bssid
     """
     try:
         nlsock = argv[0]
@@ -1616,8 +1626,49 @@ def link(card, *argv):
         raise pyric.error(e.errno, e.strerror)
 
     # link returns multiple attributes but we are only concerned w/ @NL80211_ATTR_BSS
-    #_, bs, d = nl.nla_find(rmsg, nl80211h.NL80211_ATTR_BSS, False)
-    return rmsg
+    # some cards (my integrated intel) do not parse correctly
+    info = {'bssid': None,
+            'ssid': None,
+            'freq': None,
+            'rss': None,
+            'int': None,
+            'chw': None,
+            'stat': None}
+
+    # ensure it was parsed correctly - we can (possibly) hack out the bssid on
+    # failed parsings bssid appears to be the first attribute returned by the
+    # kernel
+    _, bs, d = nl.nla_find(rmsg, nl80211h.NL80211_ATTR_BSS, False)
+    for b in bs:
+        # each attribute is pad | index | pad where is index identifies nl80211_bss
+        # enum parameter
+        try:
+            i = struct.unpack_from('b', b, 1)[0]
+            if i == nl80211h.NL80211_BSS_BSSID:
+                info['bssid'] = _hex2mac_(b[3:])
+            if i == nl80211h.NL80211_BSS_FREQUENCY:
+                info['freq'] = struct.unpack_from('I', b, 3)[0]
+            if i == nl80211h.NL80211_BSS_SIGNAL_MBM:
+                info['rss'] = struct.unpack_from('i', b, 3)[0] / 100
+            if i == nl80211h.NL80211_BSS_INFORMATION_ELEMENTS:
+                # after removing the length, the first element in the ies should
+                # be the ssid following the pattern \x00<length><ssid?
+                ies = b[3:]
+                if ies[0] == '\x00': # sanity check
+                    l = struct.unpack_from('B',ies,1)[0]
+                    info['ssid'] = struct.unpack_from('{0}s'.format(l),ies,2)[0]
+            if i == nl80211h.NL80211_BSS_BEACON_INTERVAL:
+                info['int'] = struct.unpack_from('H', b, 3)[0]
+            if i == nl80211h.NL80211_BSS_CHAN_WIDTH:
+                j = struct.unpack_from('I', b, 3)[0]
+                info['chw'] = nl80211h.NL80211_BSS_CHAN_WIDTHS[j]
+            if i == nl80211h.NL80211_BSS_STATUS:
+                j = struct.unpack_from('I', b, 3)[0]
+                info['stat'] = nl80211h.NL80211_BSS_STATUSES[j]
+        except (struct.error,IndexError):
+            pass
+
+    return info
 
 ################################################################################
 #### FILE PRIVATE                                                           ####
