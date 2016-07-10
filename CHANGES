@@ -101,7 +101,7 @@ v 0.1.4
    o modified devadd. User is allowed to submit a Card object or a physical index
    o removed hardcoded values for covclassset, retry(short|long)set, retsthreshet and
      fragrthreshset
-     - constants now defined in wlan.h
+     - constants now defined in wlan.h (see below)
    o removed return True where redundant i.e. when setting mac address we can assume
     it worked if no error was thrown
    o renamed ieee80211_h to wlan
@@ -121,6 +121,14 @@ v 0.1.5 Begin STA associated functionality
    - isconnected
    - disconnect
    - link
+   - stainfo
   o updated nested netlink attribute handling - my understanding of it was incomplete
-   - There are still occasional errors see
+   - There are still occasional errors
    - nested attributes are parsed as 'far' as possible
+  o reupdated nested netlink attribute handling - this time it really works
+   - nested attributes are now parsed correctly, any errors are a result of
+    incorrect packing on the other side or packet corruption and the entire
+    unparsed attribute will be returned. For wiphy bands, the legacy frequency
+    pull will be used.
+  o parsing wiphy bands (issue #7) is now fully functional and no longer relies
+    on a hacked fix

@@ -489,8 +489,10 @@ def nla_parse(msg,l,mtype,stream,idx):
             elif dt == nlh.NLA_SET_U32: a = nla_parse_set(a,nlh.NLA_U32)
             elif dt == nlh.NLA_SET_U64: a = nla_parse_set(a,nlh.NLA_U64)
             elif dt == nlh.NLA_NESTED:
-                a,status = nla_parse_nested(a)
-                if not status: dt = nlh.NLA_ERROR
+                try:
+                    a = nla_parse_nested(a)
+                except error:
+                    dt = nlh.NLA_ERROR
             nla_put(msg,a,atype,dt)
         except struct.error:
             # append as Error, stripping null bytes
@@ -508,7 +510,7 @@ def nla_parse(msg,l,mtype,stream,idx):
 
 def nla_parse_nested(nested):
     """
-     :param nested: the nested attribute with attribute header removed
+     :param nested: the nested attribute with attribute header & pad removed
      :returns: list of 'packed' nested attributes after length and padding are
       stripped - Callers must parse these themselves
       NOTE: experimental ATT still determining if nl80211 has taken some
@@ -525,41 +527,41 @@ def nla_parse_nested(nested):
        | Attribute Header | Pad |     Payload      | Pad |
        +------------------+-----+------------------+-----+
 
-      It seems that a nested attribute (after removing the Attribute header has
-      the form:
+      Nested attributes (after removing the Attribute header) should have the
+      form:
 
-       +-----+--------+-----+---------+-----+
-       | Pad | Length | Pad | Payload | Pad |
-       +-----+--------+-----+---------+-----+
+       +--------+--------+-----+
+       | Length |Payload | Pad |
+       +--------+--------+-----+
+       <-- 2 --><- var ->< var >
 
-      where Length is the length of the nested attribute (not including padding
-      placed at the end to align the attribute
+      where:
+      Length (u16) is the length of the nested attribute (excluding padding
+       affixed to the end to align the attribute)
+      size of padding is determined by NLMSG_ALIGN
 
+      Individual payloads will have the format
+
+      +-------+--------+-----+
+      | Index |  Data  | Pad |
+      +-------+--------+-----+
+      <-- 2 --><- var ->< var >
+
+      where index is the index into an enum structure as determined by the
+      attribute type of the nested attribute which is found in the Attribute
+      Header
      """
     ns = []
-    idx = lastidx = 0
+    idx =  0
     l = len(nested)
     while idx < l:
-        # first byte is the length, including this byte, length does not include
-        # pad bytes for proper alignment
-        alen = struct.unpack_from('B', nested, idx)[0]
-        # three options:
-        #  1) skip parsing and raise an error
-        #  2) eat a byte of padding until we get a length
-        #  3) return an error code along with correctly parsed elements
-        if alen == 0:
-            # option 1: raise error, treating it as unspec
-            #raise error(errno.EINVAL,"attribute length is 0")
-            # option 2: eat padding
-            #idx += 1
-            #continue
-            # option 3: return what we have
-            if not ns: ns = [nested]
-            else: ns[len(ns)-1] = nested[lastidx:]
-            return ns, False
-        ns.append(nested[idx+1:idx+alen])
+        # first two bytes define length, including these bytes, length does not
+        # include pad byte(s) affixed to end for proper alignment
+        alen = struct.unpack_from('H', nested, idx)[0]
+        if alen == 0: raise error(errno.EINVAL, "Invalid nesting")
+        ns.append(nested[idx+2:idx+alen]) # don't include the length bytes
         idx += nlh.NLMSG_ALIGN(alen)
-    return ns, True
+    return ns
 
 def nla_parse_set(aset,etype):
     """
@@ -702,7 +704,8 @@ def _attrpack_(a,v,d):
         # pad at the end of '\x00' needs to be removed
         for nested in v:
             nlen = len(v) + 2
-            nattr = struct.pack('B',nlen) + nested + '\x00'
+            #nattr = struct.pack('B',nlen) + nested + '\x00'
+            nattr = struct.pack('xBx', nlen) + nested
             nattr += struct.pack("{0}x".format(nlh.NLMSG_ALIGNBY(len(nattr))))
             attr += nattr
     else:
@@ -713,7 +716,6 @@ def _attrpack_(a,v,d):
         elif d == nlh.NLA_SET_U64: fmt = "Q"
         for el in v: attr += struct.pack(fmt,el)
     attr = nlh.nlattrhdr(len(attr),a) + attr
-    # this is nlmsg_padlen
     attr += struct.pack("{0}x".format(nlh.NLMSG_ALIGNBY(len(attr))))
     return attr
 

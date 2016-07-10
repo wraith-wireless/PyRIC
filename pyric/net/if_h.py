@@ -183,6 +183,7 @@ def sockaddr(sa_family,sa_data=None):
         if sa_family == ARPHRD_ETHER:
             vs.extend([int(x,16) for x in sa_data.split(':')])
         elif sa_family == AF_INET:
+            # we need 6 octets - so prepend two 0's to the ip addr
             vs.extend([int(x) for x in ('0.0.'+sa_data).split('.')])
         else:
             raise AttributeError("sa_family {0} not supported".format(sa_family))

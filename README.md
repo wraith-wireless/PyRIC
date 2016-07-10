@@ -73,6 +73,8 @@ ATT, PyRIC provides the following:
 * get if info
 * get dev info
 * get phy info
+* get link info
+* get STA (connected AP) info
 * get/set regulatory domain
 * get/set mode
 * get/set coverage class, RTS threshold, Fragmentation threshold & retry limits
@@ -247,10 +249,11 @@ True
 >>> pyw.isup(w0)
 False
 >>> pyw.up(w0)
->>> pyw.isblocked(w0)
+>>> pyw.isblocked(w0) # returns tup;e (Soft Block, Hard Block)
 (True,False)
 >>> pyw.unblock(w0) # turn off the softblock
->>> pyw.block(w0)
+>>> pyw.isblocked(w0)
+(False,False)
 >>>
 ```
 
@@ -340,7 +343,7 @@ card Card(phy=0,dev=wlan0,ifindex=3)
 20
 >>> pyw.devstds(w0)
 ['b', 'g', 'n']
->>> pinfo = pyw.phyinfo(w0) # returns a dict with 12 key->value pairs
+>>> pinfo = pyw.phyinfo(w0) # dict with 12 key->value pairs see info.py
 >>> for p in pinfo: print p, pinfo[p]
 ...
 >>> pinfo['retry_short'], pinfo['retry_long']
@@ -370,6 +373,20 @@ u'set_channel', u'set_wds_peer', u'probe_client', u'set_noack_map',
 u'register_beacons', u'start_p2p_device', u'set_mcast_rate', u'connect',
 u'disconnect']
 >>>
+>>> for d in pinfo['bands']:
+...     print 'Band: ', d, pinfo['bands'][d]['HT'], pinfo['bands'][d]['VHT']
+...     pinfo['bands'][d]['rates']
+...     pinfo['bands'][d]['rfs']
+... 
+Band:  5GHz True False
+[6.0, 9.0, 12.0, 18.0, 24.0, 36.0, 48.0, 54.0]
+[5180, 5200, 5220, 5240, 5260, 5280, 5300, 5320, 5500, 5520, 5540, 5560, 
+5580, 5600, 5620, 5640, 5660, 5680, 5700, 5745, 5765, 5785, 5805, 5825]
+Band:  2GHz HT True False
+[1.0, 2.0, 5.5, 11.0, 6.0, 9.0, 12.0, 18.0, 24.0, 36.0, 48.0, 54.0]
+[2412, 2417, 2422, 2427, 2432, 2437, 2442, 2447, 2452, 2457, 2462, 2467, 
+2472]
+
 >>> pinfo['freqs']
 [2412, 2417, 2422, 2427, 2432, 2437, 2442, 2447, 2452, 2457, 2462, 2467, 2472,
 5180, 5200, 5220, 5240, 5260, 5280, 5300, 5320, 5500, 5520, 5540, 5560, 5580,
@@ -433,10 +450,61 @@ True
 >>>
 ```
 
+#### vi. STA Related Functions
+I have recently begun adding STA functionality to PyRIC. These are not 
+necessarily required for a pentester, although the ability to disconnect
+a Card may come in handy. The difficulty is that iw only provides connect
+functionality through Open or WEP enabled APs which means that I am 
+attempting to determine which commands and attributes are required. If all
+else fails I will look to wpa_supplicant for more information. ATT two
+two functions related to STA->AP exist: a) determine if the Card is connected 
+and b) disconnect the Card
+
+```python
+>>> pyw.isconnected(w0)
+True
+>>> pyw.disconnect(w0)
+>>> pyw.isconnected(w0)
+False
+>>>
+```
+
+From a pentester's point of view iw link provides information of limited
+quality/concern but can be useful at times. As such, link has now been
+implemented. 
+
+```python
+>>> link=pyw.link(w0)
+>>> for d in link:
+...     print d, link[d]
+... 
+stat associated
+ssid ****net
+bssid XX:YY:ZZ:00:11:22
+chw 20
+int 100
+freq 5765
+tx {'pkts': 256, 'failed': 0, 'bytes': 22969, 'bitrate': {'rate': 6.0}, 
+    'retries': 31}
+rx {'pkts': 29634, 'bitrate': {'width': 40, 'rate': 270.0, 
+    'mcs-index': 14, 'gi': 0}, 'bytes': 2365454}
+rss -50
+>>>
+```
+
+NOTE: the rx gives additional key->value pairs for bitrate. Depending on
+whether the Card is transmitting (or receiving) 802.11n, the bitrate may
+include values for width, mcs-index and guard interval (gi). If we look
+up these values in Table 20-35 of IEEE Std 802.11-2012, we see that at 
+40 MHz width, an mcs-index of 14 with a short guard interval (400ns)
+gives 270.
+
+One can also use pyw.stainfo to retrieve only tx/rx metrics.
+
 Read the user guide, or type dir(pyw) in your console to get a full listing
 of pyw functions.
 
-**** vi. Miscelleaneous Utilities
+#### vii. Miscelleaneous Utilities
 Several additional tools are located in the utils directory. Two of these are:
  * channels.py: defines ISM and UNII band channels/frequencies and provides
  functions to convert between channel and frequency and vice-versa

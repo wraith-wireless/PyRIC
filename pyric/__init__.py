@@ -70,10 +70,10 @@ def strerror(errno):
 version = __version__
 # define long description
 long_desc = """
-PyRIC 0.1.4: Python Radio Interface Controller
-Linux wireless library for the Python Wireless Developer and Pentester
+# PyRIC 0.1.4: Python Radio Interface Controller
+## Linux wireless library for the Python Wireless Developer and Pentester
 
-DESCRIPTION:
+## DESCRIPTION:
 PyRIC (is a Linux only) library providing wireless developers and pentesters the
 ability to identify, enumerate and manipulate their system's wireless cards
 programmatically in Python. Pentesting applications and scripts written in Python
@@ -100,9 +100,8 @@ it's initial inception, PyRIC has grown to include ioctl support to replicate
 features of ifconfig such as getting or setting the mac address and has recently
 implemented rkill support to soft block or unblock wireless cards.
 
-CURRENT STATE
-ATT, PyRIC accomplishes my core needs but it is still a work in progress. It
-currently pyw provides the following:
+## CURRENT STATE
+ATT, PyRIC pyw provides the following:
 * enumerate interfaces and wireless interfaces
 * identify a cards chipset and driver
 * get/set hardware address
@@ -113,6 +112,7 @@ currently pyw provides the following:
 * get supported modes
 * get dev info
 * get phy info
+* get link info
 * get/set regulatory domain
 * get/set mode
 * get/set coverage class, RTS threshold, Fragmentation threshold & retry limits
@@ -133,7 +133,7 @@ PyRIC also provides limited help functionality concerning nl80211 commands/attri
 for those who wish to add additional commands. However, it pulls directly from
 the comments nl80211 header file and may be vague.
 
-WHAT IS PyRIC?
+## WHAT IS PyRIC?
 To avoid confusion, PyRIC is the system as a whole, including all header files
 and "libraries" that are required to communicate with the kernel. pyw is a
 interface to these libraries providing specific funtions.

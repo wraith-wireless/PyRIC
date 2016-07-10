@@ -54,14 +54,15 @@ regset('US',nlsocket)
 where nlsocket is created with libnl.nl_socket_alloc()
 
 NOTE:
- 1) All functions (excluding wireless core related) will use a Card object
-    which encapsulates the physical index, device name and interface index
-    (ifindex) under a tuple rather than a device name or physical index or
-    ifindex as this will not require the caller to remember if a dev or a phy
-    or a ifindex is needed. The only exception to this is devinfo which by
-    necessity will accept a Card or a device name
+ 1) All functions (excluding wireless core related) will use a Card object which
+    collates the physical index, device name and interface index (ifindex) in a
+    tuple rather than a device name or physical index or ifindex as this will not
+    require the caller to remember if a dev or a phy or a ifindex is needed. The
+    Exceptions to this are:
+     devinfo which will accept a Card or a dev
+     devadd which will accept a Card or a phy
  2) All functions allow pyric errors to pass through. Callers must catch these
-  if they desire
+    if they desire
 
 """
 
@@ -93,7 +94,7 @@ import pyric.lib.libio as io                    # ioctl functions
 
 _FAM80211ID_ = None
 
-# redefine interface types and monitor flags
+# redefine some nl80211 enum lists for ease of use
 IFTYPES = nl80211h.NL80211_IFTYPES
 MNTRFLAGS = nl80211h.NL80211_MNTR_FLAGS
 TXPWRSETTINGS = nl80211h.NL80211_TX_POWER_SETTINGS
@@ -294,8 +295,7 @@ def macget(card, *argv):
         if fam in [ifh.ARPHRD_ETHER, ifh.AF_UNSPEC,ifh.ARPHRD_IEEE80211_RADIOTAP]:
             return _hex2mac_(ret[18:24])
         else:
-            raise pyric.error(pyric.EAFNOSUPPORT,
-                              "Invalid return hwaddr family {0}".format(fam))
+            raise pyric.error(pyric.EAFNOSUPPORT, "Invalid return hwaddr family")
     except AttributeError as e:
         raise pyric.error(pyric.EINVAL, e)
     except struct.error as e:
@@ -326,9 +326,7 @@ def macset(card, mac, *argv):
         if fam in [ifh.ARPHRD_ETHER, ifh.AF_UNSPEC, ifh.ARPHRD_IEEE80211_RADIOTAP]:
             return _hex2mac_(ret[18:24])
         else:
-
-            raise pyric.error(pyric.EAFNOSUPPORT,
-                              "Invalid return hwaddr family {0}".format(fam))
+            raise pyric.error(pyric.EAFNOSUPPORT, "Invalid return hwaddr family")
     except AttributeError as e:
         raise pyric.error(pyric.EINVAL, e)
     except struct.error as e:
@@ -356,8 +354,7 @@ def inetget(card, *argv):
         if fam == ifh.AF_INET:
             ip4 = _hex2ip4_(ret[20:24])
         else:
-            raise pyric.error(pyric.EAFNOSUPPORT,
-                              "Invalid return ip family {0}".format(fam))
+            raise pyric.error(pyric.EAFNOSUPPORT, "Invalid return ip family")
 
         # netmask
         flag = sioch.SIOCGIFNETMASK
@@ -366,8 +363,7 @@ def inetget(card, *argv):
         if fam == ifh.AF_INET:
             netmask = _hex2ip4_(ret[20:24])
         else:
-            raise pyric.error(pyric.EAFNOSUPPORT,
-                              "Invalid return netmask family {0}".format(fam))
+            raise pyric.error(pyric.EAFNOSUPPORT, "Invalid return netmask family")
 
         # broadcast
         flag = sioch.SIOCGIFBRDADDR
@@ -376,8 +372,7 @@ def inetget(card, *argv):
         if fam == ifh.AF_INET:
             brdaddr = _hex2ip4_(ret[20:24])
         else:
-            raise pyric.error(pyric.EAFNOSUPPORT,
-                              "Invalid return broadcast family {0}".format(fam))
+            raise pyric.error(pyric.EAFNOSUPPORT, "Invalid return broadcast family")
     except AttributeError as e:
         raise pyric.error(pyric.EINVAL, e)
     except struct.error as e:
@@ -413,8 +408,7 @@ def inetset(card, ipaddr, netmask, broadcast, *argv):
     """
     # ensure one of params is set & that all set params are valid ip address
     if not ipaddr and not netmask and not broadcast:
-        raise pyric.error(pyric.EINVAL,
-                          "One of ipaddr/netmask/broadcast must be set")
+        raise pyric.error(pyric.EINVAL, "No parameters specified")
     if ipaddr and not _validip4_(ipaddr):
         raise pyric.error(pyric.EINVAL, "Invalid ip4 address")
     if netmask and not _validip4_(netmask):
@@ -469,8 +463,7 @@ def ip4set(card, ipaddr, *argv):
         if fam == ifh.AF_INET:
             return _hex2ip4_(ipaddr)
         else:
-            raise pyric.error(pyric.EAFNOSUPPORT,
-                              "Invalid return ip family {0}".format(fam))
+            raise pyric.error(pyric.EAFNOSUPPORT, "Invalid return ip family")
     except AttributeError as e:
         raise pyric.error(pyric.EINVAL, e)
     except struct.error as e:
@@ -502,8 +495,7 @@ def netmaskset(card, netmask, *argv):
         if fam == ifh.AF_INET:
             return _hex2ip4_(ret[20:24])
         else:
-            raise pyric.error(pyric.EAFNOSUPPORT,
-                              "Invalid return netmask family {0}".format(fam))
+            raise pyric.error(pyric.EAFNOSUPPORT, "Invalid return netmask family")
     except AttributeError as e:
         raise pyric.error(pyric.EINVAL, e)
     except struct.error as e:
@@ -544,8 +536,7 @@ def broadcastset(card, broadcast, *argv):
         if fam == ifh.AF_INET:
             return _hex2ip4_(ret[20:24])
         else:
-            raise pyric.error(pyric.EAFNOSUPPORT,
-                              "Invalid return broadcast family {0}".format(fam))
+            raise pyric.error(pyric.EAFNOSUPPORT, "Invalid return broadcast family")
     except pyric.error as e:
         # an ambiguous error is thrown if attempting to set netmask or broadcast
         # without an ip address already set on the card
@@ -635,7 +626,7 @@ def isblocked(card):
         idx = rfkill.getidx(card.phy)
         return rfkill.soft_blocked(idx), rfkill.hard_blocked(idx)
     except AttributeError:
-        raise pyric.error(pyric.ENODEV, "Device is no longer regsitered")
+        raise pyric.error(pyric.ENODEV, "Card is no longer regsitered")
 
 def block(card):
     """
@@ -646,7 +637,7 @@ def block(card):
         idx = rfkill.getidx(card.phy)
         rfkill.rfkill_block(idx)
     except AttributeError:
-        raise pyric.error(pyric.ENODEV, "Device no longer registered")
+        raise pyric.error(pyric.ENODEV, "Card is no longer registered")
 
 def unblock(card):
     """
@@ -657,7 +648,7 @@ def unblock(card):
         idx = rfkill.getidx(card.phy)
         rfkill.rfkill_unblock(idx)
     except AttributeError:
-        raise pyric.error(pyric.ENODEV, "Device no longer registered")
+        raise pyric.error(pyric.ENODEV, "Card no longer registered")
 
 ################################################################################
 #### RADIO PROPERTIES                                                       ####
@@ -743,12 +734,12 @@ def covclassset(card, cc, *argv):
      :param argv: netlink socket at argv[0] (or empty)
      sets card's coverage class
     """
-    if cc < wlan.COVERAGE_CLASS_MIN or cc > wlan.COVERAGE_CLASS_MAX:
+    if cc < wlan.COV_CLASS_MIN or cc > wlan.COV_CLASS_MAX:
         # this can work 'incorrectly' on non-int values but these will
         # be caught later during conversion
-        msg = "Coverage class must be integer {0} - {1}"
-        raise pyric.error(pyric.EINVAL, msg.format(wlan.COVERAGE_CLASS_MIN,
-                                                   wlan.COVERAGE_CLASS_MAX))
+        msg = "Cov class must be integer {0}-{1}".format(wlan.COV_CLASS_MIN,
+                                                         wlan.COV_CLASS_MAX)
+        raise pyric.error(pyric.EINVAL, msg)
 
     try:
         nlsock = argv[0]
@@ -766,7 +757,7 @@ def covclassset(card, cc, *argv):
     except AttributeError:
         raise pyric.error(pyric.EINVAL, "Invalid Card")
     except ValueError:
-        raise pyric.error(pyric.EINVAL, "Invalid parameter value for cc")
+        raise pyric.error(pyric.EINVAL, "Invalid value for Cov. Class")
     except nl.error as e:
         raise pyric.error(e.errno, e.strerror)
 
@@ -796,8 +787,8 @@ def retryshortset(card, lim, *argv):
     if lim < wlan.RETRY_MIN or lim > wlan.RETRY_MAX:
         # this can work 'incorrectly' on non-int values but these will
         # be caught later during conversion
-        msg = "Retry short must be integer {0} - {1}".format(wlan.RETRY_MIN,
-                                                             wlan.RETRY_MAX)
+        msg = "Retry short must be integer {0}-{1}".format(wlan.RETRY_MIN,
+                                                           wlan.RETRY_MAX)
         raise pyric.error(pyric.EINVAL, msg)
 
     try:
@@ -846,8 +837,9 @@ def retrylongset(card, lim, *argv):
     if lim < wlan.RETRY_MIN or lim > wlan.RETRY_MAX:
         # this can work 'incorrectly' on non-int values but these will
         # be caught later during conversion
-        msg = "Retry long must be integer {0} - {1}"
-        raise pyric.error(pyric.EINVAL, msg.format(wlan.RETRY_MIN, wlan.RETRY_MAX))
+        msg = "Retry long must be integer {0}-{1}".format(wlan.RETRY_MIN,
+                                                          wlan.RETRY_MAX)
+        raise pyric.error(pyric.EINVAL, msg)
 
     try:
         nlsock = argv[0]
@@ -893,12 +885,12 @@ def rtsthreshset(card, thresh, *argv):
      :param argv: netlink socket at argv[0] (or empty)
      sets the card's RTS threshold
     """
-    if thresh == 'off': thresh = wlan.RTS_THRESHOLD_OFF
-    elif thresh == wlan.RTS_THRESHOLD_OFF: pass
-    elif thresh < wlan.RTS_THRESHOLD_MIN or thresh > wlan.RTS_THRESHOLD_MAX:
-        msg = "Threshold must be 'off' or integer {0} - {1}"
-        raise pyric.error(pyric.EINVAL, msg.format(wlan.RTS_THRESHOLD_MIN,
-                                                   wlan.RTS_THRESHOLD_MAX))
+    if thresh == 'off': thresh = wlan.RTS_THRESH_OFF
+    elif thresh == wlan.RTS_THRESH_OFF: pass
+    elif thresh < wlan.RTS_THRESH_MIN or thresh > wlan.RTS_THRESH_MAX:
+        msg = "Thresh must be 'off' or integer {0}-{1}".format(wlan.RTS_THRESH_MIN,
+                                                               wlan.RTS_THRESH_MAX)
+        raise pyric.error(pyric.EINVAL, msg)
 
     try:
         nlsock = argv[0]
@@ -942,14 +934,14 @@ def fragthreshset(card, thresh, *argv):
      :param card: Card object
      :param thresh: frag threshold limit in octets
      :param argv: netlink socket at argv[0] (or empty)
-     sets the card's Fragmentation threshold
+     sets the card's Fragmentation THRESH
     """
-    if thresh == 'off': thresh = wlan.FRAG_THRESHOLD_OFF
-    elif thresh == wlan.FRAG_THRESHOLD_OFF: pass
-    elif thresh < wlan.FRAG_THRESHOLD_MIN or thresh > wlan.FRAG_THRESHOLD_MAX:
-        msg = "Threshold must be 'off' or an integer {0} - {1}"
-        raise pyric.error(pyric.EINVAL, msg.format(wlan.FRAG_THRESHOLD_MIN,
-                                                   wlan.FRAG_THRESHOLD_MAX))
+    if thresh == 'off': thresh = wlan.FRAG_THRESH_OFF
+    elif thresh == wlan.FRAG_THRESH_OFF: pass
+    elif thresh < wlan.FRAG_THRESH_MIN or thresh > wlan.FRAG_THRESH_MAX:
+        msg = "Thresh must be 'off' or integer {0}-{1}".format(wlan.FRAG_THRESH_MIN,
+                                                               wlan.FRAG_THRESH_MAX)
+        raise pyric.error(pyric.EINVAL, msg)
 
     try:
         nlsock = argv[0]
@@ -1086,10 +1078,9 @@ def ifinfo(card, *argv):
         drvr, chips = hw.ifcard(card.dev)
         mac = macget(card, iosock)
         ip4, nmask, bcast = inetget(card, iosock)
-        info = {'driver':drvr, 'chipset':chips,
-                'hwaddr':mac, 'manufacturer':hw.manufacturer(ouis,mac),
+        info = {'driver':drvr, 'chipset':chips, 'hwaddr':mac,
+                'manufacturer':hw.manufacturer(ouis,mac),
                 'inet':ip4, 'bcast':bcast, 'mask':nmask}
-    #except pyric.error # allow pyric errors to fall through
     except AttributeError:
         raise pyric.error(pyric.EINVAL, "Invalid Card")
 
@@ -1133,19 +1124,21 @@ def devinfo(card, *argv):
         raise pyric.error(e.errno, e.strerror)
 
     # pull out attributes
-    info = {'card':Card(nl.nla_find(rmsg, nl80211h.NL80211_ATTR_WIPHY), dev, idx),
-            'mode':IFTYPES[nl.nla_find(rmsg, nl80211h.NL80211_ATTR_IFTYPE)],
-            'wdev':nl.nla_find(rmsg, nl80211h.NL80211_ATTR_WDEV),
-            'mac':_hex2mac_(nl.nla_find(rmsg, nl80211h.NL80211_ATTR_MAC)),
-            'RF':nl.nla_find(rmsg, nl80211h.NL80211_ATTR_WIPHY_FREQ),
-            'CF':nl.nla_find(rmsg, nl80211h.NL80211_ATTR_CENTER_FREQ1),
-            'CHW':None}
-    chw = nl.nla_find(rmsg, nl80211h.NL80211_ATTR_CHANNEL_WIDTH)
-    if chw:
-        try:
-            info['CHW'] = channels.CHTYPES[chw]
-        except IndexError:
-            info['CHW'] = chw
+    info = {
+        'card': Card(nl.nla_find(rmsg, nl80211h.NL80211_ATTR_WIPHY), dev, idx),
+        'mode': IFTYPES[nl.nla_find(rmsg, nl80211h.NL80211_ATTR_IFTYPE)],
+        'wdev': nl.nla_find(rmsg, nl80211h.NL80211_ATTR_WDEV),
+        'mac': _hex2mac_(nl.nla_find(rmsg, nl80211h.NL80211_ATTR_MAC)),
+        'RF': nl.nla_find(rmsg, nl80211h.NL80211_ATTR_WIPHY_FREQ),
+        'CF': nl.nla_find(rmsg, nl80211h.NL80211_ATTR_CENTER_FREQ1),
+        'CHW': nl.nla_find(rmsg, nl80211h.NL80211_ATTR_CHANNEL_WIDTH)
+    }
+
+    # convert CHW to string version
+    try:
+        info['CHW'] = channels.CHTYPES[info['CHW']]
+    except (IndexError,TypeError): # invalid index and NoneType
+        info['CHW'] = None
     return info
 
 def phyinfo(card, *argv):
@@ -1156,7 +1149,12 @@ def phyinfo(card, *argv):
      :returns: dict with the following key:value pairs
       generation -> wiphy generation
       modes -> list of supported modes
-      freqs -> list of supported freqs
+      bands -> dict of supported bands of the form
+       bandid -> {'rates': list of supported rates,
+                  'rfs': list of supported freqs,
+                  'rd-data': list of data corresponding to rfs,
+                  'HT': 802.11n HT supported,
+                  'VHT': 802.11ac VHT supported}
       scan_ssids -> max number of scan SSIDS
       retry_short -> retry short limit
       retry_long -> retry long limit
@@ -1186,41 +1184,43 @@ def phyinfo(card, *argv):
         raise pyric.error(e.errno, e.strerror)
 
     # pull out attributes
-    info = {'generation':nl.nla_find(rmsg, nl80211h.NL80211_ATTR_GENERATION),
-            'retry_short':nl.nla_find(rmsg, nl80211h.NL80211_ATTR_WIPHY_RETRY_SHORT),
-            'retry_long':nl.nla_find(rmsg, nl80211h.NL80211_ATTR_WIPHY_RETRY_LONG),
-            'frag_thresh':nl.nla_find(rmsg, nl80211h.NL80211_ATTR_WIPHY_FRAG_THRESHOLD),
-            'rts_thresh':nl.nla_find(rmsg, nl80211h.NL80211_ATTR_WIPHY_RTS_THRESHOLD),
-            'cov_class':nl.nla_find(rmsg, nl80211h.NL80211_ATTR_WIPHY_COVERAGE_CLASS),
-            'scan_ssids':nl.nla_find(rmsg, nl80211h.NL80211_ATTR_MAX_NUM_SCAN_SSIDS),
-            'freqs':[],
-            'modes':[],
-            'swmodes':[],
-            'commands':[],
-            'ciphers':[]}
+    info = {
+        'generation':nl.nla_find(rmsg, nl80211h.NL80211_ATTR_GENERATION),
+        'retry_short':nl.nla_find(rmsg, nl80211h.NL80211_ATTR_WIPHY_RETRY_SHORT),
+        'retry_long':nl.nla_find(rmsg, nl80211h.NL80211_ATTR_WIPHY_RETRY_LONG),
+        'frag_thresh':nl.nla_find(rmsg, nl80211h.NL80211_ATTR_WIPHY_FRAG_THRESHOLD),
+        'rts_thresh':nl.nla_find(rmsg, nl80211h.NL80211_ATTR_WIPHY_RTS_THRESHOLD),
+        'cov_class':nl.nla_find(rmsg, nl80211h.NL80211_ATTR_WIPHY_COVERAGE_CLASS),
+        'scan_ssids':nl.nla_find(rmsg, nl80211h.NL80211_ATTR_MAX_NUM_SCAN_SSIDS),
+        'bands':[],
+        'modes':[],
+        'swmodes':[],
+        'commands':[],
+        'ciphers':[]
+    }
 
     # modify frag_thresh and rts_thresh as necessary
-    if info['frag_thresh'] >= wlan.FRAG_THRESHOLD_MAX: info['frag_thresh'] = 'off'
-    if info['rts_thresh'] > wlan.RTS_THRESHOLD_MAX: info['rts_thresh'] = 'off'
+    if info['frag_thresh'] >= wlan.FRAG_THRESH_MAX: info['frag_thresh'] = 'off'
+    if info['rts_thresh'] >= wlan.RTS_THRESH_MAX: info['rts_thresh'] = 'off'
 
     # complex attributes
+    # NOTE: after correcting my understanding of how to parsed nested attributes
+    # they should no longer result in a NLA_ERROR but just in case...
     _, bs, d = nl.nla_find(rmsg, nl80211h.NL80211_ATTR_WIPHY_BANDS, False)
-    if d != nlh.NLA_ERROR: info['freqs'] = _frequencies_(bs)
+    if d != nlh.NLA_ERROR: info['bands'] = _bands_(bs)
+    #else: info['freqs'] = _unparsed_rf_(bs)
 
     _, cs, d = nl.nla_find(rmsg, nl80211h.NL80211_ATTR_CIPHER_SUITES, False)
     if d != nlh.NLA_ERROR: info['ciphers'] = _ciphers_(cs)
 
-    # nested attributes require additional processing & in the event of an
-    # unparsed nested attribute, leave as empty list
-
-    # supported iftypes, sw iftypes are IAW nl80211.h flags i.e. pad/flag/pad
+    # supported iftypes, sw iftypes are IAW nl80211.h flags
     _, ms, d = nl.nla_find(rmsg, nl80211h.NL80211_ATTR_SUPPORTED_IFTYPES, False)
     if d != nlh.NLA_ERROR:
-        info['modes'] = [_iftypes_(struct.unpack_from('B', m, 1)[0]) for m in ms]
+        info['modes'] = [_iftypes_(struct.unpack_from('H', m, 0)[0]) for m in ms]
 
     _, ms, d = nl.nla_find(rmsg, nl80211h.NL80211_ATTR_SOFTWARE_IFTYPES, False)
     if d != nlh.NLA_ERROR:
-        info['swmodes'] = [_iftypes_(struct.unpack_from('B', m, 1)[0]) for m in ms]
+        info['swmodes'] = [_iftypes_(struct.unpack_from('H', m, 0)[0]) for m in ms]
 
     # get supported commands
     _, cs, d = nl.nla_find(rmsg, nl80211h.NL80211_ATTR_SUPPORTED_COMMANDS, False)
@@ -1318,6 +1318,7 @@ def chget(card, *argv):
     except IndexError:
         return _nlstub_(chget, card)
 
+    # rf2ch will return None if Card is not on a channel
     return channels.rf2ch(devinfo(card, nlsock)['RF'])
 
 def chset(card, ch, chw=None, *argv):
@@ -1330,13 +1331,14 @@ def chset(card, ch, chw=None, *argv):
      :param argv: netlink socket at argv[0] (or empty)
      :returns: True on success
      NOTE:
-      o ATT can throw a device busy for several reason. Most likely due to
-      the network manager etc.
+      o Can throw a device busy for several reason. Most likely due to
+       the network manager etc.
       o On my system at least (Ubuntu), creating a new dev in monitor mode and
         deleting all other existing managed interfaces allows for the new virtual
-        device's channels to be changed
+        device's channels to be changed w/out interference from network manager
     """
-    if ch not in channels.channels(): raise pyric.error(pyric.EINVAL, "Invalid channel")
+    if ch not in channels.channels():
+        raise pyric.error(pyric.EINVAL, "Invalid channel")
 
     try:
         nlsock = argv[0]
@@ -1356,7 +1358,7 @@ def freqset(card, rf, chw=None, *argv):
     """
     if rf not in channels.freqs(): raise pyric.error(pyric.EINVAL, "Invalid RF")
     if chw in channels.CHTYPES: chw = channels.CHTYPES.index(chw)
-    else: raise pyric.error(pyric.EINVAL, "Invalid width")
+    else: raise pyric.error(pyric.EINVAL, "Invalid channel width")
 
     try:
         nlsock = argv[0]
@@ -1599,9 +1601,21 @@ def link(card, *argv):
        rss -> Received signal strength in dBm
        int -> beacon interval (ms)
        stat -> status w.r.t of card to BSS one of {'authenticated','associated','ibss'}
+       tx -> tx metrics dict of the form
+        pkts -> total sent packets to connected STA (AP)
+        bytes -> total sent in bytes to connected STA (AP)
+        retries -> total # of retries
+        failed -> total # of failed
+        bitrate -> dict of form
+          rate -> tx rate in Mbits
+          width -> channel width oneof {None|20|40}
+          mcs-index -> mcs index (0..32) or None
+          gaurd -> guard interval oneof {None|0=short|1=long}
+          Note: width, mcs-index, guard will be None unless 802.11n is being used
+       rx -> rx metrics dict (see tx for format exluces retries and fails)
       or None if the card is not connected
      NOTE: if the nested attribute was not parsed correctly will attempt to pull
-      out the bssid
+      out as much as possible
     """
     try:
         nlsock = argv[0]
@@ -1620,6 +1634,7 @@ def link(card, *argv):
         nl.nla_put_u32(msg, card.idx, nl80211h.NL80211_ATTR_IFINDEX)
         nl.nl_sendmsg(nlsock, msg)
         rmsg = nl.nl_recvmsg(nlsock)
+        #return rmsg
     except AttributeError:
         raise pyric.error(pyric.EINVAL, "Invalid Card")
     except nl.error as e:
@@ -1627,45 +1642,146 @@ def link(card, *argv):
 
     # link returns multiple attributes but we are only concerned w/ @NL80211_ATTR_BSS
     # some cards (my integrated intel) do not parse correctly
-    info = {'bssid': None,
-            'ssid': None,
-            'freq': None,
-            'rss': None,
-            'int': None,
-            'chw': None,
-            'stat': None}
+    info = {'bssid': None, 'ssid': None, 'freq': None, 'rss': None, 'int': None,
+            'chw': None, 'stat': None,'tx': {}, 'rx': {}}
 
-    # ensure it was parsed correctly - we can (possibly) hack out the bssid on
-    # failed parsings bssid appears to be the first attribute returned by the
-    # kernel
     _, bs, d = nl.nla_find(rmsg, nl80211h.NL80211_ATTR_BSS, False)
     for b in bs:
-        # each attribute is pad | index | pad where is index identifies nl80211_bss
-        # enum parameter
         try:
-            i = struct.unpack_from('b', b, 1)[0]
+            # pull of the two-byte index into the nl80211_bss enum
+            i = struct.unpack_from('H', b, 0)[0] # pull off the two-byte index
             if i == nl80211h.NL80211_BSS_BSSID:
-                info['bssid'] = _hex2mac_(b[3:])
+                info['bssid'] = _hex2mac_(b[2:])
             if i == nl80211h.NL80211_BSS_FREQUENCY:
-                info['freq'] = struct.unpack_from('I', b, 3)[0]
+                info['freq'] = struct.unpack_from('I', b, 2)[0]
             if i == nl80211h.NL80211_BSS_SIGNAL_MBM:
-                info['rss'] = struct.unpack_from('i', b, 3)[0] / 100
+                info['rss'] = struct.unpack_from('i', b, 2)[0] / 100
             if i == nl80211h.NL80211_BSS_INFORMATION_ELEMENTS:
-                # after removing the length, the first element in the ies should
-                # be the ssid following the pattern \x00<length><ssid?
-                ies = b[3:]
-                if ies[0] == '\x00': # sanity check
-                    l = struct.unpack_from('B',ies,1)[0]
-                    info['ssid'] = struct.unpack_from('{0}s'.format(l),ies,2)[0]
+                # hacking the proprietary info element attribute: (it should
+                # be a nested attribute itself, but I have currently no way of
+                # knowing what the individual indexes would mean
+                # "\x06\x00\x00<l>SSID.....
+                # the ssid is the first element (from what I've seen). Get the
+                # length of the ssid which is the fourth byte, then unpack
+                # the string starting at the fifth byte up to the length
+                l = struct.unpack_from('B',b,3)[0]
+                info['ssid'] = struct.unpack_from('{0}s'.format(l),b,4)[0]
             if i == nl80211h.NL80211_BSS_BEACON_INTERVAL:
-                info['int'] = struct.unpack_from('H', b, 3)[0]
+                info['int'] = struct.unpack_from('H', b, 2)[0]
             if i == nl80211h.NL80211_BSS_CHAN_WIDTH:
-                j = struct.unpack_from('I', b, 3)[0]
+                j = struct.unpack_from('I', b, 2)[0]
                 info['chw'] = nl80211h.NL80211_BSS_CHAN_WIDTHS[j]
             if i == nl80211h.NL80211_BSS_STATUS:
-                j = struct.unpack_from('I', b, 3)[0]
+                j = struct.unpack_from('I', b, 2)[0]
                 info['stat'] = nl80211h.NL80211_BSS_STATUSES[j]
         except (struct.error,IndexError):
+            pass
+
+    # process stainfo of AP
+    if info['bssid']:
+        sinfo = stainfo(card, info['bssid'], nlsock)
+        if sinfo is not None: # just in case
+            try:
+                # tx data
+                info['tx'] = {
+                    'bytes': sinfo['tx-bytes'],
+                    'pkts': sinfo['tx-pkts'],
+                    'failed': sinfo['tx-failed'],
+                    'retries': sinfo['tx-retries'],
+                    'bitrate': {'rate': sinfo['tx-bitrate']['rate'] * 0.1}
+                }
+                if sinfo['tx-bitrate'].has_key('mcs-index'):
+                    info['tx']['bitrate']['mcs-index'] = sinfo['tx-bitrate']['mcs-index']
+                    info['tx']['bitrate']['gi'] = sinfo['tx-bitrate']['gi']
+                    info['tx']['bitrate']['width'] = sinfo['tx-bitrate']['width']
+
+                # rx data
+                info['rx'] = {
+                    'bytes': sinfo['rx-bytes'],
+                    'pkts':sinfo['rx-pkts'],
+                    'bitrate': {'rate': sinfo['rx-bitrate']['rate'] * 0.1}
+                }
+                if sinfo['rx-bitrate'].has_key('mcs-index'):
+                    info['rx']['bitrate']['mcs-index'] = sinfo['rx-bitrate']['mcs-index']
+                    info['rx']['bitrate']['gi'] = sinfo['rx-bitrate']['gi']
+                    info['rx']['bitrate']['width'] = sinfo['rx-bitrate']['width']
+            except (KeyError,TypeError,AttributeError):
+                # ignore for now, returning what we got
+                pass
+
+    return info
+
+def stainfo(card, mac, *argv):
+    """
+     returns info about sta (AP) the card is associated with (iw dev card.<dev> link)
+     :param card: Card object
+     :param mac: mac address of STA
+     :param argv: netlink socket at argv[0] (or empty)
+     :returns: sta info as dict  with the following key:value pairs
+      rx-bytes: total received bytes (from STA)
+      tx-bytes: total sent bytes (to STA)
+      rx-pkts: total received packets (from STA)
+      tx-pkts: total sent packets (to STA)
+      tx-bitrate: dict of the form
+       rate: bitrate in 100kbits/s
+       legacy: fallback bitrate in 100kbits/s (only present if rate is not determined)
+       mcs-index: mcs index (0..32) (only present if 802.11n)
+       gi: guard interval oneof {0=short|1=long} (only present if 802.11n)
+       width: channel width oneof {20|40}
+      rx-bitrate: see tx-bitrate
+     NOTE:
+      - if the nested attribute was not parsed correctly will attempt to pull
+       out as much as possible
+      - given msc index, guard interval and channel width, one can calculate the
+       802.11n rate (see wraith->standards->mcs)
+    """
+    try:
+        nlsock = argv[0]
+    except IndexError:
+        return _nlstub_(stainfo, card, mac)
+
+    # if we're not connected GET_SCAN will dump scan results, we don't want that
+    if not isconnected(card, nlsock): return None
+
+    try:
+        msg = nl.nlmsg_new(nltype=_familyid_(nlsock),
+                           cmd=nl80211h.NL80211_CMD_GET_STATION,
+                           flags=nlh.NLM_F_REQUEST | nlh.NLM_F_ACK)
+        nl.nla_put_u32(msg, card.idx, nl80211h.NL80211_ATTR_IFINDEX)
+        nl.nla_put_unspec(msg, _mac2hex_(mac), nl80211h.NL80211_ATTR_MAC)
+        nl.nl_sendmsg(nlsock, msg)
+        rmsg =  nl.nl_recvmsg(nlsock)
+    except AttributeError:
+        raise pyric.error(pyric.EINVAL, "Invalid Card")
+    except nl.error as e:
+        raise pyric.error(e.errno, e.strerror)
+
+    # we are only concerned w/ @NL80211_ATTR_STA_INFO
+    info = {'rx-bytes': None, 'tx-bytes': None, 'rx-pkts': None, 'tx-pkts': None,
+            'tx-bitrate':{}, 'rx-bitrate':{}}
+
+    _, bs, d = nl.nla_find(rmsg, nl80211h.NL80211_ATTR_STA_INFO, False)
+    for b in bs:
+        try:
+            # pull of the two-byte index into the nl80211_bss enum
+            i = struct.unpack_from('H', b, 0)[0]
+            if i == nl80211h.NL80211_STA_INFO_RX_BYTES:
+                info['rx-bytes'] = struct.unpack_from('I', b, 2)[0]
+            elif i == nl80211h.NL80211_STA_INFO_TX_BYTES:
+                info['tx-bytes'] = struct.unpack_from('I', b, 2)[0]
+            elif i == nl80211h.NL80211_STA_INFO_RX_PACKETS:
+                info['rx-pkts'] = struct.unpack_from('I', b, 2)[0]
+            elif i == nl80211h.NL80211_STA_INFO_TX_PACKETS:
+                info['tx-pkts'] = struct.unpack_from('I', b, 2)[0]
+            elif i == nl80211h.NL80211_STA_INFO_TX_RETRIES:
+                info['tx-retries'] = struct.unpack_from('I', b, 2)[0]
+            elif i == nl80211h.NL80211_STA_INFO_TX_FAILED:
+                info['tx-failed'] = struct.unpack_from('I', b, 2)[0]
+            elif i == nl80211h.NL80211_STA_INFO_TX_BITRATE:
+                info['tx-bitrate'] = _rateinfo_(b[2:])
+            elif i == nl80211h.NL80211_STA_INFO_RX_BITRATE:
+                info['rx-bitrate'] = _rateinfo_(b[2:])
+        except (struct.error, IndexError):
             pass
 
     return info
@@ -1677,13 +1793,30 @@ def link(card, *argv):
 IPADDR = re.compile("^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$") # re for ip addr
 MACADDR = re.compile("^([0-9a-fA-F]{2}:){5}([0-9a-fA-F]{2})$") # re for mac addr
 
-def _hex2mac_(v):
-    """ :returns: a ':' separated mac address from byte stream v """
-    return ":".join(['{0:02x}'.format(ord(c)) for c in v])
 
 def _hex2ip4_(v):
     """ :returns: a '.' separated ip4 address from byte stream v """
     return '.'.join([str(ord(c)) for c in v])
+
+def _hex2mac_(v):
+    """
+     :param v: packed bytestream of form \xd8\xc7\xc8\x00\x11\x22
+     :returns: a ':' separated mac address from byte stream v
+    """
+    return ":".join(['{0:02x}'.format(ord(c)) for c in v])
+
+def _mac2hex_(v):
+    """
+     converts mac address to hex string
+     :param v: mac address of form xx:yy:zz:00:11:22
+     :returns: mac address as hex string
+    """
+    try:
+        return struct.pack('6B',*[int(x,16) for x in v.split(':')])
+    except AttributeError:
+        raise pyric.error(pyric.EINVAL, 'Mac address is not valid')
+    except struct.error:
+        raise pyric.error(pyric.EINVAL, 'Mac address is not 6 octets')
 
 def _validip4_(addr):
     """
@@ -1796,9 +1929,138 @@ def _iftypes_(i):
     except IndexError:
         return "Unknown mode ({0})".format(i)
 
-def _frequencies_(band):
+def _bands_(bs):
     """
-     extract list of supported freqs packed byte stream band
+     extracts supported freqs, rates from bands
+     :param bs: a list of one or more unparsed band attributes
+     :returns: dict of the form
+      band: one of {'2GHz'|'5GHz'|'UNK (n)'} -> band dict
+      band dict ->
+       HT: HT is supported by the Card on this band
+       VHT: VHT is supported by the Card on this band
+       rates: list of supported rates
+       rfs: list of supported frequencies
+       rf-data: list of dicts of rf-data where rf-data[i] contains info
+        regarding rf[i]
+    """
+    # NOTE: in addition to RF and rates there are HT data included in the
+    # band info ATT we do not parse these (see "phy info notes 3.txt")
+    bands = {}
+    for band in bs:
+        # the first two bytes tell us what band were in (enum nl80211_band)
+        bi = struct.unpack_from('H', band, 0)[0]
+        try:
+            bi = nl80211h.NL80211_BANDS[bi]
+        except IndexError:
+            bi = "UNK ({0})".format(bi)
+        bands[bi] = {'HT': False,
+                     'VHT': False,
+                     'rates': None,
+                     'rfs': None,
+                     'rf-data': None}
+
+        # now we delve into multiple levels of nesting
+        battrs = nl.nla_parse_nested(band[2:]) # skip the band index
+        for battr in battrs:
+            # Here is were a find nested would come in handy
+            # Also, there are other data here (see nl80211_h nl80211_band_attr)
+            i = struct.unpack_from('H', battr, 0)[0]
+            if i == nl80211h.NL80211_BAND_ATTR_RATES:
+                try:
+                    bands[bi]['rates'] = _band_rates_(battr[2:])
+                except (nl.error,struct.error):
+                    bands[bi]['rates'] = []
+            elif i == nl80211h.NL80211_BAND_ATTR_FREQS:
+                try:
+                    bands[bi]['rfs'], bands[bi]['rf-data'] = _band_rfs_(battr[2:])
+                except (nl.error,struct.error):
+                    bands[bi]['freqs'], bands[bi]['rf-data'] = [], []
+            elif i in [nl80211h.NL80211_BAND_ATTR_HT_MCS_SET,
+                       nl80211h.NL80211_BAND_ATTR_HT_CAPA,
+                       nl80211h.NL80211_BAND_ATTR_HT_AMPDU_FACTOR,
+                       nl80211h.NL80211_BAND_ATTR_HT_AMPDU_DENSITY]:
+                bands[bi]['HT'] = True
+            elif i in [nl80211h.NL80211_BAND_ATTR_VHT_MCS_SET,
+                       nl80211h.NL80211_BAND_ATTR_VHT_CAPA]:
+                bands[bi]['VHT'] = True
+    return bands
+
+def _band_rates_(rs):
+    """
+     unpacks individual rates from packed rates
+     :param rs: packed rates
+     :returns: a list of rates in Mbits
+     NOTE: ATT we ignore any short preamble specifier
+    """
+    # rs is an unpacked nested attribute, get the nested attributes are a list
+    # of bitrates each bitrate itself being a nested attribute. The bitrate
+    # attribute will be: a counter and another nested attribute containing
+    # a rate (index = \x01) and a flag (= \x02) if the rate supports
+    # short preamble - these indexes index the enum nl80211_bitrate_attr
+    rates = []
+    for attr in nl.nla_parse_nested(rs):
+        for bitrate in nl.nla_parse_nested(attr[2:]): # first two bytes are a counter
+            i = struct.unpack_from('H', bitrate, 0)[0]
+            if i == nl80211h.NL80211_BITRATE_ATTR_RATE:
+                rates.append(struct.unpack_from('I', bitrate, 2)[0] * 0.1)
+    return rates
+
+def _band_rfs_(rs):
+    """
+     unpacks individual RFs (and accompanying data) from packed rfs
+    :param rfs: packed frequencies
+    :returns: a tuple t = (freqs: list of supported RFS (MHz), data: list of dicts)
+     where for each i in freqs, data[i] is the corresponding data having the
+     form {}
+    """
+    rfs = []
+    rfds = []
+    for attr in nl.nla_parse_nested(rs):
+        # attr is a counter and a nested attribute (nl80211_frequency_attr)
+
+        # RF data being compiled ATT we are ignoring DFS related and infrared
+        # related. rfd is initially defined with max-tx, radar, 20Mhz and 10Mhz
+        # with 'default' values.
+        # Additional values may be returned by the kernel. If present they will
+        # be appended to not-permitted as the following strings
+        #  HT40-, HT40+, 80MHz, 160MHz and outdoor.
+        # If present in not-permitted, they represent False Flags
+        rfd = {'max-tx': 0,      # Card's maximum tx-power on this RF
+               'enabled': True,  # w/ current reg. dom. RF is enabled
+               '20Mhz': True,    # w/ current reg. dom. 20MHz operation is allowed
+               '10Mhz': True,    # w/ current reg. dom. 10MHz operation is allowed
+               'radar': False,   # w/ current reg. dom. radar detec. required on RF
+               'not-permitted': []}      # additional flags
+        for fattr in nl.nla_parse_nested(attr[2:]):
+            # first two bytes are index into enum nl80211_frequency_attr
+            i = struct.unpack_from('H', fattr, 0)[0]
+            if i == nl80211h.NL80211_FREQUENCY_ATTR_FREQ:
+                rfs.append(struct.unpack_from('I', fattr[2:], 0)[0])
+            elif i == nl80211h.NL80211_FREQUENCY_ATTR_DISABLED:
+                rfd['enabled'] = False
+            elif i == nl80211h.NL80211_FREQUENCY_ATTR_MAX_TX_POWER:
+                # convert mBm to dBm
+                rfd['max-tx'] = struct.unpack_from('I', fattr[2:], 0)[0] * 0.01
+            elif i == nl80211h.NL80211_FREQUENCY_ATTR_NO_HT40_MINUS:
+                rfd['not-permitted'].append('HT40-')
+            elif i == nl80211h.NL80211_FREQUENCY_ATTR_NO_HT40_PLUS:
+                rfd['not-permitted'].append('HT40+')
+            elif i == nl80211h.NL80211_FREQUENCY_ATTR_NO_80MHZ:
+                rfd['not-permitted'].append('80MHz')
+            elif i == nl80211h.NL80211_FREQUENCY_ATTR_NO_160MHZ:
+                rfd['not-permitted'].append('160MHz')
+            elif i == nl80211h.NL80211_FREQUENCY_ATTR_INDOOR_ONLY:
+                rfd['not-permitted'].append('outdoor')
+            elif i == nl80211h.NL80211_FREQUENCY_ATTR_NO_20MHZ:
+                rfd['20MHz'] = False
+            elif i == nl80211h.NL80211_FREQUENCY_ATTR_NO_10MHZ:
+                rfd['10MHz'] = False
+        rfds.append(rfd)
+    return rfs, rfds
+
+def _unparsed_rf_(band):
+    """
+     (LEGACY) extract list of supported freqs packed byte stream band
      :param band: packed byte string from NL80211_ATTR_WIPHY_BANDS
      :returns: list of supported frequencies
     """
@@ -1817,11 +2079,13 @@ def _commands_(command):
     cs = []
     for cmd in command:
         try:
-            # convert the numeric command to the form @NL80211_CMD_<CMD>
-            # Some numeric commands may have multiple string synonyms, in
-            # that case, take the first one. Finally, strip off @NL80211_CMD_
-            # to get only the command name and make it lowercase
-            cmd = cmdbynum(struct.unpack_from('>HH', cmd, 0)[1])
+            # commands are listed |count|command|
+            #                     <- 2 -><-  4 ->
+            # ignore count, use numeric command to lookup string version in form
+            # @NL80211_CMD_<CMD> and strip "@NL80211_CMD_". NOTE: some numeric
+            # commands may have multiple string synonyms, in that case, take the
+            # first one. Finally, make it lowercase
+            cmd = cmdbynum(struct.unpack_from('I', cmd, 2)[0])
             if type(cmd) is type([]): cmd = cmd[0]
             cs.append(cmd[13:].lower()) # skip NL80211_CMD_
         except KeyError:
@@ -1845,6 +2109,52 @@ def _ciphers_(cipher):
             # for testing/future identificaion purposes
             ss.append('RSRV-{0}'.format(hex(int(e.__str__()))))
     return ss
+
+#### ADDITIONAL PARSING FOR STAINFO
+
+def _rateinfo_(ri):
+    """
+     parses the rate info stream returning a bitrate dict
+     :param ri: rate info stream
+     :returns: bitrate dict having the key->value pairs
+      rate: bitrate in 100kbits/s
+      legacy: fallback bitrate in 100kbits/s (only present if rate is not determined)
+      mcs-index: mcs index (0..32) (only present if 802.11n)
+      gi: guard interval oneof {0=short|1=long} (only present if 802.11n)
+      width: channel width oneof {20|40}
+     NOTE: references enum nl80211_rate_info
+    """
+    bitrate = {'rate': None, 'legacy': None, 'mcs-index': None, 'gi': 1, 'width': 20}
+
+    try:
+        brs = nl.nla_parse_nested(ri)
+    except nl.error:
+        return {}
+
+    for br in brs:
+        i = struct.unpack_from('H', br, 0)[0]
+        if i == nl80211h.NL80211_RATE_INFO_BITRATE32:
+            bitrate['rate'] = struct.unpack_from('I', br, 2)[0]
+        elif i == nl80211h.NL80211_RATE_INFO_BITRATE: # legacy fallback rate
+            bitrate['legacy'] = struct.unpack_from('H', br, 2)[0]
+        elif i == nl80211h.NL80211_RATE_INFO_MCS:
+            bitrate['mcs-index'] = struct.unpack_from('B', br, 2)[0]
+        elif i == nl80211h.NL80211_RATE_INFO_40_MHZ_WIDTH: # flag
+            bitrate['width'] = 40
+        elif i == nl80211h.NL80211_RATE_INFO_SHORT_GI: # flag
+            bitrate['gi'] = 0
+
+    # clean it up before returning
+    # remove legacy if we have rate or make rate = legacy if we dont have rate
+    # remove mcs-index and short gi and 40 MHz if there is no mcs-index
+    if bitrate['legacy'] and not bitrate['rate']: bitrate['rate'] = bitrate['legacy']
+    if bitrate['rate'] and bitrate['legacy']: del bitrate['legacy']
+    if bitrate['mcs-index'] is None:
+        del bitrate['mcs-index']
+        del bitrate['gi']
+        del bitrate['width']
+
+    return bitrate
 
 #### NETLINK/IOCTL PARAMETERS ####
 

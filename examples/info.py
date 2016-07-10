@@ -61,11 +61,23 @@ def execute(dev,itype):
         for mode in pinfo['modes']: msg += "\t  * {0}\n".format(mode)
         msg += "\tSupported Commands:\n"
         for cmd in pinfo['commands']: msg += "\t  * {0}\n".format(cmd)
-        msg += "\tSupported Frequencies:\n"
-        for rf in pinfo['freqs']: msg += "\t * {0} ({1})\n".format(rf,rf2ch(rf))
         msg += "\tSupported Ciphers:\n"
         for cipher in pinfo['ciphers']: msg += "\t  * {0}\n".format(cipher)
-
+        for band in pinfo['bands']:
+            msg += "\tBand {0}: (HT: {1} VHT: {2})\n".format(band,
+                                                             pinfo['bands'][band]['HT'],
+                                                             pinfo['bands'][band]['VHT'])
+            msg += "\t   Rates:\n"
+            for rate in pinfo['bands'][band]['rates']:
+                msg += "\t    * {0} Mbps\n".format(rate)
+            msg += "\t   Frequencies:\n"
+            for i,rf in enumerate(pinfo['bands'][band]['rfs']):
+                msg += "\t    * {0} Mbps ({1} dBm)".format(rf,
+                                                           pinfo['bands'][band]['rf-data'][i]['max-tx'])
+                if not pinfo['bands'][band]['rf-data'][i]['enabled']:
+                    msg += " (disabled)\n"
+                else:
+                    msg += "\n"
         print msg
 
 if __name__ == '__main__':

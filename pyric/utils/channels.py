@@ -20,7 +20,7 @@ are permitted provided that the following conditions are met:
    contributors may be used to endorse or promote products derived from this
    software without specific prior written permission.
 
-Defines ISM 2.4Ghz,UNII 5Ghz and 4.9GHz frequencies and channels
+Defines ISM 2.4Ghz, UNII 5Ghz and 4.9GHz frequencies and channels
 
 Need to define 3GHz channels/freqs
 

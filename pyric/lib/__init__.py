@@ -23,7 +23,7 @@ lib subpackage
 
  lib 0.0.2
   desc: lib subpackage
- includes: libnl 0.0.8 libio 0.0.1
+ includes: libnl 0.1.0 libio 0.0.1
  changes:
   o added libio
   o updated libnl

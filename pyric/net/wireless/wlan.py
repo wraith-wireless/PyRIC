@@ -110,9 +110,9 @@ WLAN_CIPHER_SUITE_SELECTORS = {
     WLAN_CIPHER_SUITE_SMS4:'SMS4'
 }
 
-""" Coverage Class Limits IAW Std Table 8-56 """
-COVERAGE_CLASS_MIN =  0
-COVERAGE_CLASS_MAX = 31
+""" COV Class Limits IAW Std Table 8-56 """
+COV_CLASS_MIN =  0
+COV_CLASS_MAX = 31
 
 """
  Retry (short and long) Limits IAW Std dot11ShortRetryLimit pg 2133 and
@@ -121,14 +121,12 @@ COVERAGE_CLASS_MAX = 31
 RETRY_MIN = 1
 RETRY_MAX = 255
 
-""" RTS Threshold limits IAW Std dot11RTSThreshold definition pg 2133 """
-RTS_THRESHOLD_MIN = 0
-RTS_THRESHOLD_MAX = 65536
-RTS_THRESHOLD_OFF = 4294967295 #(2^32 -1 or the max value of a u32)
+""" RTS THRESH limits IAW Std dot11RTSTHRESH definition pg 2133 """
+RTS_THRESH_MIN = 0
+RTS_THRESH_MAX = 65536
+RTS_THRESH_OFF = 4294967295 #(2^32 -1 or the max value of a u32)
 
-"""
- Fragmentation Threshold limits IAW Std dot11FragmentThreshold definition pg 2133
-"""
-FRAG_THRESHOLD_MIN = 256
-FRAG_THRESHOLD_MAX = 8000
-FRAG_THRESHOLD_OFF = 4294967295 #(2^32 -1 or the max value of a u32)
+""" Fragmentation THRESH limits IAW Std dot11FragmentTHRESH def. pg 2133 """
+FRAG_THRESH_MIN = 256
+FRAG_THRESH_MAX = 8000
+FRAG_THRESH_OFF = 4294967295 #(2^32 -1 or the max value of a u32)

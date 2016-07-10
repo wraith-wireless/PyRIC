@@ -20,7 +20,7 @@
 % __name__ = 'User Guide'
 %__license__ = 'GPLv3'
 %__version__ = '0.0.4'
-%__date__ = 'June 2016'
+%__date__ = 'July 2016'
 %__author__ = 'Dale Patterson'
 %__maintainer__ = 'Dale Patterson'
 %__email__ = 'wraith.wireless@yandex.com'
@@ -823,13 +823,16 @@ on card's phy with dev vdev, in mode and using flags. Note: flags are only suppo
 in when creating a monitor mode
 \item devdel(card,[nlsock]): (iw card.<dev> del), type: netlink, deletes card
 \begin{itemize}
-\item isconnected(card, [nlsock]): (iw card.<dev> info | grep channel), type: 
+\item isconnected(card, [nlsock]): (iw dev card.<dev> info | grep channel), type: 
 netlink, determines if card is connected
-\item disconnect(card, [nlsock]): (iw card.<dev> disconnect), type: netlink,
+\item disconnect(card, [nlsock]): (iw dev card.<dev> disconnect), type: netlink,
 disconnects card from AP 
-\item link(card, [nlsock]): (iw card.<dev> link), type: netlink, displays
-link specific details, i.e. AP details card is connected to
+\item link(card, [nlsock]): (iw dev card.<dev> link), type: netlink, displays
+link specific details, i.e. AP details that card is connected to
+\item stainfo(card, mac, [nlsock]): (iw dev card.<dev> link) type: netlink, displays
+tx, rx metrics of the AP that card is connected to
 \item \_hex2mac\_(v): returns a ':' separated mac address from byte stream v
+\item \_mac2hex\_(v): returns a hex string corresponding to mac address v
 \item \_hex2ip4\_(v): returns a '.' separated ip4 address from byte stream v
 \item \_validip4\_(addr): determines if addr is a valid ip4 address
 \item \_validmac\_(addr): determines if addr is a valid mac address
@@ -842,14 +845,20 @@ only called once per module import
 \item \_flagsget\_(dev,[iosock]): get's the dev's interface flags
 \item \_flagsset\_(dev,flags,[iosock]): set's the dev's interface flags
 \item \_iftypes\_(i): returns the mode corresponding to i
-\item \_frequencies\_(band): returns a list of frequencies from the packed byte 
-string band
+\item \_bands\_(band): futher parses band attribute returns dict of bands 
+containting rf information and rate information
+\item \_band\_rates\_(rs): extracts list of rates from the unpacked rates rs
+\item \_band\_rfs\_(rfs): extracts list of RFs (and other data) from the unpacked
+frequencies rfs
+\item \_unparsed\_rfs\_(band): (legacy) returns a list of frequencies from the 
+unparsed byte string band
 \item \_commands\_(command): converts the list of numeric commands to a list of
 commands as strings 
 \item \_ciphers\_(cipher): returns a list of ciphers from the packed byte string
 cipher
-\item \_iostub\_(fct,*argv): ioctl stub function, calls fct with parameter list argv
-and an allocated ioctl socket
+\item \_rateinfo\_(ri): returns parsed rate info from the packed byte string ri
+\item \_iostub\_(fct,*argv): ioctl stub function, calls fct with parameter list 
+argv and an allocated ioctl socket
 \item \_nlstub\_(fct,*argv): netlink stub function, calls fct with parameter list
 argv and an allocated netlink socket
 \end{itemize}

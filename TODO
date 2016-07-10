@@ -1,30 +1,15 @@
-1) add a cli
-2) rfkill - unblocks/blocks all devices (as does the cli rfkill) Is this an
-  an ubuntu, kernel or overall issue
-3) parse NL80211_ATTR_WIPHY_BANDS (have workaround currently in place)
- - after figuring out _CIPHER_SUITES, may be able to get a solution for the bands
 6) find a better way to get supported standards of a card
+ o once complete phyinfo should give us enought data to determine the standards
+  the Card supports
 8) Two commands that would add information of minor value
  o ethtool. uses ioctl but does not follow same pattern as ifconfig seems
     to use
   - ethtool -i <dev> gives driver information including firmware-version
   - ethtool -S <dev> gives some statistics on rx/tx
- o iw dev wlan0 link returns information related to associated station. It sends
-   two commands the first is to initiate a scan, the second is @NL80211_CMD_GET_STATION.
-   The return from the kernel is a @NL80211_CMD_NEW_STATION, one of the attributes
-   is a @NL80211_ATTR_STA_INFO
-  - What is this? Looking at nl80211_h line 1648 we find the definition for
-    NL80211_STA_INFO - this has to be the corresponding data. Doesn't work, there
-    is something I'm missing but cannot figure out
-  - iw requests info on the BSSID, can we request the info on any STA?
-  - Line 1806 These attribute types are used with %NL80211_ATTR_STA_INFO
-    when getting information about a station.
+ and udevadm (does what hardware.py does)
  11) tried NL80211_CMD_GET_WIPHY, setting _WIPHY_TX_POWER_LEVEL but did
   not return the current power level - currently cannot find anything in nl80211.h
   that could be used to get tx power
- 14) look at udevadm info --query=all --path /sys/class/net/<dev>
-  o has devie driver, name and some other details but appears to get these
-   the same way PyRIC does
  17) distro tests
   o openSUSE
   o RedHat/Fedora
@@ -33,8 +18,6 @@
   o CentOs (?)
   o slackware
   o dd-wrt/OpenWRT
- 18) port structs from new nl80211.h
- 19) iw is showing a command that doesn't exist
  21) look at NL80211_CMD_START_AP - no need to try and recreate the wheel by
   replicate hostap but could be useful
  22) txset
@@ -68,14 +51,29 @@
    - If this command was being returned, pyw would correctly identify it as
     NL80211_CMD_SET_QOS_MAP - need to identify a card that supports this command
     and determine that pyw does correctly identify it
-  24) confirm download_url in setup.py is valid
-  25) nested attribute handling
-   o parsing link info on intel fails on nla_parse_nested(... @NL80211_ATTR_BSS)
-   o parsing link on alfa and rosewill succeeds
   26) need to parse dumps NLM_F_DUMP, for now we're good with link etc, so long
    as the card is connected but it will come up eventually
-  27) fix tostream for some nested structures
-   o if the nested attribute failed to parse correctly, it will not be able to
-    be packed
-  29) parse the information element in pyw.link - there's some good shit in it
-   including the router os, type
+  29) figure out how to parse the information element in pyw.link - there's some
+   good shit in it including the router os, type
+  31) add VHT processing to sta_info bitrate
+  32) should we move wraith.standards.mcs here? It's only used once in PyRIC but
+   might make more sense here regardless. If so, we need to fix the "Table" IAW
+   IEEE Std 802.11-2012 Table 20-35
+  33) seq. # out of order error messages when preceding (persistent) socket.send
+   resulted in error
+  35) iw connect (on open) returns status of successful connect but card is
+   not connected -> move to wpa_supplicant to see how they do it
+  36) do we need to write a find nested attribute? so we don't need to go iterate
+    a list of attributes to find one
+  39) parsing wiphy_bands
+   o _HT_MCS_SET: a 16-bit attr containing the MCS set as defined in 802.11n (find this)
+   o _HT_CAPA: as in the HT information IE
+  40) look at packing netlink messages to ensure nesting still works
+  41) would it be worthwhile to have nested return a tuple
+      t = (index,data)
+     instead of the function calling pulling index out, then parsing data?
+  42) is there a simple way to set the format strings as constants keeping in
+   mind that things like strings require a length in the format string
+  43) add nameset (iw phy <phy> set name <new name>
+  45) find out if some the 'flags' for bands are actually supported such as
+   HT40+ which should be disabled for channel 11

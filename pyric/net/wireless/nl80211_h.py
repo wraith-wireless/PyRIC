@@ -72,7 +72,6 @@ NL80211_MULTICAST_GROUP_VENDOR   = "vendor"
 NL80211_MULTICAST_GROUP_TESTMODE = "testmode"
 
 """
-/**
  * enum nl80211_commands - supported nl80211 commands
  *
  * @NL80211_CMD_UNSPEC: unspecified command to catch errors
@@ -605,7 +604,6 @@ NL80211_MULTICAST_GROUP_TESTMODE = "testmode"
  *	as an event to indicate changes for devices with wiphy-specific regdom
  *	management.
  * @NL80211_CMD_MAX: highest used command number
- */
 """
 NL80211_CMD_UNSPEC                     =   0
 NL80211_CMD_GET_WIPHY                  =   1
@@ -736,7 +734,6 @@ NL80211_CMD_SET_MESH_PARAMS = NL80211_CMD_SET_MESH_CONFIG
 #NL80211_MESH_SETUP_VENDOR_PATH_SEL_IE = NL80211_MESH_SETUP_IE
 
 """
-/**
  * enum nl80211_attrs - nl80211 netlink attributes
  *
  * @NL80211_ATTR_UNSPEC: unspecified attribute to catch errors
@@ -1348,7 +1345,6 @@ NL80211_CMD_SET_MESH_PARAMS = NL80211_CMD_SET_MESH_CONFIG
  *	between scans. The scan plans are executed sequentially.
  *	Each scan plan is a nested attribute of &enum nl80211_sched_scan_plan.
  * @NL80211_ATTR_MAX: highest attribute number currently defined
- */
 """
 
 # don't change the order or add anything between, this is ABI!
@@ -2900,6 +2896,7 @@ NL80211_TXRATE_FORCE_LGI  = 2
  * @NL80211_BAND_60GHZ: around 60 GHz band (58.32 - 64.80 GHz)
  */
 """
+NL80211_BANDS = ['2GHz','5GHz','60GHz']
 NL80211_BAND_2GHZ  = 0
 NL80211_BAND_5GHZ  = 1
 NL80211_BAND_60GHZ = 2
