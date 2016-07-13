@@ -72,8 +72,8 @@ def execute(dev,itype):
                 msg += "\t    * {0} Mbps\n".format(rate)
             msg += "\t   Frequencies:\n"
             for i,rf in enumerate(pinfo['bands'][band]['rfs']):
-                msg += "\t    * {0} Mbps ({1} dBm)".format(rf,
-                                                           pinfo['bands'][band]['rf-data'][i]['max-tx'])
+                dbm = pinfo['bands'][band]['rf-data'][i]['max-tx']
+                msg += "\t    * {0} MHz ({1} dBm)".format(rf,dbm)
                 if not pinfo['bands'][band]['rf-data'][i]['enabled']:
                     msg += " (disabled)\n"
                 else:
@@ -91,11 +91,11 @@ if __name__ == '__main__':
         dname = args.dev
         infotype = args.type
         if dname is None:
-            print "usage: python details.py -d <dev> [-t <itype>]"
+            print "usage: python info.py -d <dev> [-t one of {all|if|dev|phy}]"
             sys.exit(0)
         if infotype is None: infotype = 'all'
         if infotype not in ['all','if','dev','phy']:
-            print "usage: python details.py -d <dev> [-t one of {all|if|dev|phy}]"
+            print "usage: python info.py -d <dev> [-t one of {all|if|dev|phy}]"
             sys.exit(0)
         execute(dname,infotype)
     except pyric.error as e:

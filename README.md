@@ -32,7 +32,10 @@ Python port of Netlink w.r.t nl80211 functionality. The original goal of PyRIC
 was to provide a simple interface to the underlying nl80211 kernel support,
 handling the complex operations of Netlink seamlessy while maintaining a minimum
 of "code walking" to understand, modify and extend. But, why stop there? Since
-it's initial inception, PyRIC has grown to include ioctl support to replicate
+it's initial inception, PyRIC has grown. PyRIC puts iw, ifconfig, rfkill,
+udevadm, airmon-ng and macchanger
+ 
+ to include ioctl support to replicate
 features of ifconfig such as getting or setting the mac address and has recently
 implemented rkill support to soft block or unblock wireless cards.
 
@@ -186,6 +189,9 @@ form t = (error code,error message).
 
 Work is ongoing to help clarify some of the error messages returned by default
 by os.strerror for example. 
+
+Read the user guide, or type dir(pyw) in your console to get a full listing
+of all pyw functions.
 
 ### a. System/Wireless Core Functionality
 These functions do not work with a specific device rather with the system.
@@ -450,6 +456,98 @@ True
 >>>
 ```
 
+So, perhaps you do not care for the previous method of creating a card
+in monitor mode and deleting all associated interfaces and would prefer 
+to execute an airmon-ng(ish) method. 
+
+```python
+>>> w0
+Card(phy=0,dev='wlan0',ifindex=2)
+>>> w1 = pyw.devset(w0, 'wlan1')
+>>> w1
+Card(phy=0,dev=wlan1,ifindex=3)
+>>> pyw.modeset(w1, 'monitor')
+>>> pyw.up(w1)
+>>> pyw.chset(w1, 1, None)
+```
+
+The above commands execute the same internal commands as does airmon-ng. 
+To verify, open a command prompt and execute the following:
+
+```bash
+?> iw dev wlan0 info # replace wlan0 with your nic
+Interface wlan0
+	ifindex 3
+	wdev 0x1
+	addr a0:88:b4:9e:68:58
+	type managed
+	wiphy 0
+?> sudo airmon-ng start wlan0
+Found 2 processes ...
+?> 
+?> iw dev wlan0mon info 
+Interface wlan0mon
+	ifindex 6
+	wdev 0x2
+	addr a0:88:b4:9e:68:58
+	type monitor
+	wiphy 0
+	channel 10 (2457 MHz), width: 20 MHz (no HT), center1: 2457 MHz
+?>
+?> sudo airmon-ng stop wlan0mon
+...
+?> iw dev wlan0 info
+Interface wlan0
+	ifindex 7
+	wdev 0x3
+	addr a0:88:b4:9e:68:59
+	type managed
+	wiphy 0
+```
+
+As you can see, under the covers, airmon-ng deletes the specified nic 
+(wlan0 in this example), creates a new one, sets the mode to monitor and
+sets the channel (10 in this case). While the physical index remains the 
+same, wiphy 0, the ifindex and wdev change. So, what looks like a simple
+renaming of your nic and setting the mode to monitor is in face multiple
+steps requiring several communications with the kernel. As stated previously,
+I prefer the first method of setting a card to monitor because by 
+deleting all associated interfaces, there is a smaller risk of some other
+process interfering with you.
+
+If you wanted, you could easily write your own python function to replicate
+airmon-ng programmatically. as done below
+
+```python
+import pyric
+from pyric import pyw
+from pyric.lib import libnl as nl
+
+def pymon(card, start=True, ch=None):
+    """
+     sets the Card card monitor mode or returns it to managed mode
+     :param card: a Card object
+     :param start: True = set|False = reset
+     :param ch: initial ch to start on
+     :returns: the new card
+    """
+    newcard = None
+    if start:
+        if pyw.modeget(card) == 'monitor':
+            raise RuntimeError("Card is already in monitor mode")
+        newcard = pyw.devset(card, card.dev + 'mon')
+        pyw.modeset(newcard, 'monitor')
+        if ch: pyw.chset(w1, ch, None)        
+        pyw.up(newcard)
+    else:
+        if pyw.modeget(card) == 'managed':
+            raise RuntimeError("Card is not in monitor mode")
+        newcard = pyw.devset(card, card.dev[:-3)
+        pyw.modeset(newcard, 'managed')        
+        pyw.up(newcard)
+    return newcard
+```
+
 #### vi. STA Related Functions
 I have recently begun adding STA functionality to PyRIC. These are not 
 necessarily required for a pentester, although the ability to disconnect
@@ -497,12 +595,9 @@ whether the Card is transmitting (or receiving) 802.11n, the bitrate may
 include values for width, mcs-index and guard interval (gi). If we look
 up these values in Table 20-35 of IEEE Std 802.11-2012, we see that at 
 40 MHz width, an mcs-index of 14 with a short guard interval (400ns)
-gives 270.
+the rate = 270.
 
 One can also use pyw.stainfo to retrieve only tx/rx metrics.
-
-Read the user guide, or type dir(pyw) in your console to get a full listing
-of pyw functions.
 
 #### vii. Miscelleaneous Utilities
 Several additional tools are located in the utils directory. Two of these are:

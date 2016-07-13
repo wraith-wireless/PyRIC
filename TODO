@@ -1,7 +1,4 @@
-6) find a better way to get supported standards of a card
- o once complete phyinfo should give us enought data to determine the standards
-  the Card supports
-8) Two commands that would add information of minor value
+ 8) Two commands that would add information of minor value
  o ethtool. uses ioctl but does not follow same pattern as ifconfig seems
     to use
   - ethtool -i <dev> gives driver information including firmware-version
@@ -52,15 +49,10 @@
     NL80211_CMD_SET_QOS_MAP - need to identify a card that supports this command
     and determine that pyw does correctly identify it
   26) need to parse dumps NLM_F_DUMP, for now we're good with link etc, so long
-   as the card is connected but it will come up eventually
+   as the card is connected but it may come up eventually
   29) figure out how to parse the information element in pyw.link - there's some
-   good shit in it including the router os, type
+   good shit in it including sometimes the router os and type
   31) add VHT processing to sta_info bitrate
-  32) should we move wraith.standards.mcs here? It's only used once in PyRIC but
-   might make more sense here regardless. If so, we need to fix the "Table" IAW
-   IEEE Std 802.11-2012 Table 20-35
-  33) seq. # out of order error messages when preceding (persistent) socket.send
-   resulted in error
   35) iw connect (on open) returns status of successful connect but card is
    not connected -> move to wpa_supplicant to see how they do it
   36) do we need to write a find nested attribute? so we don't need to go iterate
@@ -68,12 +60,10 @@
   39) parsing wiphy_bands
    o _HT_MCS_SET: a 16-bit attr containing the MCS set as defined in 802.11n (find this)
    o _HT_CAPA: as in the HT information IE
-  40) look at packing netlink messages to ensure nesting still works
-  41) would it be worthwhile to have nested return a tuple
-      t = (index,data)
-     instead of the function calling pulling index out, then parsing data?
   42) is there a simple way to set the format strings as constants keeping in
    mind that things like strings require a length in the format string
-  43) add nameset (iw phy <phy> set name <new name>
   45) find out if some the 'flags' for bands are actually supported such as
    HT40+ which should be disabled for channel 11
+  46) max-tx for bands is showing 15 when iwconfig shows 30
+  47) in link, NL80211_BSS_BEACON_IES vs NL80211_BSS_INFORMATION_ELEMENT
+   BEACON_IES may not always be present

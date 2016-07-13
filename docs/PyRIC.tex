@@ -787,8 +787,8 @@ type: ioctl, set the card's netmask
 supported frequencies
 \item devchs(card,[nlsock]): (iw phy card.phy info), type: netlink, get card's 
 supported channels
-\item devstds(card,[iosock]): (iwconfig card.<dev> | grep IEEE), type: ioctl, get
-list of card's 802.11 supported standards
+\item devstds(card,[nlsock]): (iwconfig card.<dev> | grep IEEE), type: nlsock, 
+returns a list of card's 802.11 supported standards by letter designator
 \item devmodes(card,[nlsock]): (iw phy card.phy info | grep interface), type:
 netlink, get card's supported modes
 \item devcmds(card,[nlsock]): (iw phy card.phy info | grep commands), type:
@@ -817,6 +817,7 @@ supported by card
 [flags]), type: netlink, set card's mode to mode with flags (if mode is monitor)
 \item modeget(card[nlsock]): (iw dev card.<dev> info | grep mode), type: netlink,
 get card's mode
+\item devset(card,ndev,[nlsock]): (N/A) sets the dev (name) of card to ndev 
 \item devadd(card,vnic,mode,[flags],[nlsock]): (iw phy card.<phy> interface add
 <vnic> type <mode> flags <flags>), type: netlink, creates a new virtual interface
 on card's phy with dev vdev, in mode and using flags. Note: flags are only supported

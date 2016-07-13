@@ -122,13 +122,24 @@ v 0.1.5 Begin STA associated functionality
    - disconnect
    - link
    - stainfo
+   - devset
   o updated nested netlink attribute handling - my understanding of it was incomplete
    - There are still occasional errors
    - nested attributes are parsed as 'far' as possible
   o reupdated nested netlink attribute handling - this time it really works
    - nested attributes are now parsed correctly, any errors are a result of
     incorrect packing on the other side or packet corruption and the entire
-    unparsed attribute will be returned. For wiphy bands, the legacy frequency
-    pull will be used.
+    unparsed attribute will be returned.
+   - nla_parse_nested has been changed to return a list of tuples
+     t = (index,attribute) which (TODO #41) eases the burden on the calling
+     function
+   - fixed 're'nesting of nested attributes
   o parsing wiphy bands (issue #7) is now fully functional and no longer relies
     on a hacked fix
+  o devstds now uses phyinfo to determine standards Card supports
+  o completely 'remodeled' functions in pyw to take advantage of new parsing
+   from libnl (have left some of the error checking in place as a backup until
+   testing confirms that the new nla_parse_nested is bug-free)
+  o fixed error on devadd during restoration in examples/pentest.py
+  o fixed output error, incorrect labeling
+  o fixed output error ASW max tx power

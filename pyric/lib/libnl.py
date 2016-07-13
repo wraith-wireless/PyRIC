@@ -32,7 +32,7 @@ see http://www.carisma.slowglass.com/~tgr/libnl/doc/core.html
 
 __name__ = 'libnl'
 __license__ = 'GPLv3'
-__version__ = '0.1.0'
+__version__ = '0.1.1'
 __date__ = 'July 2016'
 __author__ = 'Dale Patterson'
 __maintainer__ = 'Dale Patterson'
@@ -241,14 +241,12 @@ def nl_recvmsg(sock):
         # If it was an ack, return the success code otherwise, reraise it. If it
         # wasn't an ack/nack, return the message
         msg = nlmsg_fromstream(sock.recv())
-        #if msg.flags == nlh.NLM_F_DUMP:
         try:
             _ = nlmsg_fromstream(sock.recv())
         except error as e:
             if e.errno == nlh.NLE_SUCCESS: pass
             else: raise
-        if sock.seq != msg.seq:
-            raise error(errno.EBADMSG,"seq. # out of order")
+        if sock.seq != msg.seq: raise error(errno.EBADMSG,"seq. # out of order")
         return msg
     except socket.timeout:
         raise error(-1,"socket timed out")
@@ -331,12 +329,12 @@ class GENLMsg(dict):
         ret += "genlmsghdr(cmd={0})\n".format(self.cmd)
         ret += "attributes:\n"
         for i,(a,v,d) in enumerate(self.attrs):
+            # getting character(s) in some bytestrings that cause the terminal to
+            # hang (why?) hexlify unspec and unpacked nested to avoid this
             if d == nlh.NLA_UNSPEC:
-                # getting character(s) in some bytestrings that cause the
-                # terminal to hang (why?) hexlify to avoid this
                 v = hexlify(v)
             elif d == nlh.NLA_NESTED:
-                v = [hexlify(vi) for vi in v]
+                v = [(idx,hexlify(attr)) for idx,attr in v]
             ret += "\t{0}: type={1},datatype={2}\n\tvalue={3}\n".format(i,a,d,v)
         return ret
 
@@ -488,34 +486,25 @@ def nla_parse(msg,l,mtype,stream,idx):
             elif dt == nlh.NLA_SET_U16: a = nla_parse_set(a,nlh.NLA_U16)
             elif dt == nlh.NLA_SET_U32: a = nla_parse_set(a,nlh.NLA_U32)
             elif dt == nlh.NLA_SET_U64: a = nla_parse_set(a,nlh.NLA_U64)
-            elif dt == nlh.NLA_NESTED:
-                try:
-                    a = nla_parse_nested(a)
-                except error:
-                    dt = nlh.NLA_ERROR
+            elif dt == nlh.NLA_NESTED: a = nla_parse_nested(a)
             nla_put(msg,a,atype,dt)
-        except struct.error:
-            # append as Error, stripping null bytes
+        except struct.error: # append as Error, stripping null bytes
             nla_put(msg,_nla_strip_(a),atype,nlh.NLA_ERROR)
         except error as e:
-            if e.errno == errno.EINVAL:
-                # a nested or set attribute failed to parse correctly
+            if e.errno == errno.EINVAL: # a nested or set failed to parse correctly
                 nla_put(msg, _nla_strip_(a), atype, nlh.NLA_ERROR)
             else:
                 raise
-        except MemoryError as e:
-            # hopefully don't get here
+        except MemoryError as e: # hopefully don't get here
             raise error(-1,"Attr type {0} of pol {1} failed: {2}".format(atype,pol,e))
         idx = nlh.NLMSG_ALIGN(idx + alen)  # move index to next attr
 
 def nla_parse_nested(nested):
     """
-     :param nested: the nested attribute with attribute header & pad removed
-     :returns: list of 'packed' nested attributes after length and padding are
-      stripped - Callers must parse these themselves
-      NOTE: experimental ATT still determining if nl80211 has taken some
-      propietary treament(s) of nested attributes or if this is how nested
-      attributes should be handled
+     :param nested: the nested attribute with attribute header removed
+     :returns: list of tuples (index, data) where index is the index
+      into an enum structure and attribute is the packed attribute)
+      Callers must parse these themselves - see below for details
 
       From libnl (Thomas Graf)
       When nesting attributes, the nested attributes are included as payload of
@@ -537,10 +526,9 @@ def nla_parse_nested(nested):
 
       where:
       Length (u16) is the length of the nested attribute (excluding padding
-       affixed to the end to align the attribute)
-      size of padding is determined by NLMSG_ALIGN
-
-      Individual payloads will have the format
+       affixed to the end to align the attribute). The size of padding is
+       determined by NLMSG_ALIGN
+      Payload has the format:
 
       +-------+--------+-----+
       | Index |  Data  | Pad |
@@ -550,7 +538,7 @@ def nla_parse_nested(nested):
       where index is the index into an enum structure as determined by the
       attribute type of the nested attribute which is found in the Attribute
       Header
-     """
+    """
     ns = []
     idx =  0
     l = len(nested)
@@ -559,7 +547,9 @@ def nla_parse_nested(nested):
         # include pad byte(s) affixed to end for proper alignment
         alen = struct.unpack_from('H', nested, idx)[0]
         if alen == 0: raise error(errno.EINVAL, "Invalid nesting")
-        ns.append(nested[idx+2:idx+alen]) # don't include the length bytes
+        #ns.append(nested[idx+2:idx+alen]) # don't include the length bytes
+        nattr = nested[idx + 2:idx + alen]
+        ns.append((struct.unpack_from('H',nattr,0)[0],nattr[2:]))
         idx += nlh.NLMSG_ALIGN(alen)
     return ns
 
@@ -700,14 +690,18 @@ def _attrpack_(a,v,d):
     elif d == nlh.NLA_FLAG: attr = '' # a 0 sized attribute
     elif d == nlh.NLA_MSECS: attr = struct.pack("Q",v)
     elif d == nlh.NLA_NESTED:
-        # should it be '\x00' + struct.pack('B',nlen) + '\x00' ? & the
-        # pad at the end of '\x00' needs to be removed
+        # assumes a single layer of nesting
         for nested in v:
-            nlen = len(v) + 2
-            #nattr = struct.pack('B',nlen) + nested + '\x00'
-            nattr = struct.pack('xBx', nlen) + nested
+            # prepend the packed index to the already packed attribute
+            # the align it
+            nattr = struct.pack('H',nested[0]) + nested[1]
             nattr += struct.pack("{0}x".format(nlh.NLMSG_ALIGNBY(len(nattr))))
             attr += nattr
+        #for nested in v:
+        #    nlen = len(v) + 2
+        #    nattr = struct.pack('xBx', nlen) + nested
+        #    nattr += struct.pack("{0}x".format(nlh.NLMSG_ALIGNBY(len(nattr))))
+        #    attr += nattr
     else:
         fmt = "" # appease PyCharm
         if d == nlh.NLA_SET_U8: fmt = "B"
