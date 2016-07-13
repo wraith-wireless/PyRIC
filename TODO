@@ -27,27 +27,6 @@
     - no errors reported but tx power is not changed
    o Is the operation not supported by my cards? or is it not supported by the
      kernel?
- 23) Unknown Command 104. After updating to kernel 4, iw phy <phy> info returns
-  a Unknown command (104). pyw.phyinfo does not return this.
-   - iw 3.17 being used
-   - command 104 is NL80211_CMD_SET_QOS_MAP
-   - iw->util.c:
-   const char *command_name(enum nl80211_commands cmd)
-   {
-	if (cmd <= NL80211_CMD_MAX && commands[cmd])
-		return commands[cmd];
-	sprintf(cmdbuf, "Unknown command (%d)", cmd);
-	return cmdbuf;
-   }
-
-   iw's nl80211.h defines NL80211_CMD_SET_QOS_MAP but util.c does not specify
-   this command in commands which explains the unknown command.
-   - I've gone through the stream returned from the kernel for a wiphy request
-   and pyw is not getting this command
-   - It does not look like iw is hardcoding this but I cannot see any other way.
-   - If this command was being returned, pyw would correctly identify it as
-    NL80211_CMD_SET_QOS_MAP - need to identify a card that supports this command
-    and determine that pyw does correctly identify it
   26) need to parse dumps NLM_F_DUMP, for now we're good with link etc, so long
    as the card is connected but it may come up eventually
   29) figure out how to parse the information element in pyw.link - there's some
