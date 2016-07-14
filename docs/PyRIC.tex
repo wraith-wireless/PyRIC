@@ -728,6 +728,8 @@ disconnects which results in a new phy and ifindex.
 \item winterfaces([iosock]): (iwconfig), type: ioctl, list wireless interfaces
 \item iswireless(dev,[iosock]): (iwconfig <dev>), type: ioctl, check dev is a 
 wireless interface
+\item phylist(): (iw phy | grep wiphy) type: N/A, list phy indexes and phy names 
+present on system
 \item regget([nlsock]: (iw reg get), type: netlink, get regulatory domain
 \item regset(rd,[nlsock]): (iw reg set <rd>), type: netlink, set regulatory domain 
 to rd

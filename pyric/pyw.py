@@ -170,6 +170,18 @@ def iswireless(dev, *argv):
         if e.errno == pyric.ENODEV or e.errno == pyric.EOPNOTSUPP: return False
         else: raise pyric.error(e.errno, e.strerror)
 
+def phylist():
+    """ :returns: a list of tuples t = (physical indexe, physical name) """
+    # we could walk the directory /sys/class/ieee80211 as well but we'll
+    # let rfkill do it (just in case the above path differs across distros or
+    # in future upgrades
+    phys = []
+    rfdevs = rfkill.rfkill_list()
+    for rfk in rfdevs:
+        if rfdevs[rfk]['type'] == 'wlan':
+            phys.append((int(rfk.split('phy')[1]),rfk))
+    return phys
+
 def regget(*argv):
     """
      gets the current regulatory domain (iw reg get)

@@ -123,6 +123,7 @@ v 0.1.5 Begin STA associated functionality
    - link
    - stainfo
    - devset
+   - phylist
   o updated nested netlink attribute handling - my understanding of it was incomplete
    - There are still occasional errors
    - nested attributes are parsed as 'far' as possible
@@ -143,3 +144,4 @@ v 0.1.5 Begin STA associated functionality
   o fixed error on devadd during restoration in examples/pentest.py
   o fixed output error, incorrect labeling
   o fixed output error ASW max tx power
+  o added phylist w.r.t issue #17

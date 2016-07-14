@@ -205,6 +205,8 @@ False
 False
 >>> pyw.iswinterface('wlan0')
 True
+>>> pyw.phylist() # list all current phys (Note device ASW phy1)
+[(1,'phy1), (0, 'phy0')]
 >>> pyw.regget() # get the regulatory domain
 'US'
 >>> pyw.regset('BO') # set the regulatory domain
