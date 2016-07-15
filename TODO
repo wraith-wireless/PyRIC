@@ -31,8 +31,10 @@
    as the card is connected but it may come up eventually
   29) figure out how to parse the information element in pyw.link - there's some
    good shit in it including sometimes the router os and type
+   o in link, NL80211_BSS_BEACON_IES vs NL80211_BSS_INFORMATION_ELEMENT
+     BEACON_IES may not always be presenet but appears to contain more
   31) add VHT processing to sta_info bitrate
-  35) iw connect (on open) returns status of successful connect but card is
+  35) iw connect (open) returns status of successful connect but card is
    not connected -> move to wpa_supplicant to see how they do it
   36) do we need to write a find nested attribute? so we don't need to go iterate
     a list of attributes to find one
@@ -41,8 +43,6 @@
    o _HT_CAPA: as in the HT information IE
   42) is there a simple way to set the format strings as constants keeping in
    mind that things like strings require a length in the format string
-  45) find out if some the 'flags' for bands are actually supported such as
+  45) find out if some of the 'flags' for bands are actually correct such as
    HT40+ which should be disabled for channel 11
   46) max-tx for bands is showing 15 when iwconfig shows 30
-  47) in link, NL80211_BSS_BEACON_IES vs NL80211_BSS_INFORMATION_ELEMENT
-   BEACON_IES may not always be present
