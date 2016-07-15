@@ -29,7 +29,7 @@
       </header>
       <section>
         <h1>
-<a id="pyric-012-python-radio-interface-controller" class="anchor" href="#pyric-012-python-radio-interface-controller" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>PyRIC 0.1.2: Python Radio Interface Controller</h1>
+<a id="pyric-015-python-radio-interface-controller" class="anchor" href="#pyric-015-python-radio-interface-controller" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>PyRIC 0.1.5: Python Radio Interface Controller</h1>
 
 <h2>
 <a id="linux-wireless-library-for-the-python-wireless-developer-and-pentester" class="anchor" href="#linux-wireless-library-for-the-python-wireless-developer-and-pentester" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Linux wireless library for the Python Wireless Developer and Pentester</h2>
@@ -70,9 +70,8 @@ Python port of Netlink w.r.t nl80211 functionality. The original goal of PyRIC
 was to provide a simple interface to the underlying nl80211 kernel support,
 handling the complex operations of Netlink seamlessy while maintaining a minimum
 of "code walking" to understand, modify and extend. But, why stop there? Since
-it's initial inception, PyRIC has grown to include ioctl support to replicate
-features of ifconfig such as getting or setting the mac address and has recently
-implemented rkill support to soft block or unblock wireless cards.</p>
+it's initial inception, PyRIC has grown. PyRIC puts iw, ifconfig, rfkill,
+udevadm, airmon-ng and macchanger.</p>
 
 <h3>
 <a id="a-additions-to-iw" class="anchor" href="#a-additions-to-iw" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>a. Additions to iw</h3>
@@ -137,23 +136,26 @@ halved.</p>
 <h3>
 <a id="b-current-state" class="anchor" href="#b-current-state" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>b. Current State</h3>
 
-<p>ATT, PyRIC accomplishes my core needs but it is still a work in progress. It
-currently pyw provides the following:</p>
+<p>ATT, PyRIC provides the following:</p>
 
 <ul>
 <li>enumerate interfaces and wireless interfaces</li>
-<li>identify a cards chipset and driver</li>
+<li>identify a cards driver, chipset and manufacturer</li>
 <li>get/set hardware address</li>
 <li>get/set ip4 address, netmask and or broadcast</li>
 <li>turn card on/off</li>
-<li>get supported standards</li>
-<li>get supported commands</li>
-<li>get supported modes</li>
+<li>get supported standards, commands or modes</li>
+<li>get if info</li>
 <li>get dev info</li>
 <li>get phy info</li>
+<li>get link info</li>
+<li>get STA (connected AP) info</li>
 <li>get/set regulatory domain</li>
 <li>get/set mode</li>
+<li>get/set coverage class, RTS threshold, Fragmentation threshold &amp; retry limits</li>
 <li>add/delete interfaces</li>
+<li>determine if a card is connected</li>
+<li>get link info for a connected card</li>
 <li>enumerate ISM and UNII channels</li>
 <li>block/unblock rfkill devices</li>
 </ul>
@@ -248,163 +250,439 @@ fact not run at all.</p>
 <h2>
 <a id="3-using" class="anchor" href="#3-using" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>3. USING</h2>
 
-<p>Once installed, see examples/pentest.py which covers most pyw functions or read
-throuhg PyRIC.pdf. However, for those impatient types:</p>
+<p>To use PyRIC, see the examples folder or read throuhg PyRIC.pdf. However, for
+those impatient types:</p>
 
-<div class="highlight highlight-source-python"><pre><span class="pl-k">import</span> pyric          <span class="pl-c"># pyric error and EUNDEF error code</span>
-<span class="pl-k">from</span> pyric <span class="pl-k">import</span> pyw  iw functionality</pre></div>
+<div class="highlight highlight-source-python"><pre><span class="pl-k">import</span> pyric           <span class="pl-c"># pyric errors</span>
+<span class="pl-k">from</span> pyric <span class="pl-k">import</span> pyw  <span class="pl-c"># iw functionality</span></pre></div>
 
-<p>will import the basic requirements and is assumed for the examples below. It is also assumed
-that the system is in the US and has three devices lo, eth0 and wlan0 (only wlan0 of course
-being wireless). Keep in mind that these examples use one-time sockets.</p>
+<p>will import the basic requirements and unless otherwise stated is assumed for the
+examples below. It is also assumed that the system is in the US and has three
+devices lo, eth0 and wlan0 (only wlan0 of course being wireless). Keep in mind
+that these examples use one-time sockets.</p>
+
+<p>Although not all functions require root, we assume that the below have been
+executed with root permissions.</p>
+
+<p>Before proceeding with the examples, let's talk about pyric error handling. The
+pyric module imports the errorcodes found in the errno module as its own. The 
+pyric error subclasses EnvironmentError and all pyric errors are tuples of the 
+form t = (error code,error message).</p>
+
+<div class="highlight highlight-source-python"><pre><span class="pl-k">&gt;&gt;</span><span class="pl-k">&gt;</span> <span class="pl-k">try</span>:
+<span class="pl-c1">...</span>     <span class="pl-c">#some pyric code</span>
+<span class="pl-c1">...</span> <span class="pl-k">except</span> pyric.error <span class="pl-k">as</span> e:
+<span class="pl-c1">...</span>     <span class="pl-c">#handle the error</span></pre></div>
+
+<p>Work is ongoing to help clarify some of the error messages returned by default
+by os.strerror for example. </p>
+
+<p>Read the user guide, or type dir(pyw) in your console to get a full listing
+of all pyw functions.</p>
 
 <h3>
-<a id="a-wireless-core-functionality" class="anchor" href="#a-wireless-core-functionality" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>a. Wireless Core Functionality</h3>
+<a id="a-systemwireless-core-functionality" class="anchor" href="#a-systemwireless-core-functionality" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>a. System/Wireless Core Functionality</h3>
 
 <p>These functions do not work with a specific device rather with the system.</p>
 
-<div class="highlight highlight-source-python"><pre>
-pyw.interfaces() <span class="pl-c"># get all system interfaces</span>
-<span class="pl-k">=</span><span class="pl-k">&gt;</span> [<span class="pl-s"><span class="pl-pds">'</span>lo<span class="pl-pds">'</span></span>,<span class="pl-s"><span class="pl-pds">'</span>eth0<span class="pl-pds">'</span></span>,<span class="pl-s"><span class="pl-pds">'</span>wlan<span class="pl-pds">'</span></span>]
-
-pyw.isinterface(<span class="pl-s"><span class="pl-pds">'</span>eth0<span class="pl-pds">'</span></span>) <span class="pl-c"># deterimine if eth0 is an interface</span>
-<span class="pl-k">=</span><span class="pl-k">&gt;</span> <span class="pl-c1">True</span>
-
-pyw.isinterface(<span class="pl-s"><span class="pl-pds">'</span>bob0<span class="pl-pds">'</span></span>)
-<span class="pl-k">=</span><span class="pl-k">&gt;</span> <span class="pl-c1">False</span>
-
-pyw.winterfaces() <span class="pl-c"># get all system wireless interfaces</span>
-<span class="pl-k">=</span><span class="pl-k">&gt;</span> [<span class="pl-s"><span class="pl-pds">'</span>wlan0<span class="pl-pds">'</span></span>]
-
-pyw.isinterface(<span class="pl-s"><span class="pl-pds">'</span>eth0<span class="pl-pds">'</span></span>) <span class="pl-c"># check eth0 for wireless</span>
-<span class="pl-k">=</span><span class="pl-k">&gt;</span> <span class="pl-c1">False</span>
-
-pyw.iswinterface(<span class="pl-s"><span class="pl-pds">'</span>wlan0<span class="pl-pds">'</span></span>)
-<span class="pl-k">=</span><span class="pl-k">&gt;</span> <span class="pl-c1">True</span>
-
-pyw.regget() <span class="pl-c"># get the regulatory domain</span>
-<span class="pl-k">=</span><span class="pl-k">&gt;</span> <span class="pl-s"><span class="pl-pds">'</span>US<span class="pl-pds">'</span></span>
-
-pyw.regset(<span class="pl-s"><span class="pl-pds">'</span>BO<span class="pl-pds">'</span></span>) <span class="pl-c"># set the regulatory domain</span>
-
-pyw.regget()
-<span class="pl-k">=</span><span class="pl-k">&gt;</span> <span class="pl-s"><span class="pl-pds">'</span>BO<span class="pl-pds">'</span></span></pre></div>
+<div class="highlight highlight-source-python"><pre><span class="pl-k">&gt;&gt;</span><span class="pl-k">&gt;</span> pyw.interfaces() <span class="pl-c"># get all system interfaces</span>
+[<span class="pl-s"><span class="pl-pds">'</span>lo<span class="pl-pds">'</span></span>,<span class="pl-s"><span class="pl-pds">'</span>eth0<span class="pl-pds">'</span></span>,<span class="pl-s"><span class="pl-pds">'</span>wlan<span class="pl-pds">'</span></span>]
+<span class="pl-k">&gt;&gt;</span><span class="pl-k">&gt;</span> pyw.isinterface(<span class="pl-s"><span class="pl-pds">'</span>eth0<span class="pl-pds">'</span></span>) <span class="pl-c"># deterimine if eth0 is an interface</span>
+<span class="pl-c1">True</span>
+<span class="pl-k">&gt;&gt;</span><span class="pl-k">&gt;</span> pyw.isinterface(<span class="pl-s"><span class="pl-pds">'</span>bob0<span class="pl-pds">'</span></span>)
+<span class="pl-c1">False</span>
+<span class="pl-k">&gt;&gt;</span><span class="pl-k">&gt;</span> pyw.winterfaces() <span class="pl-c"># get all system wireless interfaces</span>
+[<span class="pl-s"><span class="pl-pds">'</span>wlan0<span class="pl-pds">'</span></span>]
+<span class="pl-k">&gt;&gt;</span><span class="pl-k">&gt;</span> pyw.isinterface(<span class="pl-s"><span class="pl-pds">'</span>eth0<span class="pl-pds">'</span></span>) <span class="pl-c"># check eth0 for wireless</span>
+<span class="pl-c1">False</span>
+<span class="pl-k">&gt;&gt;</span><span class="pl-k">&gt;</span> pyw.iswinterface(<span class="pl-s"><span class="pl-pds">'</span>wlan0<span class="pl-pds">'</span></span>)
+<span class="pl-c1">True</span>
+<span class="pl-k">&gt;&gt;</span><span class="pl-k">&gt;</span> pyw.phylist() <span class="pl-c"># list all current phys (Note device ASW phy1)</span>
+[(<span class="pl-c1">1</span>,<span class="pl-s"><span class="pl-pds">'</span>phy1), (0, <span class="pl-pds">'</span></span>phy0<span class="pl-s"><span class="pl-pds">'</span>)]<span class="pl-ii"></span></span>
+<span class="pl-k">&gt;&gt;</span><span class="pl-k">&gt;</span> pyw.regget() <span class="pl-c"># get the regulatory domain</span>
+<span class="pl-s"><span class="pl-pds">'</span>US<span class="pl-pds">'</span></span>
+<span class="pl-k">&gt;&gt;</span><span class="pl-k">&gt;</span> pyw.regset(<span class="pl-s"><span class="pl-pds">'</span>BO<span class="pl-pds">'</span></span>) <span class="pl-c"># set the regulatory domain</span>
+<span class="pl-c1">True</span>
+<span class="pl-k">&gt;&gt;</span><span class="pl-k">&gt;</span> pyw.regget()
+<span class="pl-s"><span class="pl-pds">'</span>BO<span class="pl-pds">'</span></span>
+<span class="pl-k">&gt;&gt;</span><span class="pl-k">&gt;</span></pre></div>
 
 <h3>
 <a id="b-interface-specific" class="anchor" href="#b-interface-specific" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>b. Interface Specific</h3>
 
-<p>Recall that PyRIC utilizes a Card object - this removes the necessity of having  to
-remember what to pass each function i.e. whether it is a device name, physical index
-or ifindex.</p>
+<p>Recall that PyRIC utilizes a Card object - this removes the necessity of having
+to remember what to pass each function i.e. whether you have to pass a device name,
+physical index or ifindex. Unless otherwise stated, we will be using the card
+w0 instantiated as:</p>
 
-<div class="highlight highlight-source-python"><pre>w0 <span class="pl-k">=</span> pyw.getcard(<span class="pl-s"><span class="pl-pds">'</span>wlan0<span class="pl-pds">'</span></span>) <span class="pl-c"># get a card for wlan0</span>
+<div class="highlight highlight-source-python"><pre><span class="pl-k">&gt;&gt;</span><span class="pl-k">&gt;</span> w0 <span class="pl-k">=</span> pyw.getcard(<span class="pl-s"><span class="pl-pds">'</span>wlan0<span class="pl-pds">'</span></span>) <span class="pl-c"># get a card for wlan0</span>
+<span class="pl-k">&gt;&gt;</span><span class="pl-k">&gt;</span> w0
+Card(<span class="pl-v">phy</span><span class="pl-k">=</span><span class="pl-c1">0</span>,<span class="pl-v">dev</span><span class="pl-k">=</span><span class="pl-s"><span class="pl-pds">'</span>wlan0<span class="pl-pds">'</span></span>,<span class="pl-v">ifindex</span><span class="pl-k">=</span><span class="pl-c1">2</span>)</pre></div>
 
-w0
-<span class="pl-k">=</span><span class="pl-k">&gt;</span> Card(<span class="pl-v">phy</span><span class="pl-k">=</span><span class="pl-c1">0</span>,<span class="pl-v">dev</span><span class="pl-k">=</span><span class="pl-s"><span class="pl-pds">'</span>wlan0<span class="pl-pds">'</span></span>,<span class="pl-v">ifindex</span><span class="pl-k">=</span><span class="pl-c1">2</span>)</pre></div>
+<p>There are other methods to get a Card object: pyw.devinfo, in addition to
+information, will return a Card object, pyw.devadd returns a card object for the
+newly created virtual interface and pyw.ifaces returns a lists of Cards for every
+interface sharing the same phy.</p>
 
-<p>You can also use pyw.devinfo to get a Card object and pyw.devadd will return a card
-object for the newly created virtual interface. The card, w0, will be used throughout
-the remainder of the examples.</p>
+<p>Before continuing you may find that a Card can become invalid. For example, I
+have an older system where the USB tends to fall out. You can confirm that your
+card is still valid:</p>
+
+<div class="highlight highlight-source-python"><pre><span class="pl-k">&gt;&gt;</span><span class="pl-k">&gt;</span> pyw.validcard(w0)
+<span class="pl-c1">True</span>
+<span class="pl-k">&gt;&gt;</span><span class="pl-k">&gt;</span></pre></div>
 
 <h4>
-<a id="i-setting-mac-and-ip-addresses" class="anchor" href="#i-setting-mac-and-ip-addresses" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>i. Setting Mac and IP Addresses</h4>
+<a id="i-why-is-my-card-not-working" class="anchor" href="#i-why-is-my-card-not-working" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>i. Why is my Card not Working?</h4>
 
-<div class="highlight highlight-source-python"><pre>mac <span class="pl-k">=</span> pyw.macget(w0) <span class="pl-c"># get the hw addr</span>
+<p>Sometimes you may need to turn your Card on, or possibly unblock it.</p>
 
-mac
-<span class="pl-k">=</span><span class="pl-k">&gt;</span> <span class="pl-s"><span class="pl-pds">'</span>a0:b1:c2:d3:e4:f5<span class="pl-pds">'</span></span>
+<div class="highlight highlight-source-python"><pre><span class="pl-k">&gt;&gt;</span><span class="pl-k">&gt;</span> pyw.isup(w0)
+<span class="pl-c1">True</span>
+<span class="pl-k">&gt;&gt;</span><span class="pl-k">&gt;</span> pyw.down(w0)
+<span class="pl-k">&gt;&gt;</span><span class="pl-k">&gt;</span> pyw.isup(w0)
+<span class="pl-c1">False</span>
+<span class="pl-k">&gt;&gt;</span><span class="pl-k">&gt;</span> pyw.up(w0)
+<span class="pl-k">&gt;&gt;</span><span class="pl-k">&gt;</span> pyw.isblocked(w0) <span class="pl-c"># returns tup;e (Soft Block, Hard Block)</span>
+(<span class="pl-c1">True</span>,<span class="pl-c1">False</span>)
+<span class="pl-k">&gt;&gt;</span><span class="pl-k">&gt;</span> pyw.unblock(w0) <span class="pl-c"># turn off the softblock</span>
+<span class="pl-k">&gt;&gt;</span><span class="pl-k">&gt;</span> pyw.isblocked(w0)
+(<span class="pl-c1">False</span>,<span class="pl-c1">False</span>)
+<span class="pl-k">&gt;&gt;</span><span class="pl-k">&gt;</span></pre></div>
 
-pyw.down(w0) <span class="pl-c"># turn the card off to set the mac</span>
+<h4>
+<a id="ii-working-with-mac-and-ip-addresses" class="anchor" href="#ii-working-with-mac-and-ip-addresses" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>ii. Working with Mac and IP Addresses</h4>
 
-pyw.macset(w0,<span class="pl-s"><span class="pl-pds">'</span>00:1F:32:00:01:00<span class="pl-pds">'</span></span>) <span class="pl-c"># lets be a nintendo device</span>
-
-pyw.up(w0) <span class="pl-c"># bring wlan0 back up</span>
-
-pyw.macget(w0) <span class="pl-c"># see if it worked</span>
-<span class="pl-k">=</span><span class="pl-k">&gt;</span> <span class="pl-s"><span class="pl-pds">'</span>00:1F:32:00:01:00<span class="pl-pds">'</span></span>
-
-pyw.inetget(w0) <span class="pl-c"># not associated, inet won't return an address</span>
-<span class="pl-k">=</span><span class="pl-k">&gt;</span> (<span class="pl-c1">None</span>, <span class="pl-c1">None</span>, <span class="pl-c1">None</span>)
-
-pyw.inetset(w0,<span class="pl-s"><span class="pl-pds">'</span>192.168.3.23<span class="pl-pds">'</span></span>,<span class="pl-s"><span class="pl-pds">'</span>255.255.255.192<span class="pl-pds">'</span></span>,<span class="pl-s"><span class="pl-pds">'</span>192.168.3.63<span class="pl-pds">'</span></span>)
-<span class="pl-k">=</span><span class="pl-k">&gt;</span> <span class="pl-c1">True</span>
-
-pyw.inetget(w0)
-<span class="pl-k">=</span><span class="pl-k">&gt;</span> (<span class="pl-s"><span class="pl-pds">'</span>192.168.3.23<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>255.255.255.192<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>192.168.3.255<span class="pl-pds">'</span></span>)</pre></div>
+<div class="highlight highlight-source-python"><pre><span class="pl-k">&gt;&gt;</span><span class="pl-k">&gt;</span> mac <span class="pl-k">=</span> pyw.macget(w0) <span class="pl-c"># get the hw addr</span>
+<span class="pl-k">&gt;&gt;</span><span class="pl-k">&gt;</span> mac
+<span class="pl-s"><span class="pl-pds">'</span>a0:b1:c2:d3:e4:f5<span class="pl-pds">'</span></span>
+<span class="pl-k">&gt;&gt;</span><span class="pl-k">&gt;</span>
+<span class="pl-k">&gt;&gt;</span><span class="pl-k">&gt;</span> pyw.down(w0): <span class="pl-c"># turn the card off to set the mac</span>
+<span class="pl-k">&gt;&gt;</span><span class="pl-k">&gt;</span> pyw.macset(w0,<span class="pl-s"><span class="pl-pds">'</span>00:1F:32:00:01:00<span class="pl-pds">'</span></span>) <span class="pl-c"># lets be a nintendo device</span>
+<span class="pl-k">&gt;&gt;</span><span class="pl-k">&gt;</span> pyw.up(w0) <span class="pl-c"># bring wlan0 back up</span>
+<span class="pl-k">&gt;&gt;</span><span class="pl-k">&gt;</span> pyw.macget(w0) <span class="pl-c"># see if it worked</span>
+<span class="pl-s"><span class="pl-pds">'</span>00:1F:32:00:01:00<span class="pl-pds">'</span></span>
+<span class="pl-k">&gt;&gt;</span><span class="pl-k">&gt;</span>
+<span class="pl-k">&gt;&gt;</span><span class="pl-k">&gt;</span> pyw.inetget(w0) <span class="pl-c"># not associated, inet won't return an address</span>
+(<span class="pl-c1">None</span>, <span class="pl-c1">None</span>, <span class="pl-c1">None</span>)
+<span class="pl-k">&gt;&gt;</span><span class="pl-k">&gt;</span> <span class="pl-c"># <span class="pl-k">NOTE</span>: to set the inet, bcast or netmask, the card does not have to be down</span>
+<span class="pl-c1">...</span>
+<span class="pl-k">&gt;&gt;</span><span class="pl-k">&gt;</span> pyw.inetset(w0,<span class="pl-s"><span class="pl-pds">'</span>192.168.3.23<span class="pl-pds">'</span></span>,<span class="pl-s"><span class="pl-pds">'</span>255.255.255.192<span class="pl-pds">'</span></span>,<span class="pl-s"><span class="pl-pds">'</span>192.168.3.63<span class="pl-pds">'</span></span>)
+<span class="pl-c1">True</span>
+<span class="pl-k">&gt;&gt;</span><span class="pl-k">&gt;</span> pyw.inetget(w0)
+(<span class="pl-s"><span class="pl-pds">'</span>192.168.3.23<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>255.255.255.192<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>192.168.3.255<span class="pl-pds">'</span></span>)
+<span class="pl-k">&gt;&gt;</span><span class="pl-k">&gt;</span>
+<span class="pl-k">&gt;&gt;</span><span class="pl-k">&gt;</span> <span class="pl-c"># You can also use ip4set, netmaskset and broadcastset</span></pre></div>
 
 <p>It is important to note that (like ifconfig), erroneous values can be set
 when setting the inet addresses: for example you can set the ip address on
 192.168.3.* network with a broadcast address of 10.255.255.255.</p>
 
 <h4>
-<a id="ii-getting-info-on-your-card" class="anchor" href="#ii-getting-info-on-your-card" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>ii. Getting Info On Your Card</h4>
+<a id="iii-wlan-radio-properties" class="anchor" href="#iii-wlan-radio-properties" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>iii. WLAN Radio Properties</h4>
 
-<div class="highlight highlight-source-python"><pre>pyw.devinfo(w0)
-<span class="pl-k">=</span><span class="pl-k">&gt;</span> {<span class="pl-s"><span class="pl-pds">'</span>wdev<span class="pl-pds">'</span></span>: <span class="pl-c1">4294967297</span>, <span class="pl-s"><span class="pl-pds">'</span>RF<span class="pl-pds">'</span></span>: <span class="pl-c1">None</span>, <span class="pl-s"><span class="pl-pds">'</span>CF<span class="pl-pds">'</span></span>: <span class="pl-c1">None</span>, <span class="pl-s"><span class="pl-pds">'</span>mac<span class="pl-pds">'</span></span>: <span class="pl-s"><span class="pl-pds">'</span>00:c0:ca:59:af:a6<span class="pl-pds">'</span></span>,
-<span class="pl-s"><span class="pl-pds">'</span>mode<span class="pl-pds">'</span></span>: <span class="pl-s"><span class="pl-pds">'</span>managed<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>CHW<span class="pl-pds">'</span></span>: <span class="pl-c1">None</span>, <span class="pl-s"><span class="pl-pds">'</span>card<span class="pl-pds">'</span></span>: Card(<span class="pl-v">phy</span><span class="pl-k">=</span><span class="pl-c1">1</span>,<span class="pl-v">dev</span><span class="pl-k">=</span>alfa0,<span class="pl-v">ifindex</span><span class="pl-k">=</span><span class="pl-c1">4</span>)}
+<p>You may want to set power management or other radio properties when pentesting.
+Particulary, if you are configuring a rogue AP.</p>
 
-pyw.txget(w0)
-<span class="pl-k">=</span><span class="pl-k">&gt;</span> <span class="pl-c1">20</span>
+<div class="highlight highlight-source-python"><pre><span class="pl-k">&gt;&gt;</span><span class="pl-k">&gt;</span> pyw.pwrsaveget(w0)
+<span class="pl-c1">True</span>
+<span class="pl-k">&gt;&gt;</span><span class="pl-k">&gt;</span> pyw.pwrsaveset(w0, <span class="pl-c1">False</span>) <span class="pl-c"># turn off powermanagement</span>
+<span class="pl-k">&gt;&gt;</span><span class="pl-k">&gt;</span> pyw.pwrsaveget(w0)
+<span class="pl-c1">False</span>
+<span class="pl-k">&gt;&gt;</span><span class="pl-k">&gt;</span> pyw.covclassset(w0, <span class="pl-c1">1</span>) <span class="pl-c"># set the coverage class</span>
+pyric.error: [Errno <span class="pl-c1">95</span>] Operation <span class="pl-k">not</span> supported
+<span class="pl-k">&gt;&gt;</span><span class="pl-k">&gt;</span> <span class="pl-c"># My internal intel card does not support setting the coverage class</span>
+<span class="pl-c1">...</span>
+<span class="pl-k">&gt;&gt;</span><span class="pl-k">&gt;</span> pyw.retryshortset(w0, <span class="pl-c1">5</span>)
+<span class="pl-k">&gt;&gt;</span><span class="pl-k">&gt;</span> pyw.retrylongset(w0, <span class="pl-c1">5</span>)
+<span class="pl-k">&gt;&gt;</span><span class="pl-k">&gt;</span> <span class="pl-c"># We'll check these values out shortly</span>
+<span class="pl-c1">...</span>
+<span class="pl-k">&gt;&gt;</span><span class="pl-k">&gt;</span> pyw.rtsthreshset(w0, <span class="pl-c1">1024</span>)
+<span class="pl-k">&gt;&gt;</span><span class="pl-k">&gt;</span> pyw.fragthreshset(w0, <span class="pl-c1">8000</span>)
+<span class="pl-k">&gt;&gt;</span><span class="pl-k">&gt;</span></pre></div>
 
-pyw.modeget(w0)
-<span class="pl-k">=</span><span class="pl-k">&gt;</span> <span class="pl-s"><span class="pl-pds">'</span>managed<span class="pl-pds">'</span></span>
+<p>For a brief description of coverage class and retry limits,
+see <a href="http://www.computerhope.com/unix/iwconfig.htm">http://www.computerhope.com/unix/iwconfig.htm</a>. For a description of the RTS
+and Fragmentation thresholds see <a href="http://resources.infosecinstitute.com/rts-threshold-configuration-improved-wireless-network-performance/">http://resources.infosecinstitute.com/rts-threshold-configuration-improved-wireless-network-performance/</a></p>
 
-pyw.devstds(w0)
-<span class="pl-k">=</span><span class="pl-k">&gt;</span> [<span class="pl-s"><span class="pl-pds">'</span>b<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>g<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>n<span class="pl-pds">'</span></span>]
+<h4>
+<a id="iv-getting-info-on-your-card" class="anchor" href="#iv-getting-info-on-your-card" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>iv. Getting Info On Your Card</h4>
 
-pyw.devmodes(w0)
-<span class="pl-k">=</span><span class="pl-k">&gt;</span> [<span class="pl-s"><span class="pl-pds">'</span>ibss<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>managed<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>AP<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>AP VLAN<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>wds<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>monitor<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>mesh<span class="pl-pds">'</span></span>]
-
-pyw.devcmds(w0)
-<span class="pl-k">=</span><span class="pl-k">&gt;</span> [<span class="pl-s"><span class="pl-k">u</span><span class="pl-pds">'</span>new_interface<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-k">u</span><span class="pl-pds">'</span>set_interface<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-k">u</span><span class="pl-pds">'</span>new_key<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-k">u</span><span class="pl-pds">'</span>start_ap<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-k">u</span><span class="pl-pds">'</span>new_station<span class="pl-pds">'</span></span>,
+<div class="highlight highlight-source-python"><pre><span class="pl-k">&gt;&gt;</span><span class="pl-k">&gt;</span> iinfo <span class="pl-k">=</span> pyw.ifinfo(w0)
+<span class="pl-k">&gt;&gt;</span><span class="pl-k">&gt;</span> <span class="pl-k">for</span> i <span class="pl-k">in</span> iinfo: <span class="pl-c1">print</span> i, iinfo[i]
+<span class="pl-c1">...</span> 
+mask <span class="pl-c1">255.255</span>.255.192
+driver iwlwifi
+hwaddr a0:<span class="pl-c1">88</span>:b4:<span class="pl-ii">9e</span>:<span class="pl-c1">68</span>:<span class="pl-c1">58</span>
+chipset Intel <span class="pl-c1">4965</span><span class="pl-k">/</span><span class="pl-ii">5xxx</span><span class="pl-k">/</span><span class="pl-ii">6xxx</span><span class="pl-k">/</span><span class="pl-ii">1xxx</span>
+bcast <span class="pl-c1">192.168</span>.3.63
+inet <span class="pl-c1">192.168</span>.3.7
+manufacturer Intel Corporate
+<span class="pl-k">&gt;&gt;</span><span class="pl-k">&gt;</span>
+<span class="pl-k">&gt;&gt;</span><span class="pl-k">&gt;</span> dinfo <span class="pl-k">=</span> pyw.devinfo(w0)
+<span class="pl-k">&gt;&gt;</span><span class="pl-k">&gt;</span> <span class="pl-k">for</span> d <span class="pl-k">in</span> dinfo: <span class="pl-c1">print</span> d, dinfo[d]
+<span class="pl-c1">...</span>
+wdev <span class="pl-c1">1</span>
+<span class="pl-c1">RF</span> <span class="pl-c1">None</span>
+<span class="pl-c1">CF</span> <span class="pl-c1">None</span>
+mac <span class="pl-c1">00</span>:<span class="pl-ii">1F</span>:<span class="pl-c1">32</span>:<span class="pl-c1">00</span>:<span class="pl-c1">0<span class="pl-ii">1</span></span>:<span class="pl-c1">00</span>
+mode managed
+<span class="pl-c1">CHW</span> <span class="pl-c1">None</span>
+card Card(<span class="pl-v">phy</span><span class="pl-k">=</span><span class="pl-c1">0</span>,<span class="pl-v">dev</span><span class="pl-k">=</span>wlan0,<span class="pl-v">ifindex</span><span class="pl-k">=</span><span class="pl-c1">3</span>)
+<span class="pl-k">&gt;&gt;</span><span class="pl-k">&gt;</span> <span class="pl-c"># <span class="pl-k">NOTE</span>: since we are not associated, RF, CF and CHW are None</span>
+<span class="pl-c1">...</span>
+<span class="pl-k">&gt;&gt;</span><span class="pl-k">&gt;</span> pyw.txget(w0)
+<span class="pl-c1">20</span>
+<span class="pl-k">&gt;&gt;</span><span class="pl-k">&gt;</span> pyw.devstds(w0)
+[<span class="pl-s"><span class="pl-pds">'</span>b<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>g<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>n<span class="pl-pds">'</span></span>]
+<span class="pl-k">&gt;&gt;</span><span class="pl-k">&gt;</span> pinfo <span class="pl-k">=</span> pyw.phyinfo(w0) <span class="pl-c"># dict with 12 key-&gt;value pairs see info.py</span>
+<span class="pl-k">&gt;&gt;</span><span class="pl-k">&gt;</span> <span class="pl-k">for</span> p <span class="pl-k">in</span> pinfo: <span class="pl-c1">print</span> p, pinfo[p]
+<span class="pl-c1">...</span>
+<span class="pl-k">&gt;&gt;</span><span class="pl-k">&gt;</span> pinfo[<span class="pl-s"><span class="pl-pds">'</span>retry_short<span class="pl-pds">'</span></span>], pinfo[<span class="pl-s"><span class="pl-pds">'</span>retry_long<span class="pl-pds">'</span></span>]
+(<span class="pl-c1">5</span>, <span class="pl-c1">5</span>)
+<span class="pl-k">&gt;&gt;</span><span class="pl-k">&gt;</span> pinfo[<span class="pl-s"><span class="pl-pds">'</span>rts_thresh<span class="pl-pds">'</span></span>], pinfo[<span class="pl-s"><span class="pl-pds">'</span>frag_thresh<span class="pl-pds">'</span></span>]
+(<span class="pl-c1">1024</span>, <span class="pl-c1">8000</span>)
+<span class="pl-k">&gt;&gt;</span><span class="pl-k">&gt;</span> pinfo[<span class="pl-s"><span class="pl-pds">'</span>cov_class<span class="pl-pds">'</span></span>]
+<span class="pl-c1">0</span>
+<span class="pl-k">&gt;&gt;</span><span class="pl-k">&gt;</span> pinfo[<span class="pl-s"><span class="pl-pds">'</span>generation<span class="pl-pds">'</span></span>]
+<span class="pl-c1">1</span>
+<span class="pl-k">&gt;&gt;</span><span class="pl-k">&gt;</span> pinfo[<span class="pl-s"><span class="pl-pds">'</span>scan_ssids<span class="pl-pds">'</span></span>]
+<span class="pl-c1">20</span>
+<span class="pl-k">&gt;&gt;</span><span class="pl-k">&gt;</span> pinfo[<span class="pl-s"><span class="pl-pds">'</span>ciphers<span class="pl-pds">'</span></span>]
+[<span class="pl-s"><span class="pl-pds">'</span>WEP-40<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>WEP-104<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>TKIP<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>CCMP<span class="pl-pds">'</span></span>]
+<span class="pl-k">&gt;&gt;</span><span class="pl-k">&gt;</span>
+<span class="pl-k">&gt;&gt;</span><span class="pl-k">&gt;</span> pinfo[<span class="pl-s"><span class="pl-pds">'</span>modes<span class="pl-pds">'</span></span>]
+[<span class="pl-s"><span class="pl-pds">'</span>ibss<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>managed<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>AP<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>AP VLAN<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>monitor<span class="pl-pds">'</span></span>]
+<span class="pl-k">&gt;&gt;</span><span class="pl-k">&gt;</span> pinfo[<span class="pl-s"><span class="pl-pds">'</span>swmodes<span class="pl-pds">'</span></span>]
+[<span class="pl-s"><span class="pl-pds">'</span>AP VLAN<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>monitor<span class="pl-pds">'</span></span>]
+<span class="pl-k">&gt;&gt;</span><span class="pl-k">&gt;</span>
+<span class="pl-k">&gt;&gt;</span><span class="pl-k">&gt;</span> pinfo[<span class="pl-s"><span class="pl-pds">'</span>commands<span class="pl-pds">'</span></span>]
+[<span class="pl-s"><span class="pl-k">u</span><span class="pl-pds">'</span>new_interface<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-k">u</span><span class="pl-pds">'</span>set_interface<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-k">u</span><span class="pl-pds">'</span>new_key<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-k">u</span><span class="pl-pds">'</span>start_ap<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-k">u</span><span class="pl-pds">'</span>new_station<span class="pl-pds">'</span></span>,
 <span class="pl-s"><span class="pl-k">u</span><span class="pl-pds">'</span>new_mpath<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-k">u</span><span class="pl-pds">'</span>set_mesh_config<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-k">u</span><span class="pl-pds">'</span>set_bss<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-k">u</span><span class="pl-pds">'</span>authenticate<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-k">u</span><span class="pl-pds">'</span>associate<span class="pl-pds">'</span></span>,
-<span class="pl-s"><span class="pl-k">u</span><span class="pl-pds">'</span>deauthenticate<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-k">u</span><span class="pl-pds">'</span>disassociate<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-k">u</span><span class="pl-pds">'</span>join_ibss<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-k">u</span><span class="pl-pds">'</span>join_mesh<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-k">u</span><span class="pl-pds">'</span>set_tx_bitrate_mask<span class="pl-pds">'</span></span>,
-<span class="pl-s"><span class="pl-k">u</span><span class="pl-pds">'</span>frame<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-k">u</span><span class="pl-pds">'</span>frame_wait_cancel<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-k">u</span><span class="pl-pds">'</span>set_wiphy_netns<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-k">u</span><span class="pl-pds">'</span>set_channel<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-k">u</span><span class="pl-pds">'</span>set_wds_peer<span class="pl-pds">'</span></span>,
-<span class="pl-s"><span class="pl-k">u</span><span class="pl-pds">'</span>probe_client<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-k">u</span><span class="pl-pds">'</span>set_noack_map<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-k">u</span><span class="pl-pds">'</span>register_beacons<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-k">u</span><span class="pl-pds">'</span>start_p2p_device<span class="pl-pds">'</span></span>,
-<span class="pl-s"><span class="pl-k">u</span><span class="pl-pds">'</span>set_mcast_rate<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-k">u</span><span class="pl-pds">'</span>connect<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-k">u</span><span class="pl-pds">'</span>disconnect<span class="pl-pds">'</span></span>]
+<span class="pl-s"><span class="pl-k">u</span><span class="pl-pds">'</span>deauthenticate<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-k">u</span><span class="pl-pds">'</span>disassociate<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-k">u</span><span class="pl-pds">'</span>join_ibss<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-k">u</span><span class="pl-pds">'</span>join_mesh<span class="pl-pds">'</span></span>,
+<span class="pl-s"><span class="pl-k">u</span><span class="pl-pds">'</span>set_tx_bitrate_mask<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-k">u</span><span class="pl-pds">'</span>frame<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-k">u</span><span class="pl-pds">'</span>frame_wait_cancel<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-k">u</span><span class="pl-pds">'</span>set_wiphy_netns<span class="pl-pds">'</span></span>,
+<span class="pl-s"><span class="pl-k">u</span><span class="pl-pds">'</span>set_channel<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-k">u</span><span class="pl-pds">'</span>set_wds_peer<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-k">u</span><span class="pl-pds">'</span>probe_client<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-k">u</span><span class="pl-pds">'</span>set_noack_map<span class="pl-pds">'</span></span>,
+<span class="pl-s"><span class="pl-k">u</span><span class="pl-pds">'</span>register_beacons<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-k">u</span><span class="pl-pds">'</span>start_p2p_device<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-k">u</span><span class="pl-pds">'</span>set_mcast_rate<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-k">u</span><span class="pl-pds">'</span>connect<span class="pl-pds">'</span></span>,
+<span class="pl-s"><span class="pl-k">u</span><span class="pl-pds">'</span>disconnect<span class="pl-pds">'</span></span>]
+<span class="pl-k">&gt;&gt;</span><span class="pl-k">&gt;</span>
+<span class="pl-k">&gt;&gt;</span><span class="pl-k">&gt;</span> <span class="pl-k">for</span> d <span class="pl-k">in</span> pinfo[<span class="pl-s"><span class="pl-pds">'</span>bands<span class="pl-pds">'</span></span>]:
+<span class="pl-c1">...</span>     <span class="pl-c1">print</span> <span class="pl-s"><span class="pl-pds">'</span>Band: <span class="pl-pds">'</span></span>, d, pinfo[<span class="pl-s"><span class="pl-pds">'</span>bands<span class="pl-pds">'</span></span>][d][<span class="pl-s"><span class="pl-pds">'</span>HT<span class="pl-pds">'</span></span>], pinfo[<span class="pl-s"><span class="pl-pds">'</span>bands<span class="pl-pds">'</span></span>][d][<span class="pl-s"><span class="pl-pds">'</span>VHT<span class="pl-pds">'</span></span>]
+<span class="pl-c1">...</span>     pinfo[<span class="pl-s"><span class="pl-pds">'</span>bands<span class="pl-pds">'</span></span>][d][<span class="pl-s"><span class="pl-pds">'</span>rates<span class="pl-pds">'</span></span>]
+<span class="pl-c1">...</span>     pinfo[<span class="pl-s"><span class="pl-pds">'</span>bands<span class="pl-pds">'</span></span>][d][<span class="pl-s"><span class="pl-pds">'</span>rfs<span class="pl-pds">'</span></span>]
+<span class="pl-c1">...</span> 
+Band:  <span class="pl-ii">5GHz</span> <span class="pl-c1">True</span> <span class="pl-c1">False</span>
+[<span class="pl-c1">6.0</span>, <span class="pl-c1">9.0</span>, <span class="pl-c1">12.0</span>, <span class="pl-c1">18.0</span>, <span class="pl-c1">24.0</span>, <span class="pl-c1">36.0</span>, <span class="pl-c1">48.0</span>, <span class="pl-c1">54.0</span>]
+[<span class="pl-c1">5180</span>, <span class="pl-c1">5200</span>, <span class="pl-c1">5220</span>, <span class="pl-c1">5240</span>, <span class="pl-c1">5260</span>, <span class="pl-c1">5280</span>, <span class="pl-c1">5300</span>, <span class="pl-c1">5320</span>, <span class="pl-c1">5500</span>, <span class="pl-c1">5520</span>, <span class="pl-c1">5540</span>, <span class="pl-c1">5560</span>, 
+<span class="pl-c1">5580</span>, <span class="pl-c1">5600</span>, <span class="pl-c1">5620</span>, <span class="pl-c1">5640</span>, <span class="pl-c1">5660</span>, <span class="pl-c1">5680</span>, <span class="pl-c1">5700</span>, <span class="pl-c1">5745</span>, <span class="pl-c1">5765</span>, <span class="pl-c1">5785</span>, <span class="pl-c1">5805</span>, <span class="pl-c1">5825</span>]
+Band:  <span class="pl-ii">2GHz</span> <span class="pl-c1">HT</span> <span class="pl-c1">True</span> <span class="pl-c1">False</span>
+[<span class="pl-c1">1.0</span>, <span class="pl-c1">2.0</span>, <span class="pl-c1">5.5</span>, <span class="pl-c1">11.0</span>, <span class="pl-c1">6.0</span>, <span class="pl-c1">9.0</span>, <span class="pl-c1">12.0</span>, <span class="pl-c1">18.0</span>, <span class="pl-c1">24.0</span>, <span class="pl-c1">36.0</span>, <span class="pl-c1">48.0</span>, <span class="pl-c1">54.0</span>]
+[<span class="pl-c1">2412</span>, <span class="pl-c1">2417</span>, <span class="pl-c1">2422</span>, <span class="pl-c1">2427</span>, <span class="pl-c1">2432</span>, <span class="pl-c1">2437</span>, <span class="pl-c1">2442</span>, <span class="pl-c1">2447</span>, <span class="pl-c1">2452</span>, <span class="pl-c1">2457</span>, <span class="pl-c1">2462</span>, <span class="pl-c1">2467</span>, 
+<span class="pl-c1">2472</span>]
+<span class="pl-k">&gt;&gt;</span><span class="pl-k">&gt;</span></pre></div>
 
-pinfo <span class="pl-k">=</span> pyw.phyinfo(w0)
+<h4>
+<a id="v-virtual-interfaces" class="anchor" href="#v-virtual-interfaces" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>v. Virtual Interfaces</h4>
 
-pinfo[<span class="pl-s"><span class="pl-pds">'</span>scan_ssids<span class="pl-pds">'</span></span>]
-<span class="pl-k">=</span><span class="pl-k">&gt;</span> <span class="pl-c1">4</span>
+<p>In my experience, virtual interfaces are primarily used to recon, attack or some
+other tomfoolery but can also be used to analyze your wireless network. In either
+case, it is generally advised to create a virtual monitor interface and delete
+all others (on the same phy) - this makes sure that some external process like
+NetworkManager does not interfere with your shenanigans. In the below example,
+in addition to creating an interface in monitor mode, we find all interfaces
+on the same physical index and delete them. You may not need to do this.</p>
 
-pinfo[<span class="pl-s"><span class="pl-pds">'</span>retry_short<span class="pl-pds">'</span></span>]
-<span class="pl-k">=</span><span class="pl-k">&gt;</span> <span class="pl-c1">7</span>
+<p>NOTE: When creating a device in monitor mode, you can also set flags (see
+NL80211_MNTR_FLAGS in nl80211_h), although some cards (usually atheros) do not
+always obey these flag requests.</p>
 
-pinfo[<span class="pl-s"><span class="pl-pds">'</span>retry_long<span class="pl-pds">'</span></span>]
-<span class="pl-k">=</span><span class="pl-k">&gt;</span> <span class="pl-c1">4</span>
+<div class="highlight highlight-source-python"><pre><span class="pl-k">&gt;&gt;</span><span class="pl-k">&gt;</span> <span class="pl-s"><span class="pl-pds">'</span>monitor<span class="pl-pds">'</span></span> <span class="pl-k">in</span> pyw.devmodes(w0) <span class="pl-c"># make sure we can set wlan0 to monitor</span>
+<span class="pl-c1">True</span>
+<span class="pl-k">&gt;&gt;</span><span class="pl-k">&gt;</span>
+<span class="pl-k">&gt;&gt;</span><span class="pl-k">&gt;</span> m0 <span class="pl-k">=</span> pyw.devadd(w0,<span class="pl-s"><span class="pl-pds">'</span>mon0<span class="pl-pds">'</span></span>,<span class="pl-s"><span class="pl-pds">'</span>monitor<span class="pl-pds">'</span></span>) <span class="pl-c"># create mon0 in monitor mode</span>
+<span class="pl-k">&gt;&gt;</span><span class="pl-k">&gt;</span> m0
+Card(<span class="pl-v">phy</span><span class="pl-k">=</span><span class="pl-c1">0</span>,<span class="pl-v">dev</span><span class="pl-k">=</span>mon0,<span class="pl-v">ifindex</span><span class="pl-k">=</span><span class="pl-c1">4</span>)
+<span class="pl-k">&gt;&gt;</span><span class="pl-k">&gt;</span> pyw.winterfaces()
+[<span class="pl-s"><span class="pl-pds">'</span>mon0<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>wlan0<span class="pl-pds">'</span></span>]
+<span class="pl-k">&gt;&gt;</span><span class="pl-k">&gt;</span> <span class="pl-k">for</span> iface <span class="pl-k">in</span> pyw.ifaces(w0):       <span class="pl-c"># delete all interfaces</span>
+<span class="pl-c1">...</span>     <span class="pl-c1">print</span> iface
+<span class="pl-c1">...</span>     <span class="pl-k">if</span> <span class="pl-k">not</span> iface[<span class="pl-c1">0</span>].dev <span class="pl-k">==</span> m0.dev: <span class="pl-c"># that are not our monitor</span>
+<span class="pl-c1">...</span>         pyw.devdel(iface[<span class="pl-c1">0</span>])       <span class="pl-c"># on the this phy</span>
+<span class="pl-c1">...</span>
+(Card(<span class="pl-v">phy</span><span class="pl-k">=</span><span class="pl-c1">0</span>,<span class="pl-v">dev</span><span class="pl-k">=</span>mon0,<span class="pl-v">ifindex</span><span class="pl-k">=</span><span class="pl-c1">4</span>), <span class="pl-s"><span class="pl-pds">'</span>monitor<span class="pl-pds">'</span></span>)
+(Card(<span class="pl-v">phy</span><span class="pl-k">=</span><span class="pl-c1">0</span>,<span class="pl-v">dev</span><span class="pl-k">=</span>wlan0,<span class="pl-v">ifindex</span><span class="pl-k">=</span><span class="pl-c1">3</span>), <span class="pl-s"><span class="pl-pds">'</span>managed<span class="pl-pds">'</span></span>)
+<span class="pl-k">&gt;&gt;</span><span class="pl-k">&gt;</span>
+<span class="pl-k">&gt;&gt;</span><span class="pl-k">&gt;</span>
+<span class="pl-k">&gt;&gt;</span><span class="pl-k">&gt;</span> pyw.txget(w0)
+<span class="pl-c1">15</span>
+<span class="pl-k">&gt;&gt;</span><span class="pl-k">&gt;</span> pyw.txset(w0,<span class="pl-c1">30</span>,<span class="pl-s"><span class="pl-pds">'</span>fixed<span class="pl-pds">'</span></span>)
+<span class="pl-k">&gt;&gt;</span><span class="pl-k">&gt;</span> <span class="pl-c"># <span class="pl-k">NOTE</span>: my card does not support setting the tx power.</span>
+<span class="pl-c1">...</span>
+<span class="pl-k">&gt;&gt;</span><span class="pl-k">&gt;</span> pyw.up(m0) <span class="pl-c"># bring the new card up to use</span>
+<span class="pl-k">&gt;&gt;</span><span class="pl-k">&gt;</span> pyw.chset(m0,<span class="pl-c1">6</span>,<span class="pl-c1">None</span>) <span class="pl-c"># and set the card to channel 6</span>
+<span class="pl-c1">True</span>
+<span class="pl-k">&gt;&gt;</span><span class="pl-k">&gt;</span></pre></div>
 
-pinfo[<span class="pl-s"><span class="pl-pds">'</span>frag_thresh<span class="pl-pds">'</span></span>]
-<span class="pl-k">=</span><span class="pl-k">&gt;</span> <span class="pl-c1">4294967295</span>
+<p>NOTE: If you don't want to add a virtual interface, you can set the mode of a current
+one with modeset.</p>
 
-pinfo[<span class="pl-s"><span class="pl-pds">'</span>rts_thresh<span class="pl-pds">'</span></span>]
-<span class="pl-k">=</span><span class="pl-k">&gt;</span> <span class="pl-c1">4294967295</span>
+<p>Once you are done, you will probably want to delete the virtual interface and
+restore your original one.</p>
 
-pinfo[<span class="pl-s"><span class="pl-pds">'</span>cov_class<span class="pl-pds">'</span></span>]
-<span class="pl-k">=</span><span class="pl-k">&gt;</span> <span class="pl-c1">0</span>
+<div class="highlight highlight-source-python"><pre><span class="pl-k">&gt;&gt;</span><span class="pl-k">&gt;</span> w0 <span class="pl-k">=</span> pyw.devadd(m0,<span class="pl-s"><span class="pl-pds">'</span>wlan0<span class="pl-pds">'</span></span>,<span class="pl-s"><span class="pl-pds">'</span>managed<span class="pl-pds">'</span></span>) <span class="pl-c"># restore wlan0 in managed mode</span>
+<span class="pl-k">&gt;&gt;</span><span class="pl-k">&gt;</span> pyw.devdel(m0) <span class="pl-c"># delete the monitor interface</span>
+<span class="pl-c1">True</span>
+<span class="pl-k">&gt;&gt;</span><span class="pl-k">&gt;</span> pyw.up(w0) <span class="pl-c"># and bring the card up</span>
+<span class="pl-k">&gt;&gt;</span><span class="pl-k">&gt;</span></pre></div>
 
-pinfo[<span class="pl-s"><span class="pl-pds">'</span>freqs<span class="pl-pds">'</span></span>]
-<span class="pl-k">=</span><span class="pl-k">&gt;</span>[<span class="pl-c1">2412</span>, <span class="pl-c1">2417</span>, <span class="pl-c1">2422</span>, <span class="pl-c1">2427</span>, <span class="pl-c1">2432</span>, <span class="pl-c1">2437</span>, <span class="pl-c1">2442</span>, <span class="pl-c1">2447</span>, <span class="pl-c1">2452</span>, <span class="pl-c1">2457</span>, <span class="pl-c1">2462</span>, <span class="pl-c1">2467</span>, <span class="pl-c1">2472</span>,
-<span class="pl-c1">2484</span>]
+<p>So, perhaps you do not care for the previous method of creating a card
+in monitor mode and deleting all associated interfaces and would prefer 
+to execute an airmon-ng(ish) method. </p>
 
-pinfo[<span class="pl-s"><span class="pl-pds">'</span>ciphers<span class="pl-pds">'</span></span>]
-<span class="pl-k">=</span><span class="pl-k">&gt;</span> [<span class="pl-s"><span class="pl-pds">'</span>WEP-40<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>WEP-104<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>TKIP<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>CCMP<span class="pl-pds">'</span></span>]</pre></div>
+<div class="highlight highlight-source-python"><pre><span class="pl-k">&gt;&gt;</span><span class="pl-k">&gt;</span> w0
+Card(<span class="pl-v">phy</span><span class="pl-k">=</span><span class="pl-c1">0</span>,<span class="pl-v">dev</span><span class="pl-k">=</span><span class="pl-s"><span class="pl-pds">'</span>wlan0<span class="pl-pds">'</span></span>,<span class="pl-v">ifindex</span><span class="pl-k">=</span><span class="pl-c1">2</span>)
+<span class="pl-k">&gt;&gt;</span><span class="pl-k">&gt;</span> w1 <span class="pl-k">=</span> pyw.devset(w0, <span class="pl-s"><span class="pl-pds">'</span>wlan1<span class="pl-pds">'</span></span>)
+<span class="pl-k">&gt;&gt;</span><span class="pl-k">&gt;</span> w1
+Card(<span class="pl-v">phy</span><span class="pl-k">=</span><span class="pl-c1">0</span>,<span class="pl-v">dev</span><span class="pl-k">=</span>wlan1,<span class="pl-v">ifindex</span><span class="pl-k">=</span><span class="pl-c1">3</span>)
+<span class="pl-k">&gt;&gt;</span><span class="pl-k">&gt;</span> pyw.modeset(w1, <span class="pl-s"><span class="pl-pds">'</span>monitor<span class="pl-pds">'</span></span>)
+<span class="pl-k">&gt;&gt;</span><span class="pl-k">&gt;</span> pyw.up(w1)
+<span class="pl-k">&gt;&gt;</span><span class="pl-k">&gt;</span> pyw.chset(w1, <span class="pl-c1">1</span>, <span class="pl-c1">None</span>)</pre></div>
 
-<p>Read the user guide, or type dir(pyw) in your console to get a full listing
-of pyw functions.</p>
+<p>The above commands execute the same internal commands as does airmon-ng. 
+To verify, open a command prompt and execute the following:</p>
 
-<p>c. Miscelleaneous Utilities
-Several additional tools are located in the utils directory. Two of these are:</p>
+<div class="highlight highlight-source-shell"><pre><span class="pl-k">?</span><span class="pl-k">&gt;</span> iw dev wlan0 info <span class="pl-c"># replace wlan0 with your nic</span>
+Interface wlan0
+    ifindex 3
+    wdev 0x1
+    addr a0:88:b4:9e:68:58
+    <span class="pl-c1">type</span> managed
+    wiphy 0
+<span class="pl-k">?</span><span class="pl-k">&gt;</span> sudo airmon-ng start wlan0
+Found 2 processes ...
+<span class="pl-k">?</span><span class="pl-k">&gt;</span> 
+<span class="pl-k">?</span><span class="pl-k">&gt;</span> iw dev wlan0mon info 
+Interface wlan0mon
+    ifindex 6
+    wdev 0x2
+    addr a0:88:b4:9e:68:58
+    <span class="pl-c1">type</span> monitor
+    wiphy 0
+    channel 10 (2457 MHz), width: 20 MHz (no HT), center1: 2457 MHz
+<span class="pl-k">?</span><span class="pl-k">&gt;</span>
+<span class="pl-k">?</span><span class="pl-k">&gt;</span> sudo airmon-ng stop wlan0mon
+...
+<span class="pl-k">?</span><span class="pl-k">&gt;</span> iw dev wlan0 info
+Interface wlan0
+    ifindex 7
+    wdev 0x3
+    addr a0:88:b4:9e:68:59
+    <span class="pl-c1">type</span> managed
+    wiphy 0</pre></div>
+
+<p>As you can see, under the covers, airmon-ng deletes the specified nic 
+(wlan0 in this example), creates a new one, sets the mode to monitor and
+sets the channel (10 in this case). While the physical index remains the 
+same, wiphy 0, the ifindex and wdev change. So, what looks like a simple
+renaming of your nic and setting the mode to monitor is in face multiple
+steps requiring several communications with the kernel. As stated previously,
+I prefer the first method of setting a card to monitor because by 
+deleting all associated interfaces, there is a smaller risk of some other
+process interfering with you.</p>
+
+<p>If you wanted, you could easily write your own python function to replicate
+airmon-ng programmatically. as done below</p>
+
+<div class="highlight highlight-source-python"><pre><span class="pl-k">import</span> pyric
+<span class="pl-k">from</span> pyric <span class="pl-k">import</span> pyw
+<span class="pl-k">from</span> pyric.lib <span class="pl-k">import</span> libnl <span class="pl-k">as</span> nl
+
+<span class="pl-k">def</span> <span class="pl-en">pymon</span>(<span class="pl-smi">card</span>, <span class="pl-smi">start</span><span class="pl-k">=</span><span class="pl-c1">True</span>, <span class="pl-smi">ch</span><span class="pl-k">=</span><span class="pl-c1">None</span>):
+    <span class="pl-s"><span class="pl-pds">"""</span></span>
+<span class="pl-s">     sets the Card card monitor mode or returns it to managed mode</span>
+<span class="pl-s">     :param card: a Card object</span>
+<span class="pl-s">     :param start: True = set|False = reset</span>
+<span class="pl-s">     :param ch: initial ch to start on</span>
+<span class="pl-s">     :returns: the new card</span>
+<span class="pl-s">    <span class="pl-pds">"""</span></span>
+    newcard <span class="pl-k">=</span> <span class="pl-c1">None</span>
+    <span class="pl-k">if</span> start:
+        <span class="pl-k">if</span> pyw.modeget(card) <span class="pl-k">==</span> <span class="pl-s"><span class="pl-pds">'</span>monitor<span class="pl-pds">'</span></span>:
+            <span class="pl-k">raise</span> <span class="pl-c1">RuntimeError</span>(<span class="pl-s"><span class="pl-pds">"</span>Card is already in monitor mode<span class="pl-pds">"</span></span>)
+        newcard <span class="pl-k">=</span> pyw.devset(card, card.dev <span class="pl-k">+</span> <span class="pl-s"><span class="pl-pds">'</span>mon<span class="pl-pds">'</span></span>)
+        pyw.modeset(newcard, <span class="pl-s"><span class="pl-pds">'</span>monitor<span class="pl-pds">'</span></span>)
+        <span class="pl-k">if</span> ch: pyw.chset(w1, ch, <span class="pl-c1">None</span>)        
+        pyw.up(newcard)
+    <span class="pl-k">else</span>:
+        <span class="pl-k">if</span> pyw.modeget(card) <span class="pl-k">==</span> <span class="pl-s"><span class="pl-pds">'</span>managed<span class="pl-pds">'</span></span>:
+            <span class="pl-k">raise</span> <span class="pl-c1">RuntimeError</span>(<span class="pl-s"><span class="pl-pds">"</span>Card is not in monitor mode<span class="pl-pds">"</span></span>)
+        newcard <span class="pl-k">=</span> pyw.devset(card, card.dev[:<span class="pl-k">-</span><span class="pl-c1">3</span>)
+        pyw.modeset(newcard, <span class="pl-s"><span class="pl-pds">'</span>managed<span class="pl-pds">'</span></span>)        
+        pyw.up(newcard)
+    <span class="pl-k">return</span> newcard</pre></div>
+
+<h4>
+<a id="vi-sta-related-functions" class="anchor" href="#vi-sta-related-functions" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>vi. STA Related Functions</h4>
+
+<p>I have recently begun adding STA functionality to PyRIC. These are not 
+necessarily required for a pentester, although the ability to disconnect
+a Card may come in handy. The difficulty is that iw only provides connect
+functionality through Open or WEP enabled APs which means that I am 
+attempting to determine which commands and attributes are required. If all
+else fails I will look to wpa_supplicant for more information. ATT two
+two functions related to STA-&gt;AP exist: a) determine if the Card is connected 
+and b) disconnect the Card</p>
+
+<div class="highlight highlight-source-python"><pre><span class="pl-k">&gt;&gt;</span><span class="pl-k">&gt;</span> pyw.isconnected(w0)
+<span class="pl-c1">True</span>
+<span class="pl-k">&gt;&gt;</span><span class="pl-k">&gt;</span> pyw.disconnect(w0)
+<span class="pl-k">&gt;&gt;</span><span class="pl-k">&gt;</span> pyw.isconnected(w0)
+<span class="pl-c1">False</span>
+<span class="pl-k">&gt;&gt;</span><span class="pl-k">&gt;</span></pre></div>
+
+<p>From a pentester's point of view iw link provides information of limited
+quality/concern but can be useful at times. As such, link has now been
+implemented. </p>
+
+<div class="highlight highlight-source-python"><pre><span class="pl-k">&gt;&gt;</span><span class="pl-k">&gt;</span> link<span class="pl-k">=</span>pyw.link(w0)
+<span class="pl-k">&gt;&gt;</span><span class="pl-k">&gt;</span> <span class="pl-k">for</span> d <span class="pl-k">in</span> link:
+<span class="pl-c1">...</span>     <span class="pl-c1">print</span> d, link[d]
+<span class="pl-c1">...</span> 
+stat associated
+ssid <span class="pl-k">****</span>net
+bssid <span class="pl-c1">XX</span>:<span class="pl-c1">YY</span>:<span class="pl-c1">ZZ</span>:<span class="pl-c1">00</span>:<span class="pl-c1">11</span>:<span class="pl-c1">22</span>
+chw <span class="pl-c1">20</span>
+<span class="pl-c1">int</span> <span class="pl-c1">100</span>
+freq <span class="pl-c1">5765</span>
+tx {<span class="pl-s"><span class="pl-pds">'</span>pkts<span class="pl-pds">'</span></span>: <span class="pl-c1">256</span>, <span class="pl-s"><span class="pl-pds">'</span>failed<span class="pl-pds">'</span></span>: <span class="pl-c1">0</span>, <span class="pl-s"><span class="pl-pds">'</span>bytes<span class="pl-pds">'</span></span>: <span class="pl-c1">22969</span>, <span class="pl-s"><span class="pl-pds">'</span>bitrate<span class="pl-pds">'</span></span>: {<span class="pl-s"><span class="pl-pds">'</span>rate<span class="pl-pds">'</span></span>: <span class="pl-c1">6.0</span>}, 
+    <span class="pl-s"><span class="pl-pds">'</span>retries<span class="pl-pds">'</span></span>: <span class="pl-c1">31</span>}
+rx {<span class="pl-s"><span class="pl-pds">'</span>pkts<span class="pl-pds">'</span></span>: <span class="pl-c1">29634</span>, <span class="pl-s"><span class="pl-pds">'</span>bitrate<span class="pl-pds">'</span></span>: {<span class="pl-s"><span class="pl-pds">'</span>width<span class="pl-pds">'</span></span>: <span class="pl-c1">40</span>, <span class="pl-s"><span class="pl-pds">'</span>rate<span class="pl-pds">'</span></span>: <span class="pl-c1">270.0</span>, 
+    <span class="pl-s"><span class="pl-pds">'</span>mcs-index<span class="pl-pds">'</span></span>: <span class="pl-c1">14</span>, <span class="pl-s"><span class="pl-pds">'</span>gi<span class="pl-pds">'</span></span>: <span class="pl-c1">0</span>}, <span class="pl-s"><span class="pl-pds">'</span>bytes<span class="pl-pds">'</span></span>: <span class="pl-c1">2365454</span>}
+rss <span class="pl-k">-</span><span class="pl-c1">50</span>
+<span class="pl-k">&gt;&gt;</span><span class="pl-k">&gt;</span></pre></div>
+
+<p>NOTE: the rx gives additional key-&gt;value pairs for bitrate. Depending on
+whether the Card is transmitting (or receiving) 802.11n, the bitrate may
+include values for width, mcs-index and guard interval (gi). If we look
+up these values in Table 20-35 of IEEE Std 802.11-2012, we see that at 
+40 MHz width, an mcs-index of 14 with a short guard interval (400ns)
+the rate = 270.</p>
+
+<p>One can also use pyw.stainfo to retrieve only tx/rx metrics.</p>
+
+<h4>
+<a id="vii-miscelleaneous-utilities" class="anchor" href="#vii-miscelleaneous-utilities" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>vii. Miscelleaneous Utilities</h4>
+
+<p>Several additional tools are located in the utils directory. Two of these are:</p>
 
 <ul>
 <li>channels.py: defines ISM and UNII band channels/frequencies and provides
 functions to convert between channel and frequency and vice-versa</li>
 <li>ouifetch.py: retrieves and parses oui.txt from the IEEE website and stores
 the oui data in a file that can be read by hardware.py functions
-The others will be demonstrated in the following functions</li>
+The others will be demonstrated in the following</li>
 </ul>
 
-<p>i. hardware.py
+<p>hardware.py
 Driver, chipset and mac address related functions can be found here:</p>
 
 <div class="highlight highlight-source-python"><pre><span class="pl-k">import</span> pyric.utils.hardware <span class="pl-k">as</span> hw
@@ -434,7 +712,7 @@ hw.manufacturer(ouis,<span class="pl-s"><span class="pl-pds">'</span>00:03:f0:5a
 hw.ifcard(<span class="pl-s"><span class="pl-pds">'</span>wlan0<span class="pl-pds">'</span></span>) <span class="pl-c"># get driver &amp; chipset</span>
 <span class="pl-k">=</span><span class="pl-k">&gt;</span> (<span class="pl-s"><span class="pl-pds">'</span>iwlwifi<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>Intel 4965/5xxx/6xxx/1xxx<span class="pl-pds">'</span></span>)</pre></div>
 
-<p>ii. rfkill.py
+<p>rfkill.py
 Sometimes, your card has a soft block (or hard block) on it and it is not
 recognized by command line tools or pyw. Use rkill to list, turn on or turn
 off soft blocks.</p>
@@ -479,52 +757,6 @@ rfkill.rfkill_list()
 <p>Note that rfkill_list lists all 'wireless' devices: wlan, bluetooth, wimax, wwan,
 gps, fm and nfc. Another important thing to note is that the rfkill index is not
 the same as the interface index.</p>
-
-<h4>
-<a id="iii-virtual-interfaces" class="anchor" href="#iii-virtual-interfaces" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>iii. Virtual Interfaces</h4>
-
-<p>In my experience, virtual interfaces are primarily used to recon, attack or some
-other tomfoolery but can also be used to analyze your wireless network. In either
-case, it is generally advised to create a virtual monitor interface and delete
-all others (on the same phy) - this makes sure that some external process like
-NetworkManager does not interfere with your shenanigans. In the below example,
-in addition to creating an interface in monitor mode, we find all interfaces
-on the same physical index and delete them. You may not need to do this.</p>
-
-<p>NOTE: When creating a device in monitor mode, you can also set flags (see
-NL80211_MNTR_FLAGS in nl80211_h), although some cards (usually atheros) do not
-always obey these requests.</p>
-
-<div class="highlight highlight-source-python"><pre><span class="pl-s"><span class="pl-pds">'</span>monitor<span class="pl-pds">'</span></span> <span class="pl-k">in</span> pyw.devmodes(w0) <span class="pl-c"># make sure we can set wlan0 to monitor</span>
-<span class="pl-k">=</span><span class="pl-k">&gt;</span> <span class="pl-c1">True</span>
-
-m0 <span class="pl-k">=</span> pyw.devadd(w0,<span class="pl-s"><span class="pl-pds">'</span>mon0<span class="pl-pds">'</span></span>,<span class="pl-s"><span class="pl-pds">'</span>monitor<span class="pl-pds">'</span></span>) <span class="pl-c"># create mon0 in monitor mode</span>
-
-<span class="pl-k">for</span> iface <span class="pl-k">in</span> pyw.ifaces(w0): <span class="pl-c"># delete all interfaces</span>
-    pyw.devdel(iface[<span class="pl-c1">0</span>])     <span class="pl-c"># on the this phy</span>
-
-pyw.up(m0) <span class="pl-c"># bring the new card up to use</span>
-
-pyw.chset(m0,<span class="pl-c1">6</span>,<span class="pl-c1">None</span>) <span class="pl-c"># and set the card to channel 6</span>
-<span class="pl-k">=</span><span class="pl-k">&gt;</span> <span class="pl-c1">True</span>
-
-m0
-<span class="pl-k">=</span><span class="pl-k">&gt;</span> Card(<span class="pl-v">phy</span><span class="pl-k">=</span><span class="pl-c1">0</span>,<span class="pl-v">dev</span><span class="pl-k">=</span><span class="pl-s"><span class="pl-pds">'</span>mon0<span class="pl-pds">'</span></span>,<span class="pl-v">ifindex</span><span class="pl-k">=</span><span class="pl-c1">3</span>)</pre></div>
-
-<p>Of course, once you are done, you will probably want to restore your original set
-up.</p>
-
-<div class="highlight highlight-source-python"><pre>w0 <span class="pl-k">=</span> pyw.devadd(m0,<span class="pl-s"><span class="pl-pds">'</span>wlan0<span class="pl-pds">'</span></span>,<span class="pl-s"><span class="pl-pds">'</span>managed<span class="pl-pds">'</span></span>) <span class="pl-c"># restore wlan0 in managed mode</span>
-
-pyw.devdel(m0) <span class="pl-c"># delete the monitor interface</span>
-
-pyw.setmac(w0,mac) <span class="pl-c"># restore the original mac address</span>
-
-pyw.up(w0) <span class="pl-c"># and bring the card up</span>
-
-w0
-<span class="pl-k">=</span><span class="pl-k">&gt;</span> Card(phy0,<span class="pl-v">dev</span><span class="pl-k">=</span><span class="pl-s"><span class="pl-pds">'</span>wlan0<span class="pl-pds">'</span></span>,<span class="pl-v">ifindex</span><span class="pl-k">=</span><span class="pl-c1">4</span>)
-</pre></div>
 
 <h2>
 <a id="4-extending" class="anchor" href="#4-extending" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>4. EXTENDING:</h2>
