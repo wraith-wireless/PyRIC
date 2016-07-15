@@ -91,6 +91,8 @@ import pyric.net.sockios_h as sioch             # sockios constants
 import pyric.net.if_h as ifh                    # ifreq structure
 import pyric.lib.libnl as nl                    # netlink functions
 import pyric.lib.libio as io                    # ioctl functions
+import sys
+_python3 = sys.version_info.major == 3
 
 _FAM80211ID_ = None
 
@@ -1567,6 +1569,7 @@ def devdel(card, *argv):
      deletes the device (dev <card.dev> del
      :param card: Card object
      :param argv: netlink socket at argv[0] (or empty)
+     :returns: True if success, False otherwise
      NOTE: the original card is no longer valid (i.e. the phy will still be present
      but the device name and ifindex are no longer 'present' in the system
     """
@@ -1582,10 +1585,12 @@ def devdel(card, *argv):
         nl.nla_put_u32(msg, card.idx, nl80211h.NL80211_ATTR_IFINDEX)
         nl.nl_sendmsg(nlsock, msg)
         _ = nl.nl_recvmsg(nlsock)
+        return True
     except AttributeError:
         raise pyric.error(pyric.EINVAL, "Invalid Card")
     except nl.error as e:
         raise pyric.error(e.errno, e.strerror)
+    return False
 
 ################################################################################
 #### STA FUNCTIONS                                                          ####
@@ -1839,7 +1844,12 @@ def _hex2mac_(v):
      :param v: packed bytestream of form \xd8\xc7\xc8\x00\x11\x22
      :returns: a ':' separated mac address from byte stream v
     """
-    return ":".join(['{0:02x}'.format(ord(c)) for c in v])
+
+    if _python3:
+        return ":".join(['{0:02x}'.format(c) for c in v])
+    else:
+        return ":".join(['{0:02x}'.format(ord(c)) for c in v])
+
 
 def _mac2hex_(v):
     """

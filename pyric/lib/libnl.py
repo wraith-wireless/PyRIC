@@ -48,6 +48,8 @@ import errno
 import pyric.net.netlink_h as nlh
 import pyric.net.genetlink_h as genlh
 from pyric.net.policy import nla_datatype
+import sys
+_python3 = sys.version_info.major == 3
 
 class error(EnvironmentError): pass
 
@@ -687,10 +689,10 @@ def _attrpack_(a,v,d):
     elif d == nlh.NLA_U32: attr = struct.pack("I",v)
     elif d == nlh.NLA_U64: attr = struct.pack("Q",v)
     elif d == nlh.NLA_STRING:
-        try:
-          attr = struct.pack("{0}sx".format(len(v)),v)
-        except:
+        if _python3:
           attr = struct.pack("{0}sx".format(len(v)), bytes(v, 'utf-8'))
+        else:
+          attr = struct.pack("{0}sx".format(len(v)),v)
     elif d == nlh.NLA_FLAG: attr = '' # a 0 sized attribute
     elif d == nlh.NLA_MSECS: attr = struct.pack("Q",v)
     elif d == nlh.NLA_NESTED:

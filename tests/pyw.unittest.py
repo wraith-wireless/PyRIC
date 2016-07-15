@@ -38,29 +38,31 @@ from pyric import error
 from pyric import pyw
 from pyric.utils.channels import ISM_24_F2C,rf2ch
 from pyric.net.wireless import wlan
+import sys
+_python3 = sys.version_info.major == 3
 
 
 # modify below to fit your system
-pri = {'dev':'alfa0',
-       'mac':'00:c0:ca:59:af:a6',
-       'ifindex':4,
-       'phy':1,
+pri = {'dev':'wlan0',
+       'mac':'60:57:18:ac:b7:41',
+       'ifindex':3,
+       'phy':0,
        'mode':'managed',
-       'tx':20,
+       'tx':17,
        'freqs':sorted(ISM_24_F2C.keys()),
-       'stds':['b','g','n'],
-       'ip':'192.168.3.23',
-       'bcast':'192.168.3.63',
-       'mask':'255.255.255.192'}
+       'stds':['a', 'b', 'g', 'n'],
+       'ip':'192.168.1.103',
+       'bcast':'192.168.1.255',
+       'mask':'255.255.255.0'}
 newhw = '00:c0:ca:60:b0:a7'
 newip = '192.168.3.30'
 newbcast = '192.168.3.255'
 newmask = '255.255.255.0'
-nics = ['alfa0','eth0','lo','wlan0']
+nics = ['eth0','lo','wlan0']
 enics = ['eth0','lo']
-wnics = ['alfa0','wlan0']
+wnics = ['wlan0']
 inics = ['foo0','bar0']
-regdom = '00'
+regdom = 'DE'
 newregdom = 'BO'
 
 # test functions interfaces and isinterface
@@ -249,8 +251,8 @@ class RTSThreshTestCase(CardTestCase):
         self.assertRaises(error,pyw.rtsthreshget,'bad0')
         self.assertRaises(error,pyw.rtsthreshset,'bad0',5)
     def test_invalidthresh(self):
-        self.assertRaises(error,pyw.rtsthreshset,self.card,wlan.RTS_THRESHOLD_MIN-1)
-        self.assertRaises(error,pyw.rtsthreshset,self.card,wlan.RTS_THRESHOLD_MAX+1)
+        self.assertRaises(error,pyw.rtsthreshset,self.card,wlan.RTS_THRESH_MIN-1)
+        self.assertRaises(error,pyw.rtsthreshset,self.card,wlan.RTS_THRESH_MAX+1)
         self.assertRaises(error, pyw.rtsthreshset,self.card,'on')
 
 # test get/set RTS thresh
@@ -266,28 +268,38 @@ class FragThreshTestCase(CardTestCase):
         self.assertRaises(error,pyw.fragthreshget,'bad0')
         self.assertRaises(error,pyw.fragthreshset,'bad0',800)
     def test_invalidthresh(self):
-        self.assertRaises(error,pyw.fragthreshset,self.card,wlan.FRAG_THRESHOLD_MIN-1)
-        self.assertRaises(error,pyw.fragthreshset,self.card,wlan.FRAG_THRESHOLD_MAX+1)
+        self.assertRaises(error,pyw.fragthreshset,self.card,wlan.FRAG_THRESH_MIN-1)
+        self.assertRaises(error,pyw.fragthreshset,self.card,wlan.FRAG_THRESH_MAX+1)
         self.assertRaises(error,pyw.fragthreshset,self.card,'on')
 
 # test get freqs
 class DevFreqsTestCase(CardTestCase):
     def test_devfreqs(self):
-        self.assertItemsEqual(pri['freqs'],pyw.devfreqs(self.card))
+        if _python3:
+            self.assertCountEqual(pri['freqs'],pyw.devfreqs(self.card))
+        else:
+            self.assertItemsEqual(pri['freqs'],pyw.devfreqs(self.card))
+
     def test_invalidcardarg(self):
         self.assertRaises(error,pyw.devfreqs,'bad0')
 
 # test get chs
 class DevCHsTestCase(CardTestCase):
     def test_devchs(self):
-        self.assertItemsEqual(list(map(rf2ch,pri['freqs'])),pyw.devchs(self.card))
+        if _python3:
+            self.assertCountEqual(list(map(rf2ch,pri['freqs'])),pyw.devchs(self.card))
+        else:
+            self.assertItemsEqual(list(map(rf2ch,pri['freqs'])),pyw.devchs(self.card))
     def test_invalidcardarg(self):
         self.assertRaises(error,pyw.devchs,'bad0')
 
 # test get stds
 class DevSTDsTestCase(CardTestCase):
     def test_devchs(self):
-        self.assertItemsEqual(pri['stds'],pyw.devstds(self.card))
+        if _python3:
+            self.assertCountEqual(pri['stds'],pyw.devstds(self.card))
+        else:
+            self.assertItemsEqual(pri['stds'],pyw.devstds(self.card))
     def test_invalidcardarg(self):
         self.assertRaises(error,pyw.devstds,'bad0')
 
