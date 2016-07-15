@@ -65,21 +65,22 @@ def rfkill_list():
      :returns: a dict of dicts name -> {idx,type,soft,hard}
     """
     rfks = {}
-    fin = open(dpath,'r')
-    flags = fcntl.fcntl(fin.fileno(),fcntl.F_GETFL)
-    fcntl.fcntl(fin.fileno(),fcntl.F_SETFL,flags|os.O_NONBLOCK)
-    while True:
-        try:
-            idx,t,op,s,h = struct.unpack(rfkh.rfk_rfkill_event,
-                                         fin.read(rfkh.RFKILLEVENTLEN))
-            if op == rfkh.RFKILL_OP_ADD:
-                rfks[getname(idx)] = {'idx':idx,
-                                      'type':rfkh.RFKILL_TYPES[t],
-                                      'soft':RFKILL_STATE[s],
-                                      'hard':RFKILL_STATE[h]}
-        except IOError:
-            break
-    fin.close()
+    with open(dpath,'rb') as fin:
+      flags = fcntl.fcntl(fin.fileno(),fcntl.F_GETFL)
+      fcntl.fcntl(fin.fileno(),fcntl.F_SETFL,flags|os.O_NONBLOCK)
+      while True:
+          try:
+              data = fin.read(rfkh.RFKILLEVENTLEN)
+              if data is None:
+                raise IOError()
+              idx,t,op,s,h = struct.unpack(rfkh.rfk_rfkill_event, data)
+              if op == rfkh.RFKILL_OP_ADD:
+                  rfks[getname(idx)] = {'idx':idx,
+                                        'type':rfkh.RFKILL_TYPES[t],
+                                        'soft':RFKILL_STATE[s],
+                                        'hard':RFKILL_STATE[h]}
+          except IOError:
+              break
     return rfks
 
 def rfkill_block(idx):
@@ -89,17 +90,15 @@ def rfkill_block(idx):
     """
     if not os.path.exists(os.path.join(spath,"rfkill{0}".format(idx))):
         raise pyric.error(errno.ENODEV,"No device at {0}".format(idx))
-    fout = None
-    try:
-        rfke = rfkh.rfkill_event(idx,rfkh.RFKILL_TYPE_ALL,rfkh.RFKILL_OP_CHANGE,1,0)
-        fout = open(dpath, 'w')
-        fout.write(rfke)
-    except struct.error as e:
-        raise pyric.error(pyric.EUNDEF,"Error packing rfkill event {0}".format(e))
-    except IOError as e:
-        raise pyric.error(e.errno,e.message)
-    finally:
-        if fout: fout.close()
+    with open(dpath, 'wb') as fout:
+        try:
+            rfke = rfkh.rfkill_event(idx,rfkh.RFKILL_TYPE_ALL,rfkh.RFKILL_OP_CHANGE,1,0)
+            fout.write(rfke)
+        except struct.error as e:
+            raise pyric.error(pyric.EUNDEF,"Error packing rfkill event {0}".format(e))
+        except IOError as e:
+            raise pyric.error(e.errno,e.message)
+
 
 def rfkill_blockby(rtype):
     """
@@ -119,17 +118,14 @@ def rfkill_unblock(idx):
     """
     if not os.path.exists(os.path.join(spath, "rfkill{0}".format(idx))):
         raise pyric.error(errno.ENODEV, "No device at {0}".format(idx))
-    fout = None
-    try:
-        rfke = rfkh.rfkill_event(idx,rfkh.RFKILL_TYPE_ALL,rfkh.RFKILL_OP_CHANGE,0,0)
-        fout = open(dpath, 'w')
-        fout.write(rfke)
-    except struct.error as e:
-        raise pyric.error(pyric.EUNDEF,"Error packing rfkill event {0}".format(e))
-    except IOError as e:
-        raise pyric.error(e.errno,e.message)
-    finally:
-        if fout: fout.close()
+    with open(dpath, 'wb') as fout:
+        try:
+            rfke = rfkh.rfkill_event(idx,rfkh.RFKILL_TYPE_ALL,rfkh.RFKILL_OP_CHANGE,0,0)
+            fout.write(rfke)
+        except struct.error as e:
+            raise pyric.error(pyric.EUNDEF,"Error packing rfkill event {0}".format(e))
+        except IOError as e:
+            raise pyric.error(e.errno,e.message)
 
 def rfkill_unblockby(rtype):
     """
