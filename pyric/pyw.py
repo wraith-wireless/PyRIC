@@ -901,6 +901,10 @@ def rtsthreshset(card, thresh, *argv):
     """
     if thresh == 'off': thresh = wlan.RTS_THRESH_OFF
     elif thresh == wlan.RTS_THRESH_OFF: pass
+    elif thresh == 'on':
+        msg = "Thresh must be 'off' or integer {0}-{1}".format(wlan.RTS_THRESH_MIN,
+                                                               wlan.RTS_THRESH_MAX)
+        raise pyric.error(pyric.EINVAL, msg)
     elif thresh < wlan.RTS_THRESH_MIN or thresh > wlan.RTS_THRESH_MAX:
         msg = "Thresh must be 'off' or integer {0}-{1}".format(wlan.RTS_THRESH_MIN,
                                                                wlan.RTS_THRESH_MAX)
@@ -952,6 +956,10 @@ def fragthreshset(card, thresh, *argv):
     """
     if thresh == 'off': thresh = wlan.FRAG_THRESH_OFF
     elif thresh == wlan.FRAG_THRESH_OFF: pass
+    elif thresh == "on":
+        msg = "Thresh must be 'off' or integer {0}-{1}".format(wlan.FRAG_THRESH_MIN,
+                                                               wlan.FRAG_THRESH_MAX)
+        raise pyric.error(pyric.EINVAL, msg)
     elif thresh < wlan.FRAG_THRESH_MIN or thresh > wlan.FRAG_THRESH_MAX:
         msg = "Thresh must be 'off' or integer {0}-{1}".format(wlan.FRAG_THRESH_MIN,
                                                                wlan.FRAG_THRESH_MAX)
@@ -1837,7 +1845,10 @@ MACADDR = re.compile("^([0-9a-fA-F]{2}:){5}([0-9a-fA-F]{2})$") # re for mac addr
 
 def _hex2ip4_(v):
     """ :returns: a '.' separated ip4 address from byte stream v """
-    return '.'.join([str(ord(c)) for c in v])
+    if _python3:
+        return ".".join([str(c) for c in v])
+    else:
+        return '.'.join([str(ord(c)) for c in v])
 
 def _hex2mac_(v):
     """
