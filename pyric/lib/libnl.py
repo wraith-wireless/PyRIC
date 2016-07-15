@@ -252,8 +252,6 @@ def nl_recvmsg(sock):
         return msg
     except socket.timeout:
         raise error(-1,"socket timed out")
-    except socket.error as e:
-        raise error(errno.ENOTSOCK,e)
     except error as e:
         if e.errno == nlh.NLE_SUCCESS: return nlh.NLE_SUCCESS
         raise # rethrow
@@ -444,6 +442,7 @@ def nlmsg_fromstream(stream,override=False):
         c,_,_ = struct.unpack_from(genlh.genl_genlmsghdr,stream,nlh.NLMSGHDRLEN)
     except struct.error as e:
         raise error(-1,"error parsing headers: {0}".format(e))
+
 
     # create a new message with hdr values then parse the attributes
     msg = nlmsg_new(t,c,s,p,fs)
@@ -669,6 +668,7 @@ def _nla_strip_(v):
      **NOTE: Do not use on numeric attributes
     """
     try:
+        v = v.decode('utf-8')
         for i,e in reversed(list(enumerate(v))):
             if e != '\x00': return v[:i+1]
         return v
