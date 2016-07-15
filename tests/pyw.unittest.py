@@ -113,7 +113,7 @@ class CardTestCase(unittest.TestCase):
 # test macget
 class MacGetTestCase(CardTestCase):
     def test_macget(self):
-        self.assertEquals(pri['mac'],pyw.macget(self.card))
+        self.assertEqual(pri['mac'],pyw.macget(self.card))
     def test_invalidcardarg(self):
         self.assertRaises(error,pyw.macget,'bad0')
 
@@ -139,7 +139,7 @@ class MacSetTestCase(CardTestCase):
 #  broadcastset
 class InetGetSetTestCase(CardTestCase):
     def test_inetgetset(self):
-        self.assertEquals(None,pyw.inetset(self.card,pri['ip'],pri['mask'],pri['bcast']))
+        self.assertEqual(None,pyw.inetset(self.card,pri['ip'],pri['mask'],pri['bcast']))
         self.assertEqual(pri['ip'],pyw.inetget(self.card)[0])
     def test_invalidcardarg(self):
         self.assertRaises(error,pyw.inetget,'bad0')
@@ -158,7 +158,7 @@ class IsUpTestCase(CardTestCase):
 # test up/isup
 class UpTestCase(CardTestCase):
     def test_up(self):
-        self.assertEquals(None,pyw.up(self.card))
+        self.assertEqual(None,pyw.up(self.card))
         self.assertTrue(pyw.isup(self.card))
     def test_invalidcardarg(self): self.assertRaises(error,pyw.up,'bad0')
 
@@ -176,15 +176,15 @@ class IsBlockedTestCase(unittest.TestCase):
 # test block/isblocked
 class BlockTestCase(CardTestCase):
     def test_block(self):
-        self.assertEquals(None,pyw.block(self.card))
+        self.assertEqual(None,pyw.block(self.card))
         self.assertTrue(pyw.isblocked(self.card))
-        self.assertEquals(None,pyw.unblock(self.card))
+        self.assertEqual(None,pyw.unblock(self.card))
     def test_invalidcardarg(self): self.assertRaises(error,pyw.block,'bad0')
 
 # test block/isblocked
 class UnblockTestCase(CardTestCase):
     def test_unblock(self):
-        self.assertEquals(None,pyw.unblock(self.card))
+        self.assertEqual(None,pyw.unblock(self.card))
         self.assertFalse(pyw.isblocked(self.card)[0])
     def test_invalidcardarg(self): self.assertRaises(error,pyw.block,'bad0')
 
@@ -280,7 +280,7 @@ class DevFreqsTestCase(CardTestCase):
 # test get chs
 class DevCHsTestCase(CardTestCase):
     def test_devchs(self):
-        self.assertItemsEqual(map(rf2ch,pri['freqs']),pyw.devchs(self.card))
+        self.assertItemsEqual(list(map(rf2ch,pri['freqs'])),pyw.devchs(self.card))
     def test_invalidcardarg(self):
         self.assertRaises(error,pyw.devchs,'bad0')
 
@@ -327,7 +327,7 @@ class PhyInfoTestCase(CardTestCase):
 # test txget
 class TXGetTestCase(CardTestCase):
     def test_txget(self):
-        self.assertEquals(pri['tx'],pyw.txget(self.card))
+        self.assertEqual(pri['tx'],pyw.txget(self.card))
     def test_invalidcardarg(self):
         self.assertRaises(error,pyw.txget,'bad0')
 
@@ -365,7 +365,7 @@ class FreqSetTestCase(CardTestCase):
 # test modeget
 class ModeGetTestCase(CardTestCase):
     def test_modeget(self):
-        self.assertEquals('managed',pyw.modeget(self.card))
+        self.assertEqual('managed',pyw.modeget(self.card))
     def test_invalidcardarg(self):
         self.assertRaises(error,pyw.modeget,'bad0')
 
@@ -373,8 +373,8 @@ class ModeGetTestCase(CardTestCase):
 class ModeSetTestCase(CardTestCase):
     def test_modeset(self):
         pyw.down(self.card)
-        self.assertEquals(None,pyw.modeset(self.card,'monitor'))
-        self.assertEquals(None,pyw.modeset(self.card,'managed'))
+        self.assertEqual(None,pyw.modeset(self.card,'monitor'))
+        self.assertEqual(None,pyw.modeset(self.card,'managed'))
         pyw.up(self.card)
     def test_invalidcardarg(self):
         self.assertRaises(error,pyw.modeset,'bad0','monitor')

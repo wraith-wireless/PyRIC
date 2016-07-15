@@ -79,14 +79,14 @@ import struct                                   # ioctl unpacking
 import pyric                                    # pyric exception
 import re                                       # check addr validity
 from pyric.nlhelp.nlsearch import cmdbynum      # get command name
-from pyric.utils import channels                # channel related
-from pyric.utils import rfkill                  # block/unblock
+import pyric.utils.channels as channels         # channel related
+import pyric.utils.rfkill as rfkill             # block/unblock
 import pyric.utils.hardware as hw               # device related
-from pyric.utils import ouifetch                # get oui dict
+import pyric.utils.ouifetch as ouifetch         # get oui dict
 import pyric.net.netlink_h as nlh               # netlink definition
 import pyric.net.genetlink_h as genlh           # genetlink definition
 import pyric.net.wireless.nl80211_h as nl80211h # nl80211 definition
-from pyric.net.wireless import wlan             # IEEE 802.11 Std definition
+import pyric.net.wireless.wlan as wlan          # IEEE 802.11 Std definition
 import pyric.net.sockios_h as sioch             # sockios constants
 import pyric.net.if_h as ifh                    # ifreq structure
 import pyric.lib.libnl as nl                    # netlink functions
@@ -1003,7 +1003,7 @@ def devchs(card, *argv):
     except IndexError:
         return _nlstub_(devchs, card)
 
-    return map(channels.rf2ch, phyinfo(card, nlsock)['freqs'])
+    return list(map(channels.rf2ch, phyinfo(card, nlsock)['freqs']))
 
 def devstds(card, *argv):
     """
@@ -1730,7 +1730,7 @@ def link(card, *argv):
                       'failed': sinfo['tx-failed'],
                       'retries': sinfo['tx-retries'],
                       'bitrate': {'rate': sinfo['tx-bitrate']['rate']}}
-        if sinfo['tx-bitrate'].has_key('mcs-index'):
+        if 'mcs-index' in sinfo['tx-bitrate']:
             info['tx']['bitrate']['mcs-index'] = sinfo['tx-bitrate']['mcs-index']
             info['tx']['bitrate']['gi'] = sinfo['tx-bitrate']['gi']
             info['tx']['bitrate']['width'] = sinfo['tx-bitrate']['width']
@@ -1738,7 +1738,7 @@ def link(card, *argv):
         info['rx'] = {'bytes': sinfo['rx-bytes'],
                       'pkts':sinfo['rx-pkts'],
                       'bitrate': {'rate': sinfo['rx-bitrate']['rate']}}
-        if sinfo['rx-bitrate'].has_key('mcs-index'):
+        if 'mcs-index' in sinfo['rx-bitrate']:
             info['rx']['bitrate']['mcs-index'] = sinfo['rx-bitrate']['mcs-index']
             info['rx']['bitrate']['gi'] = sinfo['rx-bitrate']['gi']
             info['rx']['bitrate']['width'] = sinfo['rx-bitrate']['width']

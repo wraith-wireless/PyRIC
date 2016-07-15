@@ -15,7 +15,7 @@ def execute(dev,itype):
     # ensure dev is a wireless interfaces
     wifaces = pyw.winterfaces()
     if dev not in wifaces:
-        print "Device {0} is not wireless, use one of {1}".format(dev,wifaces)
+        print("Device {0} is not wireless, use one of {1}".format(dev,wifaces))
 
     # get info dicts
     dinfo = pyw.devinfo(dev)
@@ -31,7 +31,7 @@ def execute(dev,itype):
         msg += "\tInet: {0} Bcast: {1} Mask: {2}\n".format(iinfo['inet'],
                                                            iinfo['bcast'],
                                                            iinfo['mask'])
-        print msg
+        print(msg)
 
     if itype == 'all' or itype == 'dev':
         msg = "Device {0}\n".format(card.dev)
@@ -46,7 +46,7 @@ def execute(dev,itype):
                                                                                 dinfo['RF'],
                                                                                 dinfo['CHW'],
                                                                                 dinfo['CF'])
-        print msg
+        print(msg)
 
     if itype == 'all' or itype == 'phy':
         msg = "Wiphy phy{0}\n".format(card.phy)
@@ -78,11 +78,11 @@ def execute(dev,itype):
                     msg += " (disabled)\n"
                 else:
                     msg += "\n"
-        print msg
+        print(msg)
 
 if __name__ == '__main__':
     # create arg parser and parse command line args
-    print "Wireless Device Info Display using PyRIC v{0}".format(pyric.__version__)
+    print("Wireless Device Info Display using PyRIC v{0}".format(pyric.__version__))
     argp = ap.ArgumentParser(description="Wireless Device Data")
     argp.add_argument('-d','--dev',help="Wireless Device")
     argp.add_argument('-t','--type',help="Info type one of {all|if|dev|phy}")
@@ -91,12 +91,12 @@ if __name__ == '__main__':
         dname = args.dev
         infotype = args.type
         if dname is None:
-            print "usage: python info.py -d <dev> [-t one of {all|if|dev|phy}]"
+            print("usage: python info.py -d <dev> [-t one of {all|if|dev|phy}]")
             sys.exit(0)
         if infotype is None: infotype = 'all'
         if infotype not in ['all','if','dev','phy']:
-            print "usage: python info.py -d <dev> [-t one of {all|if|dev|phy}]"
+            print("usage: python info.py -d <dev> [-t one of {all|if|dev|phy}]")
             sys.exit(0)
         execute(dname,infotype)
     except pyric.error as e:
-        print e
+        print(e)

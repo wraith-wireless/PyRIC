@@ -686,7 +686,11 @@ def _attrpack_(a,v,d):
     elif d == nlh.NLA_U16: attr = struct.pack("H",v)
     elif d == nlh.NLA_U32: attr = struct.pack("I",v)
     elif d == nlh.NLA_U64: attr = struct.pack("Q",v)
-    elif d == nlh.NLA_STRING: attr = struct.pack("{0}sx".format(len(v)),v)
+    elif d == nlh.NLA_STRING:
+        try:
+          attr = struct.pack("{0}sx".format(len(v)),v)
+        except:
+          attr = struct.pack("{0}sx".format(len(v)), bytes(v, 'utf-8'))
     elif d == nlh.NLA_FLAG: attr = '' # a 0 sized attribute
     elif d == nlh.NLA_MSECS: attr = struct.pack("Q",v)
     elif d == nlh.NLA_NESTED:

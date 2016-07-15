@@ -50,7 +50,7 @@ cin = None
 try:
     # first three lines are comments, 4th line is empty
     cin = open(cmdpath,'r')
-    for _ in xrange(4): _in = cin.readline()
+    for _ in range(4): _in = cin.readline()
     commands = json.loads(cin.readline())
     cmdlookup = json.loads(cin.readline())
 except:
@@ -65,7 +65,7 @@ ain = None
 try:
     # first three lines are comments, 3th line is empty
     ain = open(attrpath,'r')
-    for _ in xrange(4): _in = ain.readline()
+    for _ in range(4): _in = ain.readline()
     attributes = json.loads(ain.readline())
     attrlookup = json.loads(ain.readline())
 except:

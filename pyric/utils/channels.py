@@ -72,11 +72,11 @@ UNII_4_F2C={4960:192,4935:187,4940:188,4945:189,4915:183,4980:196,4920:184,4925:
 
 def channels():
     """ :returns:list of all channels """
-    return sorted(ISM_24_C2F.keys() + UNII_5_C2F.keys() + UNII_4_C2F.keys())
+    return sorted(list(ISM_24_C2F.keys()) + list(UNII_5_C2F.keys()) + list(UNII_4_C2F.keys()))
 
 def freqs():
     """ :returns:list of frequencies """
-    return sorted(ISM_24_F2C.keys() + UNII_5_F2C.keys()+ UNII_4_F2C.keys())
+    return sorted(list(ISM_24_F2C.keys()) + list(UNII_5_F2C.keys())+ list(UNII_4_F2C.keys()))
 
 def ch2rf(c):
     """

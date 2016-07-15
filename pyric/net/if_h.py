@@ -257,7 +257,10 @@ def ifreq(ifrn,ifru=None,param=None):
     # pack the nic
     try:
         # NOTE: don't need to keep the name to 16 chars as struct does it for us
-        ifr = struct.pack(ifr_name,ifrn)
+        try:
+            ifr = struct.pack(ifr_name,ifrn)
+        except:
+            ifr = struct.pack(ifr_name, bytes(ifrn, 'utf-8'))
     except struct.error:
         raise AttributeError("ifr_ifrn (dev name) {0} is invalid".format(ifrn))
 

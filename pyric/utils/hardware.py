@@ -72,10 +72,10 @@ def randhw(ouis=None):
      :returns: random hw address
     """
     if ouis is None or ouis == []:
-        o = ":".join(['{0:02x}'.format(random.randint(0,255)) for _ in xrange(3)])
+        o = ":".join(['{0:02x}'.format(random.randint(0,255)) for _ in range(3)])
     else:
-        o = random.choice(ouis.keys())
-    u = ":".join(['{0:02x}'.format(random.randint(0,255)) for _ in xrange(3)])
+        o = random.choice(list(ouis.keys()))
+    u = ":".join(['{0:02x}'.format(random.randint(0,255)) for _ in range(3)])
     return o + ':' + u
 
 def ifcard(dev):
