@@ -17,32 +17,20 @@
   o dd-wrt/OpenWRT
  21) look at NL80211_CMD_START_AP - no need to try and recreate the wheel by
   replicate hostap but could be useful
- 22) txset
-   o NOTE: the following is consistent with what iw gives us
-   o when using dBm
-    - get Operation not supported for setting tx power (see pyw.txset)
-    - have tried using the ifindex and phy. Both methods are accepted, returning
-     only Errno 95.
-   o when using mBm
-    - no errors reported but tx power is not changed
-   o Is the operation not supported by my cards? or is it not supported by the
-     kernel?
-  26) need to parse dumps NLM_F_DUMP, for now we're good with link etc, so long
+ 26) need to parse dumps NLM_F_DUMP, for now we're good with link etc, so long
    as the card is connected but it may come up eventually
-  29) figure out how to parse the information element in pyw.link - there's some
+ 29) figure out how to parse the information element in pyw.link - there's some
    good shit in it including sometimes the router os and type
    o in link, NL80211_BSS_BEACON_IES vs NL80211_BSS_INFORMATION_ELEMENT
      BEACON_IES may not always be presenet but appears to contain more
-  31) add VHT processing to sta_info bitrate
-  35) iw connect (open) returns status of successful connect but card is
-   not connected -> move to wpa_supplicant to see how they do it
-  36) do we need to write a find nested attribute? so we don't need to go iterate
+ 31) add VHT processing to sta_info bitrate
+ 36) do we need to write a find nested attribute? so we don't need to go iterate
     a list of attributes to find one
-  39) parsing wiphy_bands
+ 39) parsing wiphy_bands
    o _HT_MCS_SET: a 16-bit attr containing the MCS set as defined in 802.11n (find this)
    o _HT_CAPA: as in the HT information IE
-  42) is there a simple way to set the format strings as constants keeping in
+ 42) is there a simple way to set the format strings as constants keeping in
    mind that things like strings require a length in the format string
-  45) find out if some of the 'flags' for bands are actually correct such as
+ 45) find out if some of the 'flags' for bands are actually correct such as
    HT40+ which should be disabled for channel 11
-  46) max-tx for bands is showing 15 when iwconfig shows 30
+ 46) max-tx for bands is showing 15 when iwconfig shows 30
