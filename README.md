@@ -33,7 +33,7 @@ was to provide a simple interface to the underlying nl80211 kernel support,
 handling the complex operations of Netlink seamlessy while maintaining a minimum
 of "code walking" to understand, modify and extend. But, why stop there? Since
 it's initial inception, PyRIC has grown. PyRIC puts iw, ifconfig, rfkill,
-udevadm, airmon-ng and macchanger.
+udevadm, airmon-ng and macchanger in your hands (or your program).
 
 ### a. Additions to iw
 Several "extensions" have been added to iw:

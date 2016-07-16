@@ -86,11 +86,11 @@ from pyric.utils import ouifetch                # get oui dict
 import pyric.net.netlink_h as nlh               # netlink definition
 import pyric.net.genetlink_h as genlh           # genetlink definition
 import pyric.net.wireless.nl80211_h as nl80211h # nl80211 definition
+import pyric.lib.libnl as nl                    # netlink (library) functions
 from pyric.net.wireless import wlan             # IEEE 802.11 Std definition
 import pyric.net.sockios_h as sioch             # sockios constants
 import pyric.net.if_h as ifh                    # ifreq structure
-import pyric.lib.libnl as nl                    # netlink functions
-import pyric.lib.libio as io                    # ioctl functions
+import pyric.lib.libio as io                    # ioctl (library) functions
 
 _FAM80211ID_ = None
 

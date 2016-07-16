@@ -237,13 +237,14 @@ def nl_recvmsg(sock):
     """
     try:
         # pull off the message and following ack message NOTE: nlmsg_fromstream
-        # will throw an exception if msg is an ack/nack catch it and test for ack.
+        # will throw an exception if msg is an ack/nack, catch it and test for ack.
         # If it was an ack, return the success code otherwise, reraise it. If it
         # wasn't an ack/nack, return the message
         msg = nlmsg_fromstream(sock.recv())
         try:
             _ = nlmsg_fromstream(sock.recv())
         except error as e:
+            # here, we don't want to return the original message
             if e.errno == nlh.NLE_SUCCESS: pass
             else: raise
         if sock.seq != msg.seq: raise error(errno.EBADMSG,"seq. # out of order")
