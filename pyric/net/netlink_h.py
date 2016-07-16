@@ -332,6 +332,5 @@ NLA_TYPE_MASK		= ~(NLA_F_NESTED | NLA_F_NET_BYTEORDER)
 
 # defined error codes
 # only use success and failure -> using errno for other error numbers
-NLE = ['Success','Unspecified failure']
 NLE_SUCCESS           =  0
 NLE_FAILURE           =  1

@@ -249,8 +249,8 @@ class RTSThreshTestCase(CardTestCase):
         self.assertRaises(error,pyw.rtsthreshget,'bad0')
         self.assertRaises(error,pyw.rtsthreshset,'bad0',5)
     def test_invalidthresh(self):
-        self.assertRaises(error,pyw.rtsthreshset,self.card,wlan.RTS_THRESHOLD_MIN-1)
-        self.assertRaises(error,pyw.rtsthreshset,self.card,wlan.RTS_THRESHOLD_MAX+1)
+        self.assertRaises(error,pyw.rtsthreshset,self.card,wlan.RTS_THRESH_MIN-1)
+        self.assertRaises(error,pyw.rtsthreshset,self.card,wlan.RTS_THRESH_MAX+1)
         self.assertRaises(error, pyw.rtsthreshset,self.card,'on')
 
 # test get/set RTS thresh
@@ -266,8 +266,8 @@ class FragThreshTestCase(CardTestCase):
         self.assertRaises(error,pyw.fragthreshget,'bad0')
         self.assertRaises(error,pyw.fragthreshset,'bad0',800)
     def test_invalidthresh(self):
-        self.assertRaises(error,pyw.fragthreshset,self.card,wlan.FRAG_THRESHOLD_MIN-1)
-        self.assertRaises(error,pyw.fragthreshset,self.card,wlan.FRAG_THRESHOLD_MAX+1)
+        self.assertRaises(error,pyw.fragthreshset,self.card,wlan.FRAG_THRESH_MIN-1)
+        self.assertRaises(error,pyw.fragthreshset,self.card,wlan.FRAG_THRESH_MAX+1)
         self.assertRaises(error,pyw.fragthreshset,self.card,'on')
 
 # test get freqs
