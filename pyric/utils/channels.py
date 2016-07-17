@@ -38,8 +38,8 @@ __status__ = 'Production'
 import pyric.net.wireless.nl80211_h as nl80211h
 
 # redefined widths (allowed in nl80211h)
-CHTYPES = nl80211h.NL80211_CHAN_TYPES
-CHWIDTHS = nl80211h.NL80211_CHAN_WIDTHS
+CHTYPES = nl80211h.NL80211_CHAN_TYPES   # widths nl80211 supports i.e HT40- 
+CHWIDTHS = nl80211h.NL80211_CHAN_WIDTHS # actual widths
 
 # ISM Bands (ieee80211.h-> BAND_ID_2G)
 ISM_24_C2F={1:2412,2:2417,3:2422,4:2427,5:2432,6:2437,7:2442,

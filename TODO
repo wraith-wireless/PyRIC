@@ -34,3 +34,4 @@
  45) find out if some of the 'flags' for bands are actually correct such as
    HT40+ which should be disabled for channel 11
  46) max-tx for bands is showing 15 when iwconfig shows 30
+ 47) where is udevadm getting firmware vers from
