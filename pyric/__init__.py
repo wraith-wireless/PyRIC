@@ -68,6 +68,7 @@ def strerror(errno):
 # for setup.py use
 # redefine version for easier access
 version = __version__
+
 # define long description
 long_desc = """
 # PyRIC 0.1.4: Python Radio Interface Controller
