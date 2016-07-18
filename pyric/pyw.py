@@ -76,18 +76,18 @@ __email__ = 'wraith.wireless@yandex.com'
 __status__ = 'Production'
 
 import struct                                   # ioctl unpacking
-import pyric                                    # pyric exception
 import re                                       # check addr validity
-from pyric.nlhelp.nlsearch import cmdbynum      # get command name
-from pyric.utils import channels                # channel related
-from pyric.utils import rfkill                  # block/unblock
+import pyric                                    # pyric exception
+import pyric.nlhelp.nlsearch as nlsearch        # get command name
+import pyric.utils.channels as channels         # channel related
+import pyric.utils.rfkill as rfkill             # block/unblock
 import pyric.utils.hardware as hw               # device related
-from pyric.utils import ouifetch                # get oui dict
+import pyric.utils.ouifetch as ouifetch         # get oui dict
 import pyric.net.netlink_h as nlh               # netlink definition
 import pyric.net.genetlink_h as genlh           # genetlink definition
 import pyric.net.wireless.nl80211_h as nl80211h # nl80211 definition
 import pyric.lib.libnl as nl                    # netlink (library) functions
-from pyric.net.wireless import wlan             # IEEE 802.11 Std definition
+import pyric.net.wireless.wlan as wlan          # IEEE 802.11 Std definition
 import pyric.net.sockios_h as sioch             # sockios constants
 import pyric.net.if_h as ifh                    # ifreq structure
 import pyric.lib.libio as io                    # ioctl (library) functions
@@ -989,7 +989,12 @@ def devfreqs(card, *argv):
     except IndexError:
         return _nlstub_(devfreqs, card)
 
-    return phyinfo(card, nlsock)['freqs']
+    rfs = []
+    pinfo = phyinfo(card, nlsock)
+    for band in pinfo['bands']:
+        rfs.extend(pinfo['bands'][band]['rfs'])
+    rfs = sorted(rfs)
+    return rfs
 
 def devchs(card, *argv):
     """
@@ -1003,7 +1008,7 @@ def devchs(card, *argv):
     except IndexError:
         return _nlstub_(devchs, card)
 
-    return map(channels.rf2ch, phyinfo(card, nlsock)['freqs'])
+    return [channels.rf2ch(rf) for rf in devfreqs(card)]
 
 def devstds(card, *argv):
     """
@@ -2107,15 +2112,14 @@ def _commands_(command):
      :returns: list of supported commands as strings
     """
     cs = []
-    for _,cmd in command: # rather than index, commands use a counter, ignore it
+    for _,cmd in command: # rather than an index, commands use a counter, ignore it
         try:
-
-            #                     <- 2 -><-  4 ->
-            # ignore count, use numeric command to lookup string version in form
-            # @NL80211_CMD_<CMD> and strip "@NL80211_CMD_". NOTE: some numeric
-            # commands may have multiple string synonyms, in that case, take the
-            # first one. Finally, make it lowercase
-            cmd = cmdbynum(struct.unpack_from('I', cmd, 0)[0])
+            # use numeric command to lookup string version in form
+            #    @NL80211_CMD_<CMD>
+            # and strip "@NL80211_CMD_". NOTE: some commands may have multiple
+            # string synonyms, in that case, take the first one. Finally, make
+            # it lowercase
+            cmd = nlsearch.cmdbynum(struct.unpack_from('I', cmd, 0)[0])
             if type(cmd) is type([]): cmd = cmd[0]
             cs.append(cmd[13:].lower()) # skip NL80211_CMD_
         except KeyError:

@@ -35,3 +35,4 @@
    HT40+ which should be disabled for channel 11
  46) max-tx for bands is showing 15 when iwconfig shows 30
  47) where is udevadm getting firmware vers from
+ 48) need to redo pyw.unittest after adding/updating functions
