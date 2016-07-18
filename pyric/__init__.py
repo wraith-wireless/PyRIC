@@ -91,15 +91,6 @@ through subprocess.Popen
 tools. Never worry about newer iw versions and having to rewrite your parsers.
 5. Easy: If you can use iw, you can use PyRIC.
 
-At it's heart, PyRIC is a Python port of (a subset of) iw and by extension, a
-Python port of Netlink w.r.t nl80211 functionality. The original goal of PyRIC
-was to provide a simple interface to the underlying nl80211 kernel support,
-handling the complex operations of Netlink seamlessy while maintaining a minimum
-of "code walking" to understand, modify and extend. But, why stop there? Since
-it's initial inception, PyRIC has grown to include ioctl support to replicate
-features of ifconfig such as getting or setting the mac address and has recently
-implemented rkill support to soft block or unblock wireless cards.
-
 ## CURRENT STATE
 ATT, PyRIC pyw provides the following:
 * enumerate interfaces and wireless interfaces
@@ -119,6 +110,7 @@ ATT, PyRIC pyw provides the following:
 * add/delete interfaces
 * enumerate ISM and UNII channels
 * block/unblock rfkill devices
+* check 'connectivity', disconnect from AP
 
 In utils, several helpers can be found that can be used to:
 * enumerate channels and frequencies and convert between the two
@@ -126,20 +118,11 @@ In utils, several helpers can be found that can be used to:
 * fetch and parse the IEEE oui text file
 * further rfkill operations to include listing all rfkill devices
 
-For a full listing of every function offered by pyw and helpers see the user
-guide PyRIC.pdf.
-
-PyRIC also provides limited help functionality concerning nl80211 commands/attributes
-for those who wish to add additional commands. However, it pulls directly from
-the comments nl80211 header file and may be vague.
-
-## WHAT IS PyRIC?
-To avoid confusion, PyRIC is the system as a whole, including all header files
-and "libraries" that are required to communicate with the kernel. pyw is a
-interface to these libraries providing specific funtions.
-
-What it does - defines programmatic access to a subset of iw, ifconfig and rkill.
-In short, PyRIC provides Python wireless pentesters the ability to work with
-wireless cards directly from Python without having to use command line tools
-through Popen.
+At it's heart, PyRIC is a Python port of (a subset of) iw and by extension, a
+Python port of Netlink w.r.t nl80211 functionality. The original goal of PyRIC
+was to provide a simple interface to the underlying nl80211 kernel support,
+handling the complex operations of Netlink seamlessy while maintaining a minimum
+of "code walking" to understand, modify and extend. But, why stop there? Since
+it's initial inception, PyRIC has grown. PyRIC puts iw, ifconfig, rfkill, udevadm,
+airmon-ng and macchanger in your hands (or your program).
 """
