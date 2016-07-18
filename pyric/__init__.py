@@ -65,7 +65,8 @@ def strerror(errno):
     else:
         return os.strerror(errno)
 
-# for setup.py use
+# for us in setup.py
+
 # redefine version for easier access
 version = __version__
 
