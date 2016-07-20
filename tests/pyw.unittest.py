@@ -22,6 +22,7 @@ Ran 61 tests in 5.360s
 OK
 
 """
+from __future__ import print_function  # python 2to3 compability
 
 #__name__ = 'pyw.unittest'
 __license__ = 'GPLv3'
@@ -411,4 +412,5 @@ class DevAddDelTestCase(CardTestCase):
         self.assertRaises(error,pyw.devadd,self.card,'test0','managed','fcsfail')
 
 if __name__ == '__main__':
+    print('Not currently stable')
     unittest.main()
