@@ -273,7 +273,7 @@ class FragThreshTestCase(CardTestCase):
 # test get freqs
 class DevFreqsTestCase(CardTestCase):
     def test_devfreqs(self):
-        self.assertItemsEqual(pri['freqs'],pyw.devfreqs(self.card))
+        self.assertItemsEquals(pri['freqs'],pyw.devfreqs(self.card))
     def test_invalidcardarg(self):
         self.assertRaises(error,pyw.devfreqs,'bad0')
 
@@ -281,7 +281,7 @@ class DevFreqsTestCase(CardTestCase):
 class DevCHsTestCase(CardTestCase):
     def test_devchs(self):
         [rf2ch(rf) for rf in pri['freqs']]
-        self.assertItemsEqual([rf2ch(rf) for rf in pri['freqs']],
+        self.assertItemsEquals([rf2ch(rf) for rf in pri['freqs']],
                               pyw.devchs(self.card))
     def test_invalidcardarg(self):
         self.assertRaises(error,pyw.devchs,'bad0')
@@ -289,7 +289,7 @@ class DevCHsTestCase(CardTestCase):
 # test get stds
 class DevSTDsTestCase(CardTestCase):
     def test_devchs(self):
-        self.assertItemsEqual(pri['stds'],pyw.devstds(self.card))
+        self.assertItemsEquals(pri['stds'],pyw.devstds(self.card))
     def test_invalidcardarg(self):
         self.assertRaises(error,pyw.devstds,'bad0')
 
