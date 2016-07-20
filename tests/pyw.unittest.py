@@ -35,9 +35,9 @@ __status__ = 'Production'
 import unittest
 import time
 from pyric import error
-from pyric import pyw
+import pyric.pyw as pyw
 from pyric.utils.channels import ISM_24_F2C,rf2ch
-from pyric.net.wireless import wlan
+import pyric.net.wireless.wlan as wlan
 
 
 # modify below to fit your system
@@ -280,7 +280,9 @@ class DevFreqsTestCase(CardTestCase):
 # test get chs
 class DevCHsTestCase(CardTestCase):
     def test_devchs(self):
-        self.assertItemsEqual(map(rf2ch,pri['freqs']),pyw.devchs(self.card))
+        [rf2ch(rf) for rf in pri['freqs']]
+        self.assertItemsEqual([rf2ch(rf) for rf in pri['freqs']],
+                              pyw.devchs(self.card))
     def test_invalidcardarg(self):
         self.assertRaises(error,pyw.devchs,'bad0')
 

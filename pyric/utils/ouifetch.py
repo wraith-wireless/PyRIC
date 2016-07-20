@@ -23,18 +23,27 @@ are permitted provided that the following conditions are met:
 Fetchs and stores oui data from IEEE
 
 """
+from __future__ import print_function  # python 2to3 compability
 
-#__name__ = 'ouifetch'
+__name__ = 'ouifetch'
 __license__ = 'GPLv3'
-__version__ = '0.0.1'
-__date__ = 'August 2014'
+__version__ = '0.0.2'
+__date__ = 'July 2016'
 __author__ = 'Dale Patterson'
 __maintainer__ = 'Dale Patterson'
 __email__ = 'wraith.wireless@yandex.com'
 __status__ = 'Production'
 
-import urllib2,os,sys,datetime,time
-#import argparse as ap
+try:
+    # load urllib related for python 2
+    from urllib2 import Request as url_request
+    from urllib2 import urlopen as url_open
+    from urllib2 import URLError as url_error
+except ImportError:
+    from urllib.request import Request as url_request
+    from urllib.request import urlopen as url_open
+    from urllib import error as url_error
+import os,sys,datetime,time
 import pyric
 
 OUIURL = 'http://standards-oui.ieee.org/oui.txt'
@@ -75,22 +84,22 @@ def fetch(opath=None,verbose=False):
     # determine if data path is legit
     if opath is None: opath = OUIPATH
     if not os.path.isdir(os.path.dirname(opath)):
-        print "Path to data is incorrect {0}".format(opath)
+        print("Path to data is incorrect {0}".format(opath))
         sys.exit(1)
 
     # fetch oui file from ieee
     fout = None
 
     # set up url request
-    req = urllib2.Request(OUIURL)
+    req = url_request(OUIURL)
     req.add_header('User-Agent',"PyRIC +https://github.com/wraith-wireless/PyRIC/")
     try:
         # retrieve the oui file and parse out generated date
-        if verbose: print 'Fetching ', OUIURL
-        res = urllib2.urlopen(req)
-        if verbose: print "Parsing OUI file"
+        if verbose: print('Fetching ', OUIURL)
+        res = url_open(req)
+        if verbose: print("Parsing OUI file")
 
-        if verbose: print "Opening data file {0} for writing".format(opath)
+        if verbose: print("Opening data file {0} for writing".format(opath))
         fout = open(opath,'w')
         gen = datetime.datetime.utcnow().isoformat() # use current time as the first line
         fout.write(gen+'\n')
@@ -110,14 +119,14 @@ def fetch(opath=None,verbose=False):
                 # write to file & update count
                 fout.write('{0}\t{1}\n'.format(oui,manuf))
                 cnt += 1
-                if verbose: print "{0}:\t{1}\t{2}".format(cnt,oui,manuf)
-        print "Wrote {0} OUIs in {1:.3} secs".format(cnt,time.time()-t)
-    except urllib2.URLError as e:
-        print "Error fetching oui file: {0}".format(e)
+                if verbose: print("{0}:\t{1}\t{2}".format(cnt,oui,manuf))
+        print("Wrote {0} OUIs in {1:.3} secs".format(cnt,time.time()-t))
+    except url_error as e:
+        print("Error fetching oui file: {0}".format(e))
     except IOError as e:
-        print "Error opening output file {0}".format(e)
+        print("Error opening output file {0}".format(e))
     except Exception as e:
-        print "Error parsing oui file: {0}".format(e)
+        print("Error parsing oui file: {0}".format(e))
     finally:
         if fout: fout.close()
 

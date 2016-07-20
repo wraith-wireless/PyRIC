@@ -78,16 +78,16 @@ __status__ = 'Production'
 import struct                                   # ioctl unpacking
 import re                                       # check addr validity
 import pyric                                    # pyric exception
-import pyric.nlhelp.nlsearch as nlsearch        # get command name
-import pyric.utils.channels as channels         # channel related
-import pyric.utils.rfkill as rfkill             # block/unblock
+from pyric.nlhelp.nlsearch import cmdbynum      # get command name
+from pyric.utils import channels                # channel related
+from pyric.utils import rfkill                  # block/unblock
 import pyric.utils.hardware as hw               # device related
-import pyric.utils.ouifetch as ouifetch         # get oui dict
+from pyric.utils import ouifetch                # get oui dict
 import pyric.net.netlink_h as nlh               # netlink definition
 import pyric.net.genetlink_h as genlh           # genetlink definition
 import pyric.net.wireless.nl80211_h as nl80211h # nl80211 definition
 import pyric.lib.libnl as nl                    # netlink (library) functions
-import pyric.net.wireless.wlan as wlan          # IEEE 802.11 Std definition
+from pyric.net.wireless import wlan             # IEEE 802.11 Std definition
 import pyric.net.sockios_h as sioch             # sockios constants
 import pyric.net.if_h as ifh                    # ifreq structure
 import pyric.lib.libio as io                    # ioctl (library) functions
@@ -1008,7 +1008,7 @@ def devchs(card, *argv):
     except IndexError:
         return _nlstub_(devchs, card)
 
-    return [channels.rf2ch(rf) for rf in devfreqs(card)]
+    return [channels.rf2ch(rf) for rf in devfreqs(card,nlsock)]
 
 def devstds(card, *argv):
     """
@@ -2119,7 +2119,7 @@ def _commands_(command):
             # and strip "@NL80211_CMD_". NOTE: some commands may have multiple
             # string synonyms, in that case, take the first one. Finally, make
             # it lowercase
-            cmd = nlsearch.cmdbynum(struct.unpack_from('I', cmd, 0)[0])
+            cmd = cmdbynum(struct.unpack_from('I', cmd, 0)[0])
             if type(cmd) is type([]): cmd = cmd[0]
             cs.append(cmd[13:].lower()) # skip NL80211_CMD_
         except KeyError:

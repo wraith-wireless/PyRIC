@@ -146,3 +146,7 @@ v 0.1.5 Begin STA associated functionality
   o fixed output error ASW max tx power
   o added phylist w.r.t issue #17
   o fixed devfreqs, devchs after updating phyinfo
+  o add support for python3 (keeping compability with python2.7)
+   - urllib2 vs urllib
+   - replaced map with list comprehensions
+   - replaced xrange with range

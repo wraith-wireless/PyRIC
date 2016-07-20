@@ -159,8 +159,8 @@ To use PyRIC, see the examples folder or read throuhg PyRIC.pdf. However, for
 those impatient types:
 
 ```python
-import pyric           # pyric errors
-from pyric import pyw  # iw functionality
+import pyric             # pyric errors
+import pyric.pyw as pyw  # iw functionality
 ```
 
 will import the basic requirements and unless otherwise stated is assumed for the
@@ -513,8 +513,8 @@ airmon-ng programmatically. as done below
 
 ```python
 import pyric
-from pyric import pyw
-from pyric.lib import libnl as nl
+import pyric.pyw as pyw
+import pyric.lib.libnl as nl
 
 def pymon(card, start=True, ch=None):
     """
@@ -638,7 +638,7 @@ recognized by command line tools or pyw. Use rkill to list, turn on or turn
 off soft blocks.
 
 ``` python
-from pyric.utils import rfkill
+import pyric.utils.rfkill as rfkill
 
 rfkill.rfkill_list() # list rfkill devices
 => {'tpacpi_bluetooth_sw': {'soft': True, 'hard': False, 'type': 'bluetooth', 'idx': 1},

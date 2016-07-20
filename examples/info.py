@@ -5,10 +5,11 @@ Example for displaying device details
 
 """
 
-import argparse as ap
-import sys
+from __future__ import print_function  # python 2to3 compability
+import argparse as ap                  # cli arg parsing
+import sys                             # cli exiting
 import pyric                           # pyric error (and ecode EUNDEF)
-from pyric import pyw                  # for iw functionality
+import pyric.pyw as pyw                # for iw functionality
 from pyric.utils.channels import rf2ch # rf to channel conversion
 
 def execute(dev,itype):
