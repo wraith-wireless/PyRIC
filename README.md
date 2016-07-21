@@ -62,6 +62,11 @@ persistent netlink sockets are used with the total time and average hop time nea
 halved.
 
 ### b. Current State
+PyRIC is in the process of porting compatibility to Python 3. At present, it will
+work on Python 2.7 and Python 3.5. It will also work on Python 3.0 except you
+will have to manually enter your devices in the examples (as argparse is not
+supported) and you will not be able to run pyw.unittest.py.
+
 ATT, PyRIC provides the following:
 * enumerate interfaces and wireless interfaces
 * identify a cards driver, chipset and manufacturer
