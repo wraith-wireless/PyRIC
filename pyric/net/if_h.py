@@ -152,16 +152,17 @@ IF_OPER_UP              = 6
 IF_LINK_MODE_DEFAULT = 0
 IF_LINK_MODE_DORMANT = 1 # limit upward transition to dormant
 
-#struct sockaddr {
-#    sa_family_t     sa_family;      /* address family, AF_xxx       */
-#    char            sa_data[14];    /* 14 bytes of protocol address */
-#};
-# NOTE:
-#  1) for our purposes, we use only 6 characters, 6 octets for a hw addr and 4
-#     octets for an ip4 addr.
-#  2) For whatever reason, all ioctl calls accept and return ip4 addresses
-#     prefixed by two null bytes
-
+"""
+struct sockaddr {
+    sa_family_t     sa_family;      /* address family, AF_xxx       */
+    char            sa_data[14];    /* 14 bytes of protocol address */
+};
+ NOTE:
+  1) for our purposes, we use only 6 characters, 6 octets for a hw addr and 4
+     octets for an ip4 addr.
+  2) For whatever reason, all ioctl calls accept and return ip4 addresses
+     prefixed by two null bytes
+"""
 AF_UNSPEC                 = 0   # from socket.h sa_family unspecified
 ARPHRD_ETHER              = 1   # from net/if_arp.h sa_family ethernet a.k.a AF_LOCAL
 ARPHRD_IEEE80211          = 801 # net/if_arp.h sa_family IEEE 802.11
@@ -189,45 +190,45 @@ def sockaddr(sa_family,sa_data=None):
             raise AttributeError("sa_family {0} not supported".format(sa_family))
     return struct.pack(sa_addr,*vs)
 
-#### Interface request structure used for socket
-# ioctl's.  All interface ioctl's must have parameter
-# definitions which begin with ifr_name.  The
-# remainder may be interface specific.
-#
-#struct ifreq {
-#
-#	union
-#	{
-#		char	ifrn_name[IFNAMSIZ];		# if name, e.g. "en0"
-#	} ifr_ifrn;
-#
-#	union {
-#		struct	sockaddr ifru_addr;
-#		struct	sockaddr ifru_dstaddr;
-#		struct	sockaddr ifru_broadaddr;
-#		struct	sockaddr ifru_netmask;
-#		struct  sockaddr ifru_hwaddr;
-#		short	ifru_flags;
-#		int	ifru_ivalue;
-#		int	ifru_mtu;
-#		struct  ifmap ifru_map;
-#		char	ifru_slave[IFNAMSIZ];	# Just fits the size
-#		char	ifru_newname[IFNAMSIZ];
-#		void *	ifru_data;
-#		struct	if_settings ifru_settings;
-#	} ifr_ifru;
-#};
-#
-# from wireless.h we build
-#struct	iw_param
-#{
-#  __s32	value;		/* The value of the parameter itself */
-#  __u8		fixed;		/* Hardware should not use auto select */
-#  __u8		disabled;	/* Disable the feature */
-#  __u16	flags;		/* Various specifc flags (if any) */
-# to get the txpower and verify the presense of wireless extensions
-#};
+"""
+ Interface request structure used for socket ioctl's. All interface ioctl's must
+ have parameter definitions which begin with ifr_name. The remainder may be
+ interface specific.
 
+struct ifreq {
+
+	union
+	{
+		char	ifrn_name[IFNAMSIZ];		# if name, e.g. "en0"
+	} ifr_ifrn;
+
+	union {
+		struct	sockaddr ifru_addr;
+		struct	sockaddr ifru_dstaddr;
+		struct	sockaddr ifru_broadaddr;
+		struct	sockaddr ifru_netmask;
+		struct  sockaddr ifru_hwaddr;
+		short	ifru_flags;
+		int	ifru_ivalue;
+		int	ifru_mtu;
+		struct  ifmap ifru_map;
+		char	ifru_slave[IFNAMSIZ];	# Just fits the size
+		char	ifru_newname[IFNAMSIZ];
+		void *	ifru_data;
+		struct	if_settings ifru_settings;
+	} ifr_ifru;
+};
+
+ from wireless.h we build
+struct	iw_param
+{
+  __s32	value;		/* The value of the parameter itself */
+  __u8		fixed;		/* Hardware should not use auto select */
+  __u8		disabled;	/* Disable the feature */
+  __u16	flags;		/* Various specifc flags (if any) */
+ to get the txpower and verify the presense of wireless extensions
+};
+"""
 ifr_name = '{0}s'.format(IFNAMSIZ) # formats for ifreq struct
 ifr_flags = 'h'
 ifr_ifindex = 'i'

@@ -32,7 +32,7 @@ attributes.
 
 """
 
-#__name__ = 'genetlink_h.py'
+__name__ = 'genetlink_h'
 __license__ = 'GPLv3'
 __version__ = '0.0.1'
 __date__ = 'March 2016'

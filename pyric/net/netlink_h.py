@@ -34,11 +34,7 @@ A port of netlink.h, netlink/attr.h netlink/errno.h to python
 
 """
 
-# NOTE: get the below error when calling import netlink_h
-#RuntimeWarning: Parent module 'netlink_h' not found while handling absolute import
-#  import struct
-# unless I comment out the name
-#__name__ = 'netlink_h.py'
+__name__ = 'netlink_h'
 __license__ = 'GPLv3'
 __version__ = '0.0.3'
 __date__ = 'March 2016'

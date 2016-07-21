@@ -79,15 +79,15 @@ import struct                                   # ioctl unpacking
 import re                                       # check addr validity
 import pyric                                    # pyric exception
 from pyric.nlhelp.nlsearch import cmdbynum      # get command name
-from pyric.utils import channels                # channel related
-from pyric.utils import rfkill                  # block/unblock
+import pyric.utils.channels as channels         # channel related
+import pyric.utils.rfkill as rfkill             # block/unblock
 import pyric.utils.hardware as hw               # device related
-from pyric.utils import ouifetch                # get oui dict
+import pyric.utils.ouifetch as ouifetch         # get oui dict
 import pyric.net.netlink_h as nlh               # netlink definition
 import pyric.net.genetlink_h as genlh           # genetlink definition
 import pyric.net.wireless.nl80211_h as nl80211h # nl80211 definition
 import pyric.lib.libnl as nl                    # netlink (library) functions
-from pyric.net.wireless import wlan             # IEEE 802.11 Std definition
+import pyric.net.wireless.wlan as wlan          # IEEE 802.11 Std definition
 import pyric.net.sockios_h as sioch             # sockios constants
 import pyric.net.if_h as ifh                    # ifreq structure
 import pyric.lib.libio as io                    # ioctl (library) functions
