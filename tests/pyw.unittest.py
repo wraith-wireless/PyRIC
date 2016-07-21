@@ -26,8 +26,8 @@ from __future__ import print_function  # python 2to3 compability
 
 #__name__ = 'pyw.unittest'
 __license__ = 'GPLv3'
-__version__ = '0.0.1'
-__date__ = 'June 2016'
+__version__ = '0.0.2'
+__date__ = 'July 2016'
 __author__ = 'Dale Patterson'
 __maintainer__ = 'Dale Patterson'
 __email__ = 'wraith.wireless@yandex.com'
@@ -39,6 +39,8 @@ from pyric import error
 import pyric.pyw as pyw
 from pyric.utils.channels import ISM_24_F2C,rf2ch
 import pyric.net.wireless.wlan as wlan
+import sys
+_PVER_ = sys.version_info.major
 
 
 # modify below to fit your system
@@ -110,6 +112,7 @@ class GetCardTestCase(unittest.TestCase):
 class CardTestCase(unittest.TestCase):
     def setUp(self): self.card = pyw.getcard(pri['dev'])
     def tearDown(self): pass
+
 
 # test macget
 class MacGetTestCase(CardTestCase):
@@ -274,7 +277,7 @@ class FragThreshTestCase(CardTestCase):
 # test get freqs
 class DevFreqsTestCase(CardTestCase):
     def test_devfreqs(self):
-        self.assertItemsEquals(pri['freqs'],pyw.devfreqs(self.card))
+        self.assertListEqual(pri['freqs'],pyw.devfreqs(self.card))
     def test_invalidcardarg(self):
         self.assertRaises(error,pyw.devfreqs,'bad0')
 
@@ -282,7 +285,7 @@ class DevFreqsTestCase(CardTestCase):
 class DevCHsTestCase(CardTestCase):
     def test_devchs(self):
         [rf2ch(rf) for rf in pri['freqs']]
-        self.assertItemsEquals([rf2ch(rf) for rf in pri['freqs']],
+        self.assertListEqual([rf2ch(rf) for rf in pri['freqs']],
                               pyw.devchs(self.card))
     def test_invalidcardarg(self):
         self.assertRaises(error,pyw.devchs,'bad0')
@@ -290,7 +293,7 @@ class DevCHsTestCase(CardTestCase):
 # test get stds
 class DevSTDsTestCase(CardTestCase):
     def test_devchs(self):
-        self.assertItemsEquals(pri['stds'],pyw.devstds(self.card))
+        self.assertListEqual(pri['stds'],pyw.devstds(self.card))
     def test_invalidcardarg(self):
         self.assertRaises(error,pyw.devstds,'bad0')
 

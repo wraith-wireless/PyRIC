@@ -36,10 +36,3 @@
  46) max-tx for bands is showing 15 when iwconfig shows 30
  47) where is udevadm getting firmware vers from
  48) need to redo pyw.unittest after adding/updating functions
- 49) import statements
-  In python 3.5
-   from pyric.utils import ouifetch ImportError: No module named 'utils'
-   import pyric.utils.ouifetch No error
-  and
-  import urllib.request.Request as url_request: ImportError: no module name 'request'
-  from urllib.request import Request as url_request No Error
