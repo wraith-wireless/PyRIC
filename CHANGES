@@ -160,3 +160,11 @@ v 0.1.5 Begin STA associated functionality
   o fixed incorrect frequencies in unii_5_C2F in utils/channels
   o updated pyw.unittest for python 3.5 and for added functions
   o added by band to channels and freqs in utils/channels.py
+
+v 0.1.6 Continue with STA functionality
+  o Issue #21 resolved. openconnect (renamed to connect) now works. (had to fix
+   how the ssid was being passed. as a string with a affixed null byte, it would
+   fail but as unspec, it succeeded)
+    - issue 1: wpa_supplicant must be turned off
+    - issue 2: caller/user must configure dhcp request or inet themselves
+    - issue 3: only works on open networks

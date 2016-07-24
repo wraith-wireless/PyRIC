@@ -2,7 +2,6 @@
  o ethtool. uses ioctl but does not follow same pattern as ifconfig seems
     to use
   - ethtool -i <dev> gives driver information including firmware-version
-  - ethtool -S <dev> gives some statistics on rx/tx
  and udevadm (does what hardware.py does)
  11) tried NL80211_CMD_GET_WIPHY, setting _WIPHY_TX_POWER_LEVEL but did
   not return the current power level - currently cannot find anything in nl80211.h
@@ -16,9 +15,10 @@
   o slackware
   o dd-wrt/OpenWRT
  21) look at NL80211_CMD_START_AP - no need to try and recreate the wheel by
-  replicate hostap but could be useful
- 26) need to parse dumps NLM_F_DUMP, for now we're good with link etc, so long
-   as the card is connected but it may come up eventually
+  replicating hostap but could be useful
+ 26) need to parse dumps (NLM_F_DUMP), for now we're good with link etc, so long
+   as the card is connected but it may come up eventually especially if we want
+   to add scan results
  29) figure out how to parse the information element in pyw.link - there's some
    good shit in it including sometimes the router os and type
    o in link, NL80211_BSS_BEACON_IES vs NL80211_BSS_INFORMATION_ELEMENT
@@ -29,6 +29,4 @@
    o _HT_CAPA: as in the HT information IE
  42) is there a simple way to set the format strings as constants keeping in
    mind that things like strings require a length in the format string
- 45) find out if some of the 'flags' for bands are actually correct such as
-   HT40+ which should be disabled for channel 11
  46) max-tx for bands is showing 15 when iwconfig shows 30

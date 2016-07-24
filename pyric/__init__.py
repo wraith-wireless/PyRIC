@@ -26,12 +26,12 @@ Requires:
  linux (3.x or 4.x kernel)
  Python 2.7
 
- pyric 0.1.5
+ pyric 0.1.5 through 0.1.6
   desc: wireless nic library: wireless radio identification, manipulation, enumeration
+   concentrate on STA/AP related functionality
   includes: /nlhelp /lib /net /utils pyw.py
   changes:
    See CHANGES in top-level directory
-
 
  WARNING: DO NOT import *
 
@@ -39,7 +39,7 @@ Requires:
 
 __name__ = 'pyric'
 __license__ = 'GPLv3'
-__version__ = '0.1.5'
+__version__ = '0.1.6'
 __date__ = 'June 2016'
 __author__ = 'Dale Patterson'
 __maintainer__ = 'Dale Patterson'
@@ -72,7 +72,7 @@ version = __version__
 
 # define long description
 long_desc = """
-# PyRIC 0.1.5: Python Radio Interface Controller
+# PyRIC 0.1.6: Python Radio Interface Controller
 ## Linux wireless library for the Python Wireless Developer and Pentester
 
 ## DESCRIPTION:

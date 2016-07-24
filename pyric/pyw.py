@@ -1674,11 +1674,10 @@ def isconnected(card, *argv):
     # dirty hack - using the precence of an RF to determine connected-ness
     return devinfo(card, nlsock)['RF'] is not None
 
-def openconnect(card, ssid, bssid=None, rf=None, *argv):
+def connect(card, ssid, bssid=None, rf=None, *argv):
     """
      REQUIRES ROOT PRIVILEGES & WPA_SUPPLICANT MUST BE DISABLED
-     NOTE: DOES NOT WORK AT THIS TIME, returns Success but does not connect
-     connects to open network ssid
+     connects to (Open) AP
      :param card: Card object
      :param ssid: the SSID, network name
      :param bssid: the AP's BSSID
@@ -1691,16 +1690,15 @@ def openconnect(card, ssid, bssid=None, rf=None, *argv):
     try:
         nlsock = argv[0]
     except IndexError:
-        return _nlstub_(openconnect, card, ssid, bssid, rf)
+        return _nlstub_(connect, card, ssid, bssid, rf)
 
     try:
         msg = nl.nlmsg_new(nltype=_familyid_(nlsock),
                            cmd=nl80211h.NL80211_CMD_CONNECT, # step 1
                            flags=nlh.NLM_F_REQUEST | nlh.NLM_F_ACK)
         nl.nla_put_u32(msg, card.idx, nl80211h.NL80211_ATTR_IFINDEX)
-        nl.nla_put_string(msg, ssid, nl80211h.NL80211_ATTR_SSID)
-        #nl.nla_put_u16(msg, 0, nl80211h.NL80211_ATTR_BG_SCAN_PERIOD)
-        #nl.nla_put_unspec(msg, _mac2hex_(bssid), nl80211h.NL80211_ATTR_MAC)
+        nl.nla_put_unspec(msg, ssid, nl80211h.NL80211_ATTR_SSID)
+        nl.nla_put_unspec(msg, _mac2hex_(bssid), nl80211h.NL80211_ATTR_MAC)
         nl.nl_sendmsg(nlsock, msg)
         if not nl.nl_recvmsg(nlsock) == nlh.NLE_SUCCESS: return False
 

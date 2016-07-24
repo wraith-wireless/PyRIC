@@ -73,7 +73,7 @@
     basicstyle=\footnotesize
 }
 
-\title{\includegraphics[scale=1]{logo}\\ PyRIC v0.1.5: User Manual}
+\title{\includegraphics[scale=1]{logo}\\ PyRIC v0.1.6: User Manual}
 \author{Dale V. Patterson\\ wraith.wireless@yandex.com}
 
 \begin{document}
@@ -847,6 +847,8 @@ when creating a monitor mode
 \begin{itemize}
 \item isconnected(card, [nlsock]): (iw dev card.<dev> info | grep channel), type: 
 netlink, determines if card is connected
+\item connect(card, ssid, bssid, rf, [nlsock]): (iw dev card.<dev> connect <ssid>
+<rf> <bssid>) connects to AP SSID with BSSID
 \item disconnect(card, [nlsock]): (iw dev card.<dev> disconnect), type: netlink,
 disconnects card from AP 
 \item link(card, [nlsock]): (iw dev card.<dev> link), type: netlink, displays
@@ -1136,7 +1138,7 @@ control call flag to the kernel and returns the received ifreq structure
 \end{enumerate}
 
 \section{Copyright and License}\label{sec:copy}
-PYRIC: Python Radio Interface Controller v0.1.5\\
+PYRIC: Python Radio Interface Controller v0.1.6\\
 
 Copyright (C) 2016  Dale V. Patterson (wraith.wireless@yandex.com)\\
 
