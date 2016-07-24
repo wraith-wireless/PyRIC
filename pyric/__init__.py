@@ -72,7 +72,7 @@ version = __version__
 
 # define long description
 long_desc = """
-# PyRIC 0.1.4: Python Radio Interface Controller
+# PyRIC 0.1.5: Python Radio Interface Controller
 ## Linux wireless library for the Python Wireless Developer and Pentester
 
 ## DESCRIPTION:
