@@ -71,7 +71,7 @@ was to provide a simple interface to the underlying nl80211 kernel support,
 handling the complex operations of Netlink seamlessy while maintaining a minimum
 of "code walking" to understand, modify and extend. But, why stop there? Since
 it's initial inception, PyRIC has grown. PyRIC puts iw, ifconfig, rfkill,
-udevadm, airmon-ng and macchanger.</p>
+udevadm, airmon-ng and macchanger in your hands (or your program).</p>
 
 <h3>
 <a id="a-additions-to-iw" class="anchor" href="#a-additions-to-iw" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>a. Additions to iw</h3>
@@ -83,7 +83,7 @@ udevadm, airmon-ng and macchanger.</p>
 their own netlink (or ioctl socket) to pyw functions;</li>
 <li>One-time request for the nl80211 family id: pyw stores the family id in a
 global variable</li>
-<li>Consolidating different "reference" values to wireless NICs in one class
+<li>Consolidate different "reference" values to wireless NICs in one class
 (Cards are tuples t=(dev,phy #,ifindex)</li>
 </ul>
 
@@ -135,6 +135,11 @@ halved.</p>
 
 <h3>
 <a id="b-current-state" class="anchor" href="#b-current-state" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>b. Current State</h3>
+
+<p>PyRIC is in the process of porting compatibility to Python 3. At present, it will
+work on Python 2.7 and Python 3.5. It will also work on Python 3.0 except you
+will have to manually enter your devices in the examples (as argparse is not
+supported) and you will not be able to run pyw.unittest.py.</p>
 
 <p>ATT, PyRIC provides the following:</p>
 
@@ -253,8 +258,8 @@ fact not run at all.</p>
 <p>To use PyRIC, see the examples folder or read throuhg PyRIC.pdf. However, for
 those impatient types:</p>
 
-<div class="highlight highlight-source-python"><pre><span class="pl-k">import</span> pyric           <span class="pl-c"># pyric errors</span>
-<span class="pl-k">from</span> pyric <span class="pl-k">import</span> pyw  <span class="pl-c"># iw functionality</span></pre></div>
+<div class="highlight highlight-source-python"><pre><span class="pl-k">import</span> pyric             <span class="pl-c"># pyric errors</span>
+<span class="pl-k">import</span> pyric.pyw <span class="pl-k">as</span> pyw  <span class="pl-c"># iw functionality</span></pre></div>
 
 <p>will import the basic requirements and unless otherwise stated is assumed for the
 examples below. It is also assumed that the system is in the US and has three
@@ -319,10 +324,18 @@ w0 instantiated as:</p>
 <span class="pl-k">&gt;&gt;</span><span class="pl-k">&gt;</span> w0
 Card(<span class="pl-v">phy</span><span class="pl-k">=</span><span class="pl-c1">0</span>,<span class="pl-v">dev</span><span class="pl-k">=</span><span class="pl-s"><span class="pl-pds">'</span>wlan0<span class="pl-pds">'</span></span>,<span class="pl-v">ifindex</span><span class="pl-k">=</span><span class="pl-c1">2</span>)</pre></div>
 
-<p>There are other methods to get a Card object: pyw.devinfo, in addition to
-information, will return a Card object, pyw.devadd returns a card object for the
-newly created virtual interface and pyw.ifaces returns a lists of Cards for every
-interface sharing the same phy.</p>
+<p>There are other methods to get a Card object: </p>
+
+<ul>
+<li>pyw.devinfo, in addition to information, will return a Card object, </li>
+<li>pyw.devadd and pyw.phyadd return a card object for the newly created virtual 
+interface, and</li>
+<li>pyw.ifaces returns a lists of Cards for every interface sharing the same phy.</li>
+</ul>
+
+<p>It is also important to note while most functions require a Card object, some
+do not and some will take a Card or a specific identifier. Read the user
+guide or code for additional information.</p>
 
 <p>Before continuing you may find that a Card can become invalid. For example, I
 have an older system where the USB tends to fall out. You can confirm that your
@@ -403,7 +416,8 @@ pyric.error: [Errno <span class="pl-c1">95</span>] Operation <span class="pl-k">
 
 <p>For a brief description of coverage class and retry limits,
 see <a href="http://www.computerhope.com/unix/iwconfig.htm">http://www.computerhope.com/unix/iwconfig.htm</a>. For a description of the RTS
-and Fragmentation thresholds see <a href="http://resources.infosecinstitute.com/rts-threshold-configuration-improved-wireless-network-performance/">http://resources.infosecinstitute.com/rts-threshold-configuration-improved-wireless-network-performance/</a></p>
+and Fragmentation thresholds see <a href="http://resources.infosecinstitute.com/rts-threshold-configuration-improved-wireless-network-performance/">http://resources.infosecinstitute.com/rts-threshold-configuration-improved-wireless-network-performance/</a>.
+The IEEE 802.11-2012 also covers these. </p>
 
 <h4>
 <a id="iv-getting-info-on-your-card" class="anchor" href="#iv-getting-info-on-your-card" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>iv. Getting Info On Your Card</h4>
@@ -547,8 +561,8 @@ Card(<span class="pl-v">phy</span><span class="pl-k">=</span><span class="pl-c1"
 <span class="pl-k">&gt;&gt;</span><span class="pl-k">&gt;</span> pyw.up(w1)
 <span class="pl-k">&gt;&gt;</span><span class="pl-k">&gt;</span> pyw.chset(w1, <span class="pl-c1">1</span>, <span class="pl-c1">None</span>)</pre></div>
 
-<p>The above commands execute the same internal commands as does airmon-ng. 
-To verify, open a command prompt and execute the following:</p>
+<p>The above commands replicate the behaviour of airmon-ng. To verify, open a 
+command prompt and execute the following:</p>
 
 <div class="highlight highlight-source-shell"><pre><span class="pl-k">?</span><span class="pl-k">&gt;</span> iw dev wlan0 info <span class="pl-c"># replace wlan0 with your nic</span>
 Interface wlan0
@@ -593,8 +607,8 @@ process interfering with you.</p>
 airmon-ng programmatically. as done below</p>
 
 <div class="highlight highlight-source-python"><pre><span class="pl-k">import</span> pyric
-<span class="pl-k">from</span> pyric <span class="pl-k">import</span> pyw
-<span class="pl-k">from</span> pyric.lib <span class="pl-k">import</span> libnl <span class="pl-k">as</span> nl
+<span class="pl-k">import</span> pyric.pyw <span class="pl-k">as</span> pyw
+<span class="pl-k">import</span> pyric.lib.libnl <span class="pl-k">as</span> nl
 
 <span class="pl-k">def</span> <span class="pl-en">pymon</span>(<span class="pl-smi">card</span>, <span class="pl-smi">start</span><span class="pl-k">=</span><span class="pl-c1">True</span>, <span class="pl-smi">ch</span><span class="pl-k">=</span><span class="pl-c1">None</span>):
     <span class="pl-s"><span class="pl-pds">"""</span></span>
@@ -620,17 +634,38 @@ airmon-ng programmatically. as done below</p>
         pyw.up(newcard)
     <span class="pl-k">return</span> newcard</pre></div>
 
+<p>NOTE: After a recent kernel upgrade (see my post at 
+<a href="https://wraithwireless.wordpress.com/2016/07/24/linux-kernel-bug/">https://wraithwireless.wordpress.com/2016/07/24/linux-kernel-bug/</a> for more details) 
+devadd became unusable. I have currently put a workaround in place and there are 
+now two methods to create a new card: phyadd and devadd. The function phyadd uses the 
+physical number of card and does not work as expected. In short, it will create a new 
+radio but not with the specified name. The function devadd uses the ifindex and works 
+as expected. For those individuals who system's start without devices the following 
+will work.</p>
+
+<div class="highlight highlight-source-python"><pre>phys <span class="pl-k">=</span> pyw.phylist()
+cards <span class="pl-k">=</span> []
+<span class="pl-k">for</span> i, phy <span class="pl-k">in</span> <span class="pl-c1">enumerate</span>(phys):
+    dcard <span class="pl-k">=</span> pyw.phyadd(phy, <span class="pl-s"><span class="pl-pds">"</span>wlan<span class="pl-c1">{0}</span><span class="pl-pds">"</span></span>.format(i),<span class="pl-s"><span class="pl-pds">'</span>managed<span class="pl-pds">'</span></span>)
+    card <span class="pl-k">=</span> pyw.devadd(card,<span class="pl-s"><span class="pl-pds">"</span>wlan<span class="pl-c1">{0}</span><span class="pl-pds">"</span></span>.format(i),<span class="pl-s"><span class="pl-pds">'</span>managed<span class="pl-pds">'</span></span>)
+    pyw.devdel(dcard)
+    cards.append(card)</pre></div>
+
+<p>What this does is create a new card, dcard, for each phy using the phy as an 
+identifier. Then, because dcard does not have the name wlan<i> but a system
+generated one, we use it to create a new one, card with devadd which will have the
+correct dev name. We finish up by deleting dcard and appending card to our list
+of cards. </i></p>
+
 <h4>
 <a id="vi-sta-related-functions" class="anchor" href="#vi-sta-related-functions" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>vi. STA Related Functions</h4>
 
-<p>I have recently begun adding STA functionality to PyRIC. These are not 
-necessarily required for a pentester, although the ability to disconnect
-a Card may come in handy. The difficulty is that iw only provides connect
-functionality through Open or WEP enabled APs which means that I am 
-attempting to determine which commands and attributes are required. If all
-else fails I will look to wpa_supplicant for more information. ATT two
-two functions related to STA-&gt;AP exist: a) determine if the Card is connected 
-and b) disconnect the Card</p>
+<p>I have recently begun adding STA functionality to PyRIC. These are not necessarily 
+required for a pentester, although the ability to disconnect a Card may come in 
+handy. The difficulty is that iw only provides connect functionality through Open
+or WEP enabled APs which means that I am attempting to determine which commands 
+and attributes are required. If all else fails I will look to wpa_supplicant for 
+more information. Additionally, iw will not connect if wpa_supplicant is running.</p>
 
 <div class="highlight highlight-source-python"><pre><span class="pl-k">&gt;&gt;</span><span class="pl-k">&gt;</span> pyw.isconnected(w0)
 <span class="pl-c1">True</span>
@@ -717,7 +752,7 @@ Sometimes, your card has a soft block (or hard block) on it and it is not
 recognized by command line tools or pyw. Use rkill to list, turn on or turn
 off soft blocks.</p>
 
-<div class="highlight highlight-source-python"><pre><span class="pl-k">from</span> pyric.utils <span class="pl-k">import</span> rfkill
+<div class="highlight highlight-source-python"><pre><span class="pl-k">import</span> pyric.utils.rfkill <span class="pl-k">as</span> rfkill
 
 rfkill.rfkill_list() <span class="pl-c"># list rfkill devices</span>
 <span class="pl-k">=</span><span class="pl-k">&gt;</span> {<span class="pl-s"><span class="pl-pds">'</span>tpacpi_bluetooth_sw<span class="pl-pds">'</span></span>: {<span class="pl-s"><span class="pl-pds">'</span>soft<span class="pl-pds">'</span></span>: <span class="pl-c1">True</span>, <span class="pl-s"><span class="pl-pds">'</span>hard<span class="pl-pds">'</span></span>: <span class="pl-c1">False</span>, <span class="pl-s"><span class="pl-pds">'</span>type<span class="pl-pds">'</span></span>: <span class="pl-s"><span class="pl-pds">'</span>bluetooth<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>idx<span class="pl-pds">'</span></span>: <span class="pl-c1">1</span>},
