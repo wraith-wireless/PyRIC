@@ -45,6 +45,8 @@ import fcntl
 import pyric
 import errno
 import pyric.net.wireless.rfkill_h as rfkh
+import sys
+_PY3_ = sys.version_info.major == 3
 
 RFKILL_STATE = [False,True] # Unblocked = 0, Blocked = 1
 
@@ -70,8 +72,11 @@ def rfkill_list():
     fcntl.fcntl(fin.fileno(),fcntl.F_SETFL,flags|os.O_NONBLOCK)
     while True:
         try:
-            idx,t,op,s,h = struct.unpack(rfkh.rfk_rfkill_event,
-                                         fin.read(rfkh.RFKILLEVENTLEN))
+            stream = fin.read(rfkh.RFKILLEVENTLEN)
+            if _PY3_:
+                stream = bytes(stream,'ascii')
+                if len(stream) < rfkh.RFKILLEVENTLEN: raise IOError('python 3')
+            idx,t,op,s,h = struct.unpack(rfkh.rfk_rfkill_event,stream)
             if op == rfkh.RFKILL_OP_ADD:
                 rfks[getname(idx)] = {'idx':idx,
                                       'type':rfkh.RFKILL_TYPES[t],
@@ -92,6 +97,7 @@ def rfkill_block(idx):
     fout = None
     try:
         rfke = rfkh.rfkill_event(idx,rfkh.RFKILL_TYPE_ALL,rfkh.RFKILL_OP_CHANGE,1,0)
+        if _PY3_: rfke = rfke.decode('ascii')
         fout = open(dpath, 'w')
         fout.write(rfke)
     except struct.error as e:

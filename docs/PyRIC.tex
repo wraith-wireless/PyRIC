@@ -19,7 +19,7 @@
 %
 % __name__ = 'User Guide'
 %__license__ = 'GPLv3'
-%__version__ = '0.0.4'
+%__version__ = '0.0.5'
 %__date__ = 'July 2016'
 %__author__ = 'Dale Patterson'
 %__maintainer__ = 'Dale Patterson'
@@ -87,7 +87,15 @@ programmatically in Python. Pentesting applications and scripts written in Pytho
 have increased dramatically in recent years. However, these tools still rely on
 Linux command lines tools to setup and prepare and restore the system for use.
 Until now. Why use subprocess.Popen, regular expressions and str.find to interact
-with your wireless cards? PyRIC is:
+with your wireless cards? PyRIC puts iw, ifconfig, rfkill, udevadm, airmon-ng and 
+macchanger in your hands (or your program). \\
+
+PyRIC is designed with Python 2.7 in mind but has now been made compatible with 
+Python 3.5. It will also work on Python 3.0 but you will have to hard code the 
+command line options in the two examples as Python 3.0 does not include the module 
+argparse
+
+PyRIC is:
 \begin{enumerate}
 \item \textbf{Pythonic}: No ctypes, SWIG etc. PyRIC redefines C header files as 
 Python and uses sockets to communicate with kernel.
@@ -112,31 +120,34 @@ implemented rkill support to soft block or unblock wireless cards.\\
 While users can utilize libnl.py to communicate directly with the kernel, the
 true utility of PyRIC is pyw.py. Like iw, pyw provides an interface/buffer 
 between the caller and the kernel, handling all message construction, parsing 
-and transfer transparently and without requiring any Netlink knowledge or 
+and data transfer transparently and without requiring any Netlink knowledge or 
 experience. \\
 
-PyRIC does more though: it implements rfkill, allowing users to list, block and 
-unblock devices and implements a subset of ifconfig providing users the ability 
-to turn cards on/off and set mac and ip addresses. \\
-
-At this time, PyRIC (through pyw, rfkill and device) can:
+At this time, PyRIC can:
 \begin{itemize}
 \item enumerate interfaces and wireless interfaces,
+\item identify a cards driver, chipset and manufacturer,
+\item get/set hardware address,
+\item get/set ip4 address, netmask and or broadcast,
+\item turn card on/off,
+\item get supported standards, commands or modes,
+\item get if info,
+\item get dev info,
+\item get phy info,
+\item get link info,
+\item get STA (connected AP) info,
 \item get/set regulatory domain,
-\item get/set hw address,
-\item get/set ip4, netmask and broadcast address
-\item identify a radio's chipset and driver,
-\item turn device on/off,
-\item get supported standards,
-\item get supported commands,
-\item get supported modes,
-\item get dev/phy info on device,
 \item get/set mode,
-\item add/delete interfaces, and
-\item block/unblock devices through rfkill.
+\item get/set coverage class, RTS threshold, Fragmentation threshold and retry 
+limits,
+\item add/delete interfaces,
+\item determine if a card is connected,
+\item get link info for a connected card,
+\item enumerate ISM and UNII channels,
+\item block/unblock rfkill devices.
 \end{itemize}
-And, through libnl.py users can extend the above functionality by creating 
-additional commands.\\
+And, through libnl.py and libio.py, users can extend the above functionality by
+creating additional commands.
 
 \subsection{Background}
 PyRIC arose out of a need in Wraith (https://github.com/wraith-wireless/wraith)
@@ -185,10 +196,10 @@ functions see the following section for a description.
 A Card is merely a wrapper around a tuple t = (phy index,device name,ifindex). 
 Since the underlying Netlink calls sometimes require the physical index, sometimes 
 the device name, and sometimes the ifindex, pyw functions\footnote{Not all functions 
-accept a Card, devinfo() will accept either a Card or a dev and devadd will accept
-either a Card or a physical index} take a Card object which doesn't require callers
-to know which identifier to use for each function. There are four primary methods 
-to creating a Card: 
+accept a Card, devinfo() accept either a Card or a dev, devadd accepts either a Card
+or a ifindex and phyadd accepts a card or a physical index} take a Card object which 
+doesn't require callers to know which identifier to use for each function. There are
+four primary methods to creating a Card: 
 \begin{enumerate}
 \item \textbf{pyw.getcard} returns a Card object from a given dev,
 \item \textbf{pyw.devinfo} returns the dict info where info['card'] is the Card 
@@ -715,6 +726,7 @@ following
 \item \textbf{pyw.devinfo} returns the dict info where info['card'] is the Card 
 object. This function will take either a card or a dev
 \item \textbf{pyw.devadd} returns a new Card object
+\item \textbf{pyw.devadd} returns a new Card object
 \item \textbf{pyw.ifaces} returns a list of tuples t = (Card,mode) sharing the 
 same phy as a given device to do so. It is also recommended to periodically 
 validate the Card. On some cheaper usb wireless nics, there are periodic 
@@ -761,7 +773,8 @@ netlink set card's coverage class
 \item retryshortget(card,[nlsock]) (iw phy card.<phy> info | grep 'retry short')
 type:netlink get card's retry short limit
 \item retryshortset(card,lim,[nlsock]) (iw phy card.<phy> set retry short <lim>)
-type:netlink set card's retry short limit
+type:netlink set card's retry short limit. NOTE: although 255 is specified as the
+max limit for this and the long retry, kernel v4 will not allow it.
 \item retrylongget(card,[nlsock]) (iw phy card.<phy> info | grep 'retry long')
 type:netlink get card's retry long limit
 \item retrylongset(card,lim,[nlsock]) (iw phy card.<phy> set retry long <lim>)
@@ -820,10 +833,16 @@ supported by card
 \item modeget(card[nlsock]): (iw dev card.<dev> info | grep mode), type: netlink,
 get card's mode
 \item devset(card,ndev,[nlsock]): (N/A) sets the dev (name) of card to ndev 
-\item devadd(card,vnic,mode,[flags],[nlsock]): (iw phy card.<phy> interface add
-<vnic> type <mode> flags <flags>), type: netlink, creates a new virtual interface
-on card's phy with dev vdev, in mode and using flags. Note: flags are only supported
-in when creating a monitor mode
+\item phyadd(card (or phy),vnic,mode,[flags],[nlsock]): (iw phy card.<phy> interface 
+add <vnic> type <mode> flags <flags>)\footnote{There is a bug in some kernel v4.4.0-x 
+where the given dev name is ignored and a system chosen one is used instead. See 
+https://wraithwireless.wordpress.com. Whenever possible, use devadd to create 
+interfaces instead.}, type: netlink, creates a new virtual interface with dev vdev, 
+in mode and using flags. Note: flags are only supported when creating a monitor mode
+\item devadd(card (or ifindex),vnic,mode,[flags],[nlsock]): (iw phy card.<dev> 
+interface add <vnic> type <mode> flags <flags>), type: netlink, creates a new virtual 
+interface with dev vdev, in mode and using flags. Note: flags are only supported
+when creating a monitor mode
 \item devdel(card,[nlsock]): (iw card.<dev> del), type: netlink, deletes card
 \begin{itemize}
 \item isconnected(card, [nlsock]): (iw dev card.<dev> info | grep channel), type: 

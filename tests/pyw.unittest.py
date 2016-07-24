@@ -13,20 +13,36 @@ Assumptions:
 usage:
  sudo python pyw.unittest.py -v
 
-Results as of 31-May-15
+Results as of 24-July-16
+
 sudo python pyw.unittest.py
-.............................................................
+Testing PyRIC v0.1.5 pyw v0.1.8 on Python 2.7.12
+...................................................................................
 ----------------------------------------------------------------------
-Ran 61 tests in 5.360s
+Ran 83 tests in 5.919s
 
 OK
 
+
+NOTE:
+ 1) functions disconnect and link require a connection, they are tested/confirmed
+    manually
+ 2) function devadd (and subsequently devset) are commented out. There is a
+   peculiar behavior in netlink/nl80211 (appearing in kernel 4.4.0-x) where
+   regardless of the name passed to create a new device as in
+    iw phy <phy> interface add <new dev> type <new mode>
+    pyw.devadd(<card>, <new name>, <new mode>)
+   the kernel or driver or whoever will instead assign a predicatable name
+   of the form:
+    wlx00c0ca59afa7
+   devadd has been fixed but this is currently not reflected in the below unittests
+   it has been manually tested and confirmed
 """
 from __future__ import print_function  # python 2to3 compability
 
 #__name__ = 'pyw.unittest'
 __license__ = 'GPLv3'
-__version__ = '0.0.2'
+__version__ = '0.0.3'
 __date__ = 'July 2016'
 __author__ = 'Dale Patterson'
 __maintainer__ = 'Dale Patterson'
@@ -35,33 +51,36 @@ __status__ = 'Production'
 
 import unittest
 import time
+import pyric
 from pyric import error
 import pyric.pyw as pyw
-from pyric.utils.channels import ISM_24_F2C,rf2ch
+import pyric.utils.channels as channels
 import pyric.net.wireless.wlan as wlan
 import sys
-_PVER_ = sys.version_info.major
-
 
 # modify below to fit your system
 pri = {'dev':'alfa0',
        'mac':'00:c0:ca:59:af:a6',
-       'ifindex':4,
-       'phy':1,
+       'ifindex':18,
+       'phy':7,
+       'driver':'rt2800usb',
+       'chipset':'Ralink RT2870/3070',
        'mode':'managed',
        'tx':20,
-       'freqs':sorted(ISM_24_F2C.keys()),
+       'freqs':[2412,2417,2422,2427,2432,2437,2442,2447,2452,2457,2462,2467,2472,2484],
+       #'freqs':[2412,2417,2422,2427,2432,2437,2442,2447,2452,2457,2462,2467,2472,
+       #         5180,5200,5220,5240,5260,5280,5300,5320, 5500,5520,5540,5560,
+       #         5580,5600,5620,5640,5660,5680,5700,5745,5765,5785,5805, 5825],
        'stds':['b','g','n'],
-       'ip':'192.168.3.23',
-       'bcast':'192.168.3.63',
-       'mask':'255.255.255.192'}
+       'modes':['ibss', 'managed', 'AP', 'AP VLAN', 'wds','monitor', 'mesh'],
+       'ip':'10.0.0.2',
+       'bcast':'10.0.0.255',
+       'mask':'255.255.255.0'}
 newhw = '00:c0:ca:60:b0:a7'
-newip = '192.168.3.30'
-newbcast = '192.168.3.255'
-newmask = '255.255.255.0'
-nics = ['alfa0','eth0','lo','wlan0']
+newip = '10.0.0.3'
+nics = ['eth0','lo','wlan0','alfa0']
 enics = ['eth0','lo']
-wnics = ['alfa0','wlan0']
+wnics = ['wlan0','alfa0']
 inics = ['foo0','bar0']
 regdom = '00'
 newregdom = 'BO'
@@ -137,7 +156,7 @@ class MacSetTestCase(CardTestCase):
         self.assertRaises(error,pyw.macset,self.card,'00:0A')
 
 # test inetget/inetset
-# testing both together as the test card alfa0 is never associated thus
+# testing both together as the test card is never associated thus
 # never has an ip etc
 # NOTE: through inetset, we get the side-effect of testing ip4set, netmaskset,
 #  broadcastset
@@ -173,7 +192,7 @@ class DownTestCase(CardTestCase):
         self.assertFalse(pyw.isup(self.card))
     def test_invalidcardarg(self): self.assertRaises(error,pyw.down,'bad0')
 
-# isblocked, test only card check
+# isblocked, test only valid card arg see below
 class IsBlockedTestCase(unittest.TestCase):
     def test_invalidcardarg(self): self.assertRaises(error,pyw.isup,'bad0')
 
@@ -208,7 +227,7 @@ class GetSetPwrSave(CardTestCase):
 
 # test covclass
 # NOTE: cannot currently test set as my cards do not support it
-# NOTEL covclassget uses phyinfo - if that works covclassget works
+# NOTE: covclassget uses phyinfo - if that works covclassget works
 
 # test get/set retryshort
 class RetryShortTestCase(CardTestCase):
@@ -284,8 +303,8 @@ class DevFreqsTestCase(CardTestCase):
 # test get chs
 class DevCHsTestCase(CardTestCase):
     def test_devchs(self):
-        [rf2ch(rf) for rf in pri['freqs']]
-        self.assertListEqual([rf2ch(rf) for rf in pri['freqs']],
+        [channels.rf2ch(rf) for rf in pri['freqs']]
+        self.assertListEqual([channels.rf2ch(rf) for rf in pri['freqs']],
                               pyw.devchs(self.card))
     def test_invalidcardarg(self):
         self.assertRaises(error,pyw.devchs,'bad0')
@@ -300,7 +319,7 @@ class DevSTDsTestCase(CardTestCase):
 # test get modes
 class DevModesTestCase(CardTestCase):
     def test_devmodes(self):
-        self.assertIn('managed',pyw.devmodes(self.card))
+        self.assertListEqual(pri['modes'],pyw.devmodes(self.card))
     def test_invalidcardarg(self):
         self.assertRaises(error,pyw.devmodes,'bad0')
 
@@ -311,7 +330,7 @@ class DevCMDsTestCase(CardTestCase):
     def test_invalidcardarg(self):
         self.assertRaises(error,pyw.devmodes,'bad0')
 
-# test devinfo
+# test devinfo - the key-value pairs of devinfo are tested via others
 class DevInfoTestCase(CardTestCase):
     def test_devinfobycard(self):
         self.assertIsInstance(pyw.devinfo(self.card),dict)
@@ -364,9 +383,9 @@ class CHGetSetTestCase(CardTestCase):
 # because freqset was already tested in chgetset, we only test invalid args
 class FreqSetTestCase(CardTestCase):
     def test_invalidrfarg(self):
-        # we test both an invalid RF and an RF  the card does not support
+        # we test both an invalid RF and an RF the card does not support
         self.assertRaises(error,pyw.freqset,self.card,2410)
-        self.assertRaises(error,pyw.freqset,self.card,5250)
+        self.assertRaises(error,pyw.freqset,self.card,4960)
 
 # test modeget
 class ModeGetTestCase(CardTestCase):
@@ -395,25 +414,62 @@ class IfacesTestCase(CardTestCase):
     def test_ifaces(self):
         self.assertIsInstance(pyw.ifaces(self.card),list)
     def test_invalidcardarg(self):
-        self.assertRaises(error,pyw.ifaces,'b0b0')
+        self.assertRaises(error,pyw.ifaces,'bad0')
 
 # test devadd/devdel
+"""
 class DevAddDelTestCase(CardTestCase):
     def test_devadddel(self):
         card = pyw.devadd(self.card,'test0','monitor')
-        self.assertTrue(pyw.devdel(card))
+        self.assertTrue(card.dev in pyw.winterfaces())
+        pyw.devdel(card)
+        self.assertFalse(card.dev in pyw.winterfaces())
     def test_invalidcardarg(self):
         self.assertRaises(error,pyw.devadd,'bad0','test0','monitor')
         self.assertRaises(error,pyw.devdel,'bad0')
-        card = pyw.devadd(self.card,'test0','monitor')
-        pyw.devdel(card)
-        self.assertRaises(error,pyw.devdel,card)
     def test_invalidmodearg(self):
         self.assertRaises(error,pyw.devadd,self.card,'test0','foobar')
     def test_invalidflagsarg(self):
         self.assertRaises(error,pyw.devadd,self.card,'test0','monitor','foobar')
         self.assertRaises(error,pyw.devadd,self.card,'test0','managed','fcsfail')
 
+# test devset
+class DevSetTestCase(CardTestCase):
+    def test_devset(self):
+        card = pyw.devset(self.card,'unittest0')
+        self.assertTrue(pyw.iswireless('unittest0'))
+        self.assertFalse(pyw.iswireless(pri['dev']))
+        pyw.devset(card,pri['dev'])
+        self.assertFalse(pyw.iswireless('unittest0'))
+    def test_invalidcardarg(self):
+        self.assertRaises(error,pyw.devset,'bad0','managed')
+    def test_invalidndevarg(self):
+        self.assertRaises(error,pyw.devset,self.card,None)
+"""
+class IsConnectedTestCase(CardTestCase):
+    def test_isconnected(self):
+        self.assertFalse(pyw.isconnected(self.card))
+    def test_invalidcardarg(self):
+        self.assertRaises(error, pyw.isconnected, 'bad0')
+
+class PhyListTestCase(unittest.TestCase):
+    def test_phylist(self):
+        self.assertTrue((pri['phy'],'phy{0}'.format(pri['phy'])) in pyw.phylist())
+
+class IfInfoTestCase(CardTestCase):
+    def test_ifinfo(self):
+        iinfo = pyw.ifinfo(self.card)
+        self.assertTrue(pri['driver'] == iinfo['driver'])
+        self.assertTrue(pri['chipset'] == iinfo['chipset'])
+    def test_invalidcardarg(self):
+        self.assertRaises(error, pyw.ifinfo, 'bad0')
+
+def pyvers():
+    return "{0}.{1}.{2}".format(sys.version_info.major,
+                                sys.version_info.minor,
+                                sys.version_info.micro)
 if __name__ == '__main__':
-    print('Not currently stable')
+    print("Testing PyRIC v{0} pyw v{1} on Python {2}".format(pyric.version,
+                                                             pyw.__version__,
+                                                             pyvers()))
     unittest.main()

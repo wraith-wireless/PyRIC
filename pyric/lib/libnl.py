@@ -48,6 +48,8 @@ import errno
 import pyric.net.netlink_h as nlh
 import pyric.net.genetlink_h as genlh
 from pyric.net.policy import nla_datatype
+import sys
+_PY3_ = sys.version_info.major == 3
 
 class error(EnvironmentError): pass
 
@@ -236,23 +238,23 @@ def nl_recvmsg(sock):
      :returns: a GENLMsg received from the socket
     """
     try:
-        # pull off the message and following ack message NOTE: nlmsg_fromstream
-        # will throw an exception if msg is an ack/nack, catch it and test for ack.
-        # If it was an ack, return the success code otherwise, reraise it. If it
-        # wasn't an ack/nack, return the message
+        # we can expect two types of messages 1) an instant success message
+        # or 2) a data message. If it's a data message, we need to catch
+        # the ack
         msg = nlmsg_fromstream(sock.recv())
         try:
+            # catch the follow on ack
             _ = nlmsg_fromstream(sock.recv())
         except error as e:
-            # here, we don't want to return the original message
+            # on success, just return the orginal message
             if e.errno == nlh.NLE_SUCCESS: pass
             else: raise
         if sock.seq != msg.seq: raise error(errno.EBADMSG,"seq. # out of order")
         return msg
     except socket.timeout:
         raise error(-1,"socket timed out")
-    except socket.error as e:
-        raise error(errno.ENOTSOCK,e)
+    #except socket.error as e: # this became in issue in python 3
+    #    raise error(errno.ENOTSOCK,e)
     except error as e:
         if e.errno == nlh.NLE_SUCCESS: return nlh.NLE_SUCCESS
         raise # rethrow
@@ -399,8 +401,8 @@ class GENLMsg(dict):
         for a,v,d in self['attrs']:
             try:
                 payload += _attrpack_(a,v,d)
-            except struct.error as e:
-                if d == nlh.NLA_NESTED: pass # we need to fix here
+            except (TypeError,AttributeError,struct.error) as e:
+                #if d == nlh.NLA_NESTED: pass # we need to fix here
                 raise error(-1,"Packing {0} {1}: {2}".format(a,v,e))
         return nlh.nlmsghdr(len(payload),self.nltype,self.flags,self.seq,self.pid) + payload
 
@@ -476,6 +478,12 @@ def nla_parse(msg,l,mtype,stream,idx):
             # Note: we use unpack_from which will ignore the null bytes in numeric
             # datatypes & for strings, strip trailing null bytes
             # dt == nlh.NLA_UNSPEC: ignore
+            if _PY3_ and (dt == nlh.NLA_STRING or dt == nlh.NLA_UNSPEC):
+                # python 3 returns a bytes object, convert to string
+                try:
+                    a = a.decode('ascii')
+                except UnicodeDecodeError:
+                    pass # Fuck You Python 3
             if dt == nlh.NLA_STRING: a = _nla_strip_(a)
             elif dt == nlh.NLA_U8: a = struct.unpack_from("B",a,0)[0]
             elif dt == nlh.NLA_U16: a = struct.unpack_from("H",a,0)[0]
@@ -687,22 +695,18 @@ def _attrpack_(a,v,d):
     elif d == nlh.NLA_U16: attr = struct.pack("H",v)
     elif d == nlh.NLA_U32: attr = struct.pack("I",v)
     elif d == nlh.NLA_U64: attr = struct.pack("Q",v)
-    elif d == nlh.NLA_STRING: attr = struct.pack("{0}sx".format(len(v)),v)
+    elif d == nlh.NLA_STRING:
+        if _PY3_: v = bytes(v,'ascii')
+        attr = struct.pack("{0}sx".format(len(v)),v)
     elif d == nlh.NLA_FLAG: attr = '' # a 0 sized attribute
     elif d == nlh.NLA_MSECS: attr = struct.pack("Q",v)
     elif d == nlh.NLA_NESTED:
         # assumes a single layer of nesting
         for nested in v:
-            # prepend the packed index to the already packed attribute
-            # the align it
+            # prepend packed index to the already packed attribute & align it
             nattr = struct.pack('H',nested[0]) + nested[1]
             nattr += struct.pack("{0}x".format(nlh.NLMSG_ALIGNBY(len(nattr))))
             attr += nattr
-        #for nested in v:
-        #    nlen = len(v) + 2
-        #    nattr = struct.pack('xBx', nlen) + nested
-        #    nattr += struct.pack("{0}x".format(nlh.NLMSG_ALIGNBY(len(nattr))))
-        #    attr += nattr
     else:
         fmt = "" # appease PyCharm
         if d == nlh.NLA_SET_U8: fmt = "B"

@@ -124,10 +124,13 @@ v 0.1.5 Begin STA associated functionality
    - stainfo
    - devset
    - phylist
+   - openconnect (doesn't currently work)
+   - phyadd (renamed from original devadd, iw phy <phy> interface add ...)
+   - devadd (iw dev <dev> interface add ....)
   o updated nested netlink attribute handling - my understanding of it was incomplete
    - There are still occasional errors
    - nested attributes are parsed as 'far' as possible
-  o reupdated nested netlink attribute handling - this time it really works
+  o reupdated nested netlink attribute handling - this time it really works :)
    - nested attributes are now parsed correctly, any errors are a result of
     incorrect packing on the other side or packet corruption and the entire
     unparsed attribute will be returned.
@@ -135,8 +138,8 @@ v 0.1.5 Begin STA associated functionality
      t = (index,attribute) which (TODO #41) eases the burden on the calling
      function
    - fixed 're'nesting of nested attributes
-  o parsing wiphy bands (issue #7) is now fully functional and no longer relies
-    on a hacked fix
+   - parsing wiphy bands (issue #7) is now fully functional and no longer relies
+     on a hacked fix
   o devstds now uses phyinfo to determine standards Card supports
   o completely 'remodeled' functions in pyw to take advantage of new parsing
    from libnl (have left some of the error checking in place as a backup until
@@ -150,3 +153,10 @@ v 0.1.5 Begin STA associated functionality
    - urllib2 vs urllib
    - replaced map with list comprehensions
    - replaced xrange with range
+   - python 3.5 compatible. python 3.0 is compatible except for examples and
+    pyw.unittest.pyw (see corresponding files for reasons)
+   - python 2.7 is the preferred (for me at least) 'medium' and compatibly issues
+    with python 3 have been rectified at the expense of python 3 and not python 2
+  o fixed incorrect frequencies in unii_5_C2F in utils/channels
+  o updated pyw.unittest for python 3.5 and for added functions
+  o added by band to channels and freqs in utils/channels.py

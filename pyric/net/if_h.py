@@ -58,7 +58,9 @@ __email__ = 'wraith.wireless@yandex.com'
 __status__ = 'Production'
 
 import struct
-import pyric.net.sockios_h as sioc
+import pyric.net.sockios_h as sioch
+import sys
+_PY3_ = sys.version_info.major == 3
 
 IFNAMSIZ = 16
 IFALIASZ = 256
@@ -229,7 +231,7 @@ struct	iw_param
  to get the txpower and verify the presense of wireless extensions
 };
 """
-ifr_name = '{0}s'.format(IFNAMSIZ) # formats for ifreq struct
+ifr_name = '{0}s'.format(IFNAMSIZ)        # formats for ifreq struct
 ifr_flags = 'h'
 ifr_ifindex = 'i'
 ifr_iwname = '{0}s'.format(256-IFNAMSIZ)  # dirty hack to get an unknown string back
@@ -256,6 +258,7 @@ def ifreq(ifrn,ifru=None,param=None):
      NOTE: ifreq will return AttributeError for any caught exception
     """
     # pack the nic
+    if _PY3_: ifrn = bytes(ifrn,'ascii')
     try:
         # NOTE: don't need to keep the name to 16 chars as struct does it for us
         ifr = struct.pack(ifr_name,ifrn)
@@ -264,27 +267,27 @@ def ifreq(ifrn,ifru=None,param=None):
 
     try:
         if not ifru: pass # only pass the device name
-        elif ifru == sioc.SIOCGIFHWADDR: # get hwaddr
+        elif ifru == sioch.SIOCGIFHWADDR: # get hwaddr
             ifr += sockaddr(ARPHRD_ETHER,None)
-        elif ifru == sioc.SIOCSIFHWADDR: # set hwaddr
+        elif ifru == sioch.SIOCSIFHWADDR: # set hwaddr
             ifr += sockaddr(ARPHRD_ETHER,param[0])
-        elif ifru == sioc.SIOCGIFADDR or \
-             ifru == sioc.SIOCGIFNETMASK or \
-             ifru == sioc.SIOCGIFBRDADDR: # get ip4, netmask or broadcast address
+        elif ifru == sioch.SIOCGIFADDR or \
+             ifru == sioch.SIOCGIFNETMASK or \
+             ifru == sioch.SIOCGIFBRDADDR: # get ip4, netmask or broadcast address
             ifr += sockaddr(AF_INET,None)
-        elif ifru == sioc.SIOCSIFADDR or \
-             ifru == sioc.SIOCSIFNETMASK or \
-             ifru == sioc.SIOCSIFBRDADDR:  # set ip4, netmask or broadcast address
+        elif ifru == sioch.SIOCSIFADDR or \
+             ifru == sioch.SIOCSIFNETMASK or \
+             ifru == sioch.SIOCSIFBRDADDR:  # set ip4, netmask or broadcast address
             ifr += sockaddr(AF_INET,param[0])
-        elif ifru == sioc.SIOCGIFFLAGS: # get flags
+        elif ifru == sioch.SIOCGIFFLAGS: # get flags
             ifr += struct.pack('{0}x'.format(IFFLAGLEN))
-        elif ifru == sioc.SIOCSIFFLAGS: # set flags
+        elif ifru == sioch.SIOCSIFFLAGS: # set flags
             ifr += struct.pack(ifr_flags,param[0])
-        elif ifru == sioc.SIOCGIFINDEX: # get if index
+        elif ifru == sioch.SIOCGIFINDEX: # get if index
             ifr += struct.pack('{0}x'.format(IFIFINDEXLEN))
-        elif ifru == sioc.SIOCGIWNAME: # get iw name
+        elif ifru == sioch.SIOCGIWNAME: # get iw name
             ifr += struct.pack('{0}x'.format(IWNAMELEN))
-        elif ifru == sioc.SIOCGIWTXPOW: # get tx pwr
+        elif ifru == sioch.SIOCGIWTXPOW: # get tx pwr
             ifr += struct.pack('{0}x'.format(IWTXPWRLEN))
         else:
             raise AttributeError("ifru {0} not supported".format(ifru))

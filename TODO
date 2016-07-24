@@ -24,15 +24,11 @@
    o in link, NL80211_BSS_BEACON_IES vs NL80211_BSS_INFORMATION_ELEMENT
      BEACON_IES may not always be presenet but appears to contain more
  31) add VHT processing to sta_info bitrate
- 36) do we need to write a find nested attribute? so we don't need to go iterate
-    a list of attributes to find one
- 39) parsing wiphy_bands
-   o _HT_MCS_SET: a 16-bit attr containing the MCS set as defined in 802.11n (find this)
+ 39) parsing wiphy_bands (should we add the below?)
+   o _HT_MCS_SET: a 16-bit attr containing the MCS set as defined in 802.11n
    o _HT_CAPA: as in the HT information IE
  42) is there a simple way to set the format strings as constants keeping in
    mind that things like strings require a length in the format string
  45) find out if some of the 'flags' for bands are actually correct such as
    HT40+ which should be disabled for channel 11
  46) max-tx for bands is showing 15 when iwconfig shows 30
- 47) where is udevadm getting firmware vers from
- 48) need to redo pyw.unittest after adding/updating functions

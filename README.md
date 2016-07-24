@@ -41,7 +41,7 @@ Several "extensions" have been added to iw:
 their own netlink (or ioctl socket) to pyw functions;
 * One-time request for the nl80211 family id: pyw stores the family id in a
 global variable
-* Consolidating different "reference" values to wireless NICs in one class
+* Consolidate different "reference" values to wireless NICs in one class
 (Cards are tuples t=(dev,phy #,ifindex)
 
 These are minimal changes but they can improve the performance of any progams
@@ -233,10 +233,15 @@ w0 instantiated as:
 Card(phy=0,dev='wlan0',ifindex=2)
 ```
 
-There are other methods to get a Card object: pyw.devinfo, in addition to
-information, will return a Card object, pyw.devadd returns a card object for the
-newly created virtual interface and pyw.ifaces returns a lists of Cards for every
-interface sharing the same phy.
+There are other methods to get a Card object: 
+* pyw.devinfo, in addition to information, will return a Card object, 
+* pyw.devadd and pyw.phyadd return a card object for the newly created virtual 
+interface, and
+* pyw.ifaces returns a lists of Cards for every interface sharing the same phy.
+
+It is also important to note while most functions require a Card object, some
+do not and some will take a Card or a specific identifier. Read the user
+guide or code for additional information.
 
 Before continuing you may find that a Card can become invalid. For example, I
 have an older system where the USB tends to fall out. You can confirm that your
@@ -320,7 +325,8 @@ pyric.error: [Errno 95] Operation not supported
 
 For a brief description of coverage class and retry limits,
 see http://www.computerhope.com/unix/iwconfig.htm. For a description of the RTS
-and Fragmentation thresholds see http://resources.infosecinstitute.com/rts-threshold-configuration-improved-wireless-network-performance/
+and Fragmentation thresholds see http://resources.infosecinstitute.com/rts-threshold-configuration-improved-wireless-network-performance/.
+The IEEE 802.11-2012 also covers these. 
 
 #### iv. Getting Info On Your Card
 
@@ -469,8 +475,8 @@ Card(phy=0,dev=wlan1,ifindex=3)
 >>> pyw.chset(w1, 1, None)
 ```
 
-The above commands execute the same internal commands as does airmon-ng. 
-To verify, open a command prompt and execute the following:
+The above commands replicate the behaviour of airmon-ng. To verify, open a 
+command prompt and execute the following:
 
 ```bash
 ?> iw dev wlan0 info # replace wlan0 with your nic
@@ -546,15 +552,38 @@ def pymon(card, start=True, ch=None):
     return newcard
 ```
 
+NOTE: After a recent kernel upgrade (see my post at 
+https://wraithwireless.wordpress.com/2016/07/24/linux-kernel-bug/ for more details) 
+devadd became unusable. I have currently put a workaround in place and there are 
+now two methods to create a new card: phyadd and devadd. The function phyadd uses the 
+physical number of card and does not work as expected. In short, it will create a new 
+radio but not with the specified name. The function devadd uses the ifindex and works 
+as expected. For those individuals who system's start without devices the following 
+will work.
+
+```python
+phys = pyw.phylist()
+cards = []
+for i, phy in enumerate(phys):
+    dcard = pyw.phyadd(phy, "wlan{0}".format(i),'managed')
+    card = pyw.devadd(card,"wlan{0}".format(i),'managed')
+    pyw.devdel(dcard)
+    cards.append(card)
+```
+
+What this does is create a new card, dcard, for each phy using the phy as an 
+identifier. Then, because dcard does not have the name wlan<i> but a system
+generated one, we use it to create a new one, card with devadd which will have the
+correct dev name. We finish up by deleting dcard and appending card to our list
+of cards. 
+
 #### vi. STA Related Functions
-I have recently begun adding STA functionality to PyRIC. These are not 
-necessarily required for a pentester, although the ability to disconnect
-a Card may come in handy. The difficulty is that iw only provides connect
-functionality through Open or WEP enabled APs which means that I am 
-attempting to determine which commands and attributes are required. If all
-else fails I will look to wpa_supplicant for more information. ATT two
-two functions related to STA->AP exist: a) determine if the Card is connected 
-and b) disconnect the Card
+I have recently begun adding STA functionality to PyRIC. These are not necessarily 
+required for a pentester, although the ability to disconnect a Card may come in 
+handy. The difficulty is that iw only provides connect functionality through Open
+or WEP enabled APs which means that I am attempting to determine which commands 
+and attributes are required. If all else fails I will look to wpa_supplicant for 
+more information. Additionally, iw will not connect if wpa_supplicant is running.
 
 ```python
 >>> pyw.isconnected(w0)

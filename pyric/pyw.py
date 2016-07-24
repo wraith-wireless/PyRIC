@@ -68,7 +68,7 @@ NOTE:
 
 __name__ = 'pyw'
 __license__ = 'GPLv3'
-__version__ = '0.1.8'
+__version__ = '0.1.9'
 __date__ = 'July 2016'
 __author__ = 'Dale Patterson'
 __maintainer__ = 'Dale Patterson'
@@ -737,7 +737,7 @@ def covclassget(card, *argv):
 
 def covclassset(card, cc, *argv):
     """
-     REQUIRES ROOT PRIVILEGES
+     REQUIRES ROOT PRIVILEGES/DOES NOT WORK ON ALL SYSTEMS
      sets the coverage class. The coverage class IAW IEEE Std 802.11-2012 is
      defined as the Air propagation time & together with max tx power control
      the BSS diamter
@@ -794,7 +794,8 @@ def retryshortset(card, lim, *argv):
      :param card: Card object
      :param lim: max # of short retries 1 - 255
      :param argv: netlink socket at argv[0] (or empty)
-     sets card's shorty retry
+     NOTE: after moving to kernel 4, the kernel does not allow setting up to
+      the max
     """
     if lim < wlan.RETRY_MIN or lim > wlan.RETRY_MAX:
         # this can work 'incorrectly' on non-int values but these will
@@ -844,7 +845,8 @@ def retrylongset(card, lim, *argv):
      :param card: Card object
      :param lim: max # of short retries 1 - 255
      :param argv: netlink socket at argv[0] (or empty)
-     sets card's long retry
+     NOTE: after moving to kernel 4, the kernel does not allow setting up to
+      the max
     """
     if lim < wlan.RETRY_MIN or lim > wlan.RETRY_MAX:
         # this can work 'incorrectly' on non-int values but these will
@@ -1343,14 +1345,11 @@ def chset(card, ch, chw=None, *argv):
      :returns: True on success
      NOTE:
       o Can throw a device busy for several reason. Most likely due to
-       the network manager etc.
+       NetworkManager or wpa_supplicant
       o On my system at least (Ubuntu), creating a new dev in monitor mode and
         deleting all other existing managed interfaces allows for the new virtual
         device's channels to be changed w/out interference from network manager
     """
-    if ch not in channels.channels():
-        raise pyric.error(pyric.EINVAL, "Invalid channel")
-
     try:
         nlsock = argv[0]
     except IndexError:
@@ -1367,16 +1366,13 @@ def freqset(card, rf, chw=None, *argv):
      :param chw: channel width oneof {[None|'HT20'|'HT40-'|'HT40+'}
      :param argv: netlink socket at argv[0] (or empty)
     """
-    if rf not in channels.freqs(): raise pyric.error(pyric.EINVAL, "Invalid RF")
-    if chw in channels.CHTYPES: chw = channels.CHTYPES.index(chw)
-    else: raise pyric.error(pyric.EINVAL, "Invalid channel width")
-
     try:
         nlsock = argv[0]
     except IndexError:
         return _nlstub_(freqset, card, rf, chw)
 
     try:
+        chw = channels.CHTYPES.index(chw)
         msg = nl.nlmsg_new(nltype=_familyid_(nlsock),
                            cmd=nl80211h.NL80211_CMD_SET_WIPHY,
                            flags=nlh.NLM_F_REQUEST | nlh.NLM_F_ACK)
@@ -1385,6 +1381,8 @@ def freqset(card, rf, chw=None, *argv):
         nl.nla_put_u32(msg, chw, nl80211h.NL80211_ATTR_WIPHY_CHANNEL_TYPE)
         nl.nl_sendmsg(nlsock, msg)
         _ = nl.nl_recvmsg(nlsock)
+    except ValueError:
+        raise pyric.error(pyric.EINVAL, "Invalide channel width")
     except AttributeError:
         raise pyric.error(pyric.EINVAL, "Invalid Card")
     except nl.error as e:
@@ -1511,7 +1509,7 @@ def devset(card, ndev, *argv):
         raise
     return new
 
-def devadd(card, vdev, mode, flags=None, *argv):
+def phyadd(card, vdev, mode, flags=None, *argv):
     """
      REQUIRES ROOT PRIVILEGES
      adds a virtual interface on device having type mode (iw phy <card.phy>
@@ -1525,6 +1523,11 @@ def devadd(card, vdev, mode, flags=None, *argv):
                   |'cook'|'active'}
      :param argv: netlink socket at argv[0] (or empty)
      :returns: the new Card
+     NOTE: due to a recent bug in kernel 4.4.0-x where x is APX 28, nl80211
+      commands to add interface are not "respected" by the kernel. Namely, 
+      the vdev is not used and the kernel adds a card with a "predictable"
+      name and furthermore, the new card has a different hw address (1 up from
+      the original card)
     """
     if mode not in IFTYPES: raise pyric.error(pyric.EINVAL, 'Invalid mode')
     if flags:
@@ -1538,7 +1541,7 @@ def devadd(card, vdev, mode, flags=None, *argv):
     try:
         nlsock = argv[0]
     except IndexError:
-        return _nlstub_(devadd, card, vdev, mode, flags)
+        return _nlstub_(phyadd, card, vdev, mode, flags)
 
     # if we have a Card, pull out phy index
     try:
@@ -1564,7 +1567,68 @@ def devadd(card, vdev, mode, flags=None, *argv):
     except nl.error as e:
         raise pyric.error(e.errno, e.strerror)
 
-    return Card(card.phy, vdev, nl.nla_find(rmsg, nl80211h.NL80211_ATTR_IFINDEX))
+    # return the new Card with info from the results msg
+    return Card(nl.nla_find(rmsg, nl80211h.NL80211_ATTR_WIPHY),
+                nl.nla_find(rmsg, nl80211h.NL80211_ATTR_IFNAME),
+                nl.nla_find(rmsg, nl80211h.NL80211_ATTR_IFINDEX))
+
+def devadd(card, vdev, mode, flags=None, *argv):
+    """
+     REQUIRES ROOT PRIVILEGES
+     adds a virtual interface on device having type mode (iw dev <card.dev>
+      interface add <vnic> type <mode>
+     :param card: Card object or ifindex
+     :param vdev: device name of new interface
+     :param mode: 'name' of mode to operate in (must be one of in {'unspecified'|
+     'ibss'|'managed'|'AP'|'AP VLAN'|'wds'|'monitor'|'mesh'|'p2p'}
+     :param flags: list of monitor flags (can only be used if creating monitor
+     mode) oneof {'invalid'|'fcsfail'|'plcpfail'|'control'|'other bss'
+                  |'cook'|'active'}
+     :param argv: netlink socket at argv[0] (or empty)
+     :returns: the new Card
+    """
+    if mode not in IFTYPES: raise pyric.error(pyric.EINVAL, 'Invalid mode')
+    if flags:
+        if mode != 'monitor':
+            raise pyric.error(pyric.EINVAL, 'Can only set flags in monitor mode')
+        for flag in flags:
+            if flag not in MNTRFLAGS:
+                raise pyric.error(pyric.EINVAL, 'Invalid flag: {0}'.format(flag))
+    else: flags = []
+
+    try:
+        nlsock = argv[0]
+    except IndexError:
+        return _nlstub_(devadd, card, vdev, mode, flags)
+
+    # if we have a Card, pull out phy index
+    try:
+        idx = card.idx
+    except AttributeError:
+        idx = card
+
+    try:
+        msg = nl.nlmsg_new(nltype=_familyid_(nlsock),
+                           cmd=nl80211h.NL80211_CMD_NEW_INTERFACE,
+                           flags=nlh.NLM_F_REQUEST | nlh.NLM_F_ACK)
+        nl.nla_put_u32(msg, idx, nl80211h.NL80211_ATTR_IFINDEX)
+        nl.nla_put_string(msg, vdev, nl80211h.NL80211_ATTR_IFNAME)
+        nl.nla_put_u32(msg, IFTYPES.index(mode), nl80211h.NL80211_ATTR_IFTYPE)
+        for flag in flags:
+            nl.nla_put_u32(msg,
+                           MNTRFLAGS.index(flag),
+                           nl80211h.NL80211_ATTR_MNTR_FLAGS)
+        nl.nl_sendmsg(nlsock, msg)
+        rmsg = nl.nl_recvmsg(nlsock) # success returns new device attributes
+    except AttributeError as e:
+        raise pyric.error(pyric.EINVAL, e)
+    except nl.error as e:
+        raise pyric.error(e.errno, e.strerror)
+
+    # return the new Card with info from the results msg
+    return Card(nl.nla_find(rmsg, nl80211h.NL80211_ATTR_WIPHY),
+                nl.nla_find(rmsg, nl80211h.NL80211_ATTR_IFNAME),
+                nl.nla_find(rmsg, nl80211h.NL80211_ATTR_IFINDEX))
 
 def devdel(card, *argv):
     """
@@ -1610,13 +1674,50 @@ def isconnected(card, *argv):
     # dirty hack - using the precence of an RF to determine connected-ness
     return devinfo(card, nlsock)['RF'] is not None
 
+def openconnect(card, ssid, bssid=None, rf=None, *argv):
+    """
+     REQUIRES ROOT PRIVILEGES & WPA_SUPPLICANT MUST BE DISABLED
+     NOTE: DOES NOT WORK AT THIS TIME, returns Success but does not connect
+     connects to open network ssid
+     :param card: Card object
+     :param ssid: the SSID, network name
+     :param bssid: the AP's BSSID
+     :param rf:  the frequency of the AP
+     :param argv: netlink socket at argv[0] (or empty)
+     :returns: True on successful connect, False otherwise
+     NOTE: although connected, traffic will not be route, card will not have
+      an IP assigned
+    """
+    try:
+        nlsock = argv[0]
+    except IndexError:
+        return _nlstub_(openconnect, card, ssid, bssid, rf)
+
+    try:
+        msg = nl.nlmsg_new(nltype=_familyid_(nlsock),
+                           cmd=nl80211h.NL80211_CMD_CONNECT, # step 1
+                           flags=nlh.NLM_F_REQUEST | nlh.NLM_F_ACK)
+        nl.nla_put_u32(msg, card.idx, nl80211h.NL80211_ATTR_IFINDEX)
+        nl.nla_put_string(msg, ssid, nl80211h.NL80211_ATTR_SSID)
+        #nl.nla_put_u16(msg, 0, nl80211h.NL80211_ATTR_BG_SCAN_PERIOD)
+        #nl.nla_put_unspec(msg, _mac2hex_(bssid), nl80211h.NL80211_ATTR_MAC)
+        nl.nl_sendmsg(nlsock, msg)
+        if not nl.nl_recvmsg(nlsock) == nlh.NLE_SUCCESS: return False
+
+    except AttributeError:
+        raise pyric.error(pyric.EINVAL, "Invalid Card")
+    except nl.error as e:
+        raise pyric.error(e.errno, e.strerror)
+    return True
+
 def disconnect(card, *argv):
     """
      REQUIRES ROOT PRIVILEGES
      disconnect the card from an AP
      :param card: Card object
      :param argv: netlink socket at argv[0] (or empty)
-     NOTE: does not return error if card is not connected
+     NOTE: does not return error if card is not connected. May not work if
+     wpa_supplicant is running
     """
     try:
         nlsock = argv[0]
@@ -1803,6 +1904,7 @@ def stainfo(card, mac, *argv):
             'tx-bitrate':{}, 'rx-bitrate':{}}
 
     _, bs, d = nl.nla_find(rmsg, nl80211h.NL80211_ATTR_STA_INFO, False)
+    if d == nlh.NLA_ERROR: return info
     for sidx, sattr in bs: # sidx indexes the enum nl80211_sta_info
         try:
             if sidx == nl80211h.NL80211_STA_INFO_RX_BYTES:
@@ -1836,15 +1938,26 @@ MACADDR = re.compile("^([0-9a-fA-F]{2}:){5}([0-9a-fA-F]{2})$") # re for mac addr
 
 
 def _hex2ip4_(v):
-    """ :returns: a '.' separated ip4 address from byte stream v """
-    return '.'.join([str(ord(c)) for c in v])
+    """
+     :param v: packed by string
+     :returns: a '.' separated ip4 address from byte stream v
+    """
+    try:
+        return '.'.join([str(ord(c)) for c in v])
+    except TypeError:
+        # python 3 c is already numeric
+        return '.'.join([str(c) for c in v])
 
 def _hex2mac_(v):
     """
      :param v: packed bytestream of form \xd8\xc7\xc8\x00\x11\x22
      :returns: a ':' separated mac address from byte stream v
     """
-    return ":".join(['{0:02x}'.format(ord(c)) for c in v])
+    try:
+        return ":".join(['{0:02x}'.format(ord(c)) for c in v])
+    except TypeError:
+        # it appears that in Python 3.5 c is already numeric
+        return ":".join(['{0:02x}'.format(c) for c in v])
 
 def _mac2hex_(v):
     """
