@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-""" pyw.py: python iw
+""" pyw.py: Linux wireless library for the Python Wireless Developer and Pentester
 
 Copyright (C) 2016  Dale V. Patterson (wraith.wireless@yandex.com)
 

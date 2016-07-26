@@ -30,3 +30,8 @@
  42) is there a simple way to set the format strings as constants keeping in
    mind that things like strings require a length in the format string
  46) max-tx for bands is showing 15 when iwconfig shows 30
+ 50) need a check cards script that tests the current system for compatibility
+    with ioctl, netlink and pyw
+   - add error check and throw different exception if errno 19, no such device
+     is in fact caused by lack of support for netlink/nl80211
+ 51) with respect to phyadd, airmon-ng mentions something about udev changing then name
