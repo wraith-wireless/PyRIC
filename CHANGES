@@ -168,3 +168,8 @@ v 0.1.6 Continue with STA functionality
     - issue 1: wpa_supplicant must be turned off
     - issue 2: caller/user must configure dhcp request or inet themselves
     - issue 3: only works on open networks
+  o Issue #24 (TODO #50) resolved. getcard which is the entry point for any
+   nl80211 functionality uses devinfo to retrieve the Card tuple. devinfo will now
+   report No Such device as two seperate errors one identifying when there is
+   no device currently present on the machine and one identifying when the
+   specified dev's driver does not support nl80211

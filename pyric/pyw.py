@@ -1121,22 +1121,33 @@ def devinfo(card, *argv):
     except IndexError:
         return _nlstub_(devinfo, card)
 
-    # if we have a Card, pull out dev name, ifindex itherwise get ifindex
+    dev = None # appease pycharm
     try:
-        dev = card.dev
-        idx = card.idx
-    except AttributeError:
-        dev = card
-        idx = _ifindex_(dev)
+        # if we have a Card object, pull at dev,ifindex. otherwise get ifindex
+        try:
+            dev = card.dev
+            idx = card.idx
+        except AttributeError:
+            dev = card
+            idx = _ifindex_(dev)
 
-    try:
+        # using the ifindex, get the phy and details about the Card
         msg = nl.nlmsg_new(nltype=_familyid_(nlsock),
                            cmd=nl80211h.NL80211_CMD_GET_INTERFACE,
                            flags=nlh.NLM_F_REQUEST | nlh.NLM_F_ACK)
         nl.nla_put_u32(msg, idx, nl80211h.NL80211_ATTR_IFINDEX)
         nl.nl_sendmsg(nlsock, msg)
         rmsg = nl.nl_recvmsg(nlsock)
+    except io.error as e:
+        # if we get a errno -19, it means ifindex failed & there is no device dev
+        if e.errno == pyric.ENODEV:
+            raise(pyric.ENODEV, "No device {0} found".format(dev))
+        raise pyric.error(e.errno, e.strerror)
     except nl.error as e:
+        # if we get a errno -19, it means ifindex succeeded but netlink failed
+        # most likely because the given device does not support nl80211
+        if e.errno == pyric.ENODEV:
+            raise pyric.error(pyric.EPROTONOSUPPORT, "Device does not support nl80211")
         raise pyric.error(e.errno, e.strerror)
 
     # pull out attributes
@@ -2318,8 +2329,6 @@ def _ifindex_(dev, *argv):
         raise pyric.error(pyric.EINVAL, e)
     except struct.error as e:
         raise pyric.error(pyric.EUNDEF, "Error parsing results: {0}".format(e))
-    except io.error as e:
-        raise pyric.error(e.errno, e.strerror)
 
 def _familyid_(nlsock):
     """
