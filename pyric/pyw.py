@@ -63,7 +63,6 @@ NOTE:
      devadd which will accept a Card or a phy
  2) All functions allow pyric errors to pass through. Callers must catch these
     if they desire
-
 """
 
 __name__ = 'pyw'
@@ -174,7 +173,7 @@ def phylist():
     """ :returns: a list of tuples t = (physical indexe, physical name) """
     # we could walk the directory /sys/class/ieee80211 as well but we'll
     # let rfkill do it (just in case the above path differs across distros or
-    # in future upgrades
+    # in future upgrades)
     phys = []
     rfdevs = rfkill.rfkill_list()
     for rfk in rfdevs:
@@ -210,8 +209,8 @@ def regset(rd, *argv):
      :param rd: regulatory domain code
      :param argv: netlink socket at argv[0] (or empty)
     """
-    if len(rd) != 2:
-        raise pyric.error(pyric.EINVAL, "Invalid reg. domain {0}".format(rd))
+    if len(rd) != 2: raise pyric.error(pyric.EINVAL, "Invalid reg. domain")
+
     try:
         nlsock = argv[0]
     except IndexError:
@@ -243,9 +242,7 @@ class Card(tuple):
     def __new__(cls, p, d, i):
         return super(Card, cls).__new__(cls, tuple((p, d, i)))
     def __repr__(self):
-        return "Card(phy={0},dev={1},ifindex={2})".format(self.phy,
-                                                          self.dev,
-                                                          self.idx)
+        return "Card(phy={0},dev={1},ifindex={2})".format(self.phy,self.dev,self.idx)
     @property
     def phy(self): return self[0]
     @property
@@ -324,7 +321,7 @@ def macset(card, mac, *argv):
      :param argv: ioctl socket at argv[0] (or empty)
      :returns: mac address after operation
     """
-    if  not _validmac_(mac): raise pyric.error(pyric.EINVAL, "Invalid mac address")
+    if not _validmac_(mac): raise pyric.error(pyric.EINVAL, "Invalid mac address")
 
     try:
         iosock = argv[0]

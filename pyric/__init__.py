@@ -52,10 +52,11 @@ __status__ = 'Production'
 #  EUNDEF. I don't like importing all from errno but it provides conformity in
 #  error handling i.e modules using pyric.error do not need to call pyric.EUNDEF
 #  and errno.EINVAL but can call pyric.EUNDEF and pyric.EINVAL
-EUNDEF = -1                # undefined error
-from errno import *        # make all errno errors pyric errors
-errorcode['EUNDEF'] = -1   # add ours to errorcode dicts
+EUNDEF = -1                   # undefined error
+from errno import *           # make all errno errors pyric errors
+errorcode[EUNDEF] = "EUNDEF"  # add ours to errorcode dicts
 class error(EnvironmentError): pass
+
 # BELOW IS STILL A WORK IN PRGORESS
 def strerror(errno):
     import os
