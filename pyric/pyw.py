@@ -1138,7 +1138,7 @@ def devinfo(card, *argv):
     except io.error as e:
         # if we get a errno -19, it means ifindex failed & there is no device dev
         if e.errno == pyric.ENODEV:
-            raise(pyric.ENODEV, "No device {0} found".format(dev))
+            raise pyric.error(pyric.ENODEV, "No device {0} found".format(dev))
         raise pyric.error(e.errno, e.strerror)
     except nl.error as e:
         # if we get a errno -19, it means ifindex succeeded but netlink failed

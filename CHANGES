@@ -173,3 +173,4 @@ v 0.1.6 Continue with STA functionality
    report No Such device as two seperate errors one identifying when there is
    no device currently present on the machine and one identifying when the
    specified dev's driver does not support nl80211
+  o fixed TypeError resulting from raising pyric.error incorrectly
