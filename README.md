@@ -425,10 +425,10 @@ True
 Card(phy=0,dev=mon0,ifindex=4)
 >>> pyw.winterfaces()
 ['mon0', 'wlan0']
->>> for iface in pyw.ifaces(w0):       # delete all interfaces
-...     print iface
-...     if not iface[0].dev == m0.dev: # that are not our monitor
-...         pyw.devdel(iface[0])       # on the this phy
+>>> for card,_ in pyw.ifaces(w0):   # delete all interfaces
+...     print card
+...     if not card.dev == m0.dev:  # that are not our monitor
+...         pyw.devdel(card)        # on the this phy
 ...
 (Card(phy=0,dev=mon0,ifindex=4), 'monitor')
 (Card(phy=0,dev=wlan0,ifindex=3), 'managed')
@@ -553,28 +553,10 @@ def pymon(card, start=True, ch=None):
 
 NOTE: After a recent kernel upgrade (see my post at 
 https://wraithwireless.wordpress.com/2016/07/24/linux-kernel-bug/ for more details) 
-devadd became unusable. I have currently put a workaround in place and there are 
-now two methods to create a new card: phyadd and devadd. The function phyadd uses the 
-physical number of card and does not work as expected. In short, it will create a new 
-radio but not with the specified name. The function devadd uses the ifindex and works 
-as expected. For those individuals who system's start without devices the following 
-will work.
-
-```python
-phys = pyw.phylist()
-cards = []
-for i, phy in enumerate(phys):
-    dcard = pyw.phyadd(phy, "wlan{0}".format(i),'managed')
-    card = pyw.devadd(card,"wlan{0}".format(i),'managed')
-    pyw.devdel(dcard)
-    cards.append(card)
-```
-
-What this does is create a new card, dcard, for each phy using the phy as an 
-identifier. Then, because dcard does not have the name wlan<i> but a system
-generated one, we use it to create a new one, card with devadd which will have the
-correct dev name. We finish up by deleting dcard and appending card to our list
-of cards. 
+devadd became unusable. ATT, I have "fixed" devadd. Basically the original used
+the physical index (iw phy <phy> interface add ...). Now, it uses the ifindex. 
+The function phyadd which only accepts the physical index (phy)  is now implemented
+to allow users whose systems start with any devs.
 
 #### vi. STA Related Functions
 I have recently begun adding STA functionality to PyRIC. These are not necessarily 

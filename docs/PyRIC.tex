@@ -19,8 +19,8 @@
 %
 % __name__ = 'User Guide'
 %__license__ = 'GPLv3'
-%__version__ = '0.0.5'
-%__date__ = 'July 2016'
+%__version__ = '0.0.6'
+%__date__ = 'August 2016'
 %__author__ = 'Dale Patterson'
 %__maintainer__ = 'Dale Patterson'
 %__email__ = 'wraith.wireless@yandex.com'
@@ -196,15 +196,16 @@ functions see the following section for a description.
 A Card is merely a wrapper around a tuple t = (phy index,device name,ifindex). 
 Since the underlying Netlink calls sometimes require the physical index, sometimes 
 the device name, and sometimes the ifindex, pyw functions\footnote{Not all functions 
-accept a Card, devinfo() accept either a Card or a dev, devadd accepts either a Card
-or a ifindex and phyadd accepts a card or a physical index} take a Card object which 
+accept only a Card, devinfo() accepts either a Card or a dev, devadd accepts either a 
+Card or a ifindex and phyadd accepts only a physical index} take a Card object which 
 doesn't require callers to know which identifier to use for each function. There are
 four primary methods to creating a Card: 
 \begin{enumerate}
 \item \textbf{pyw.getcard} returns a Card object from a given dev,
 \item \textbf{pyw.devinfo} returns the dict info where info['card'] is the Card 
-object. This function will take either a card or a dev
-\item \textbf{pyw.devadd} returns a new Card object, 
+object. (This function will take either a card or a ifindex),
+\item \textbf{pyw.devadd} returns a new Card object (this function will only take
+a phy), 
 \item \textbf{pyw.ifaces} returns a list of tuples t = (Card,mode) sharing the 
 same phy as a given dev.
 \end{enumerate}
@@ -328,76 +329,56 @@ difficulties lately and you want to capture some traffic to analyse it. Listing
                    language=Python]
  1: import pyric                            # pyric error (and ecode EUNDEF)
  2: from pyric import pyw                   # for iw functionality
- 3: import pyric.utils.hardware as hw       # for chipset/driver
- 4: from pyric.utils.channels import rf2ch  # rf to channel conversion
- 5:
- 6: dev = 'wlan0'
- 7: ifaces = pyw.interfaces()
- 8: wifaces = pyw.winterfaces()
- 9: if dev not in ifaces:
-10:     print "Device {0} is not valid, use one of {1}".format(dev,ifaces)
-11:     return
-12: elif dev not in wifaces:
-13:     print "Device {0} is not wireless, use one of {1}".format(dev,wifaces)
-14:
-15: print "Regulatory Domain currently: ", pyw.regget()
-16: dinfo = pyw.devinfo(dev)
-17: card = dinfo['card']
-18: pinfo = pyw.phyinfo(card)
-19: driver = hw.ifdriver(card.dev)
-20: chipset = hw.ifchipset(driver)
-21:
-22: pyw.down(card)
-23: pyw.macset(card,'00:03:93:57:54:46')
-24:
-25: msg = "Using {0} currently in mode: {1}\n".format(card,dinfo['mode'])
-26: msg += "\tDriver: {0} Chipset: {1}\n".format(driver,chipset)
-27: if dinfo['mode'] == 'managed':
-28:     msg += "\ton channel {0} width {1}\n".format(rf2ch(dinfo['RF']),
-29:                                                  dinfo['CHW'])
-30: msg += "\tSupports modes {0}\n".format(pinfo['modes'])
-31: msg += "\tSupports commands {0}".format(pinfo['commands'])
-32: msg += "\thw addr {0}".format(pyw.macget(card))
-33: print msg
-34:
-35: pdev = 'pent0'
-36: for iface in pyw.ifaces(card):
-37:     pyw.devdel(iface[0])
-38: pcard = pyw.devadd(card, pdev, 'monitor')
-39: pyw.up(pcard)
-40: pyw.chset(pcard,6,None)
-41: 
-42: # DO STUFF HERE 
-43:
-44: pyw.devdel(pcard)
-45:
-46: card = pyw.devadd(card,card.dev,dinfo['mode'])
-47: pyw.macset(card,dinfo['mac'])
-48: pyw.up(card)
+ 3: from pyric.utils.channels import rf2ch  # rf to channel conversion
+ 4:
+ 5: dev = 'wlan0' 
+ 6: dinfo = pyw.devinfo(dev)
+ 7: card = dinfo['card']
+ 8:
+ 9: pyw.down(card)
+10: pyw.macset(card,'00:03:93:57:54:46')
+11:
+12: pdev = 'pent0'
+13: pcard = pyw.devadd(card, pdev, 'monitor')
+14: for iface in pyw.ifaces(card):
+15: 	if iface[0].dev != pcard.dev:
+16:         pyw.devdel(iface[0])
+17: pyw.up(pcard)
+18:
+19: pyw.chset(pcard,6,None)
+20:
+21: # DO stuff here
+22:
+23: card = pyw.devadd(pcard,card.dev,dinfo['mode'])
+24: pyw.devdel(pcard)
+25: pyw.macset(card,dinfo['mac'])
+26: pyw.up(card)
 \end{lstlisting}
 
-Listing \ref{lst:pentest} attempts to show most of the available pyw functions 
-in use and is the basic shell used in another project, Wraith\cite{wraith}, to 
-instantiate a wireless (802.11) sensor - (for a full listing of all pyw functions
-see Appendix \ref{sec:pywapi}) - with scanning capabilities. Lines 1 and 2 should 
-always be included as they import the pyric error and pyw functions. Line 3 
-imports hardware which provides the ifchipset and ifdriver functions and Line 4 
-imports the rf2ch conversion function. \\
+Listing \ref{lst:pentest} shows basic pyw functions and is the basic shell used in 
+another project, Wraith\cite{wraith}, to instantiate a wireless (802.11) sensor - 
+(for a full listing of all pyw functions see Appendix \ref{sec:pywapi}) - with 
+scanning capabilities. \\
 
-In lines 6 through 13, the device wlan0 is confirmed wireless and lines 16 through
-20 a Card object for 'wlan0' is created and details about the interface are printed. 
-Next, the mac address of wlan0 is changed on lines 23. Note, the device is brought
-down first. \\
+Lines 1 and 2 should always be included as they import the pyric error and pyw 
+functions. Line 3 imports the rf2ch conversion function. \\
 
-More information on the device is printed in lines 25 through 33. Starting on
-line 35, a device named 'pent0' is created in monitor mode. First in lines 36 
-and 37, all interfaces on the same phy are deleted \footnote{we have found that
-it is better to delete all interfaces on the same phy ensuring that external 
-processes don't interfere with the new device} before creating the new device, 
-bringing the card up and setting it to channel 6 NOHT.\\ 
+In lines 5 through 10, a Card is created from the device wlan0. The info dict is save 
+IOT to restore later. Next, the mac address of wlan0 is changed. Note, the device has 
+to be brought down first. \\
 
-Restoring the device starts on line 45, where the virtual interface is deleted,
-the previous interface is restored and the mac address is reset.
+Starting on line 12, a device named 'pent0' is created in monitor mode. First, a new
+Card, pcard is create in monitor mode. Then, all interfaces on the same phy are 
+deleted \footnote{we have found that it is better to delete all interfaces on the 
+same phy ensuring that external processes don't interfere with the new device}. The
+new Card is brought up and set to channel 6 NOHT.\\ 
+
+Restoring the device starts on line 23, where the virtual interface is deleted,
+the previous interface is restored, the mac address is reset and the old Card is 
+brought up. \\
+
+An extended version of Listing \ref{lst:pentest} can be found in the examples 
+directory.
 
 \subsubsection{One-time vs Persistent Sockets}
 The example in Listing \ref{lst:pentest} uses one-time sockets (netlink and 
@@ -833,8 +814,8 @@ supported by card
 \item modeget(card[nlsock]): (iw dev card.<dev> info | grep mode), type: netlink,
 get card's mode
 \item devset(card,ndev,[nlsock]): (N/A) sets the dev (name) of card to ndev 
-\item phyadd(card (or phy),vnic,mode,[flags],[nlsock]): (iw phy card.<phy> interface 
-add <vnic> type <mode> flags <flags>)\footnote{There is a bug in some kernel v4.4.0-x 
+\item phyadd(phy,vnic,mode,[flags],[nlsock]): (iw phy <phy> interface add <vnic>
+type <mode> flags <flags>)\footnote{There is a bug in some kernel v4.4.0-x 
 where the given dev name is ignored and a system chosen one is used instead. See 
 https://wraithwireless.wordpress.com. Whenever possible, use devadd to create 
 interfaces instead.}, type: netlink, creates a new virtual interface with dev vdev, 
@@ -842,7 +823,8 @@ in mode and using flags. Note: flags are only supported when creating a monitor 
 \item devadd(card (or ifindex),vnic,mode,[flags],[nlsock]): (iw phy card.<dev> 
 interface add <vnic> type <mode> flags <flags>), type: netlink, creates a new virtual 
 interface with dev vdev, in mode and using flags. Note: flags are only supported
-when creating a monitor mode
+when creating a monitor mode. This function accepts either a Card object or a 
+ifindex.
 \item devdel(card,[nlsock]): (iw card.<dev> del), type: netlink, deletes card
 \begin{itemize}
 \item isconnected(card, [nlsock]): (iw dev card.<dev> info | grep channel), type: 

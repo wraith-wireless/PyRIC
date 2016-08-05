@@ -174,4 +174,5 @@ v 0.1.6 Continue with STA functionality
    no device currently present on the machine and one identifying when the
    specified dev's driver does not support nl80211
   o fixed TypeError resulting from raising pyric.error incorrectly
-  o moved phyadd to _depr_phyadd issue #23
+  o made phyadd which accepts only the physical index and returns a card with
+   correct dev (w.r.t https://wraithwireless.wordpress.com/2016/07/24/linux-kernel-bug/)

@@ -1601,6 +1601,68 @@ def devdel(card, *argv):
     except nl.error as e:
         raise pyric.error(e.errno, e.strerror)
 
+def phyadd(phy, vdev, mode, flags=None, *argv):
+    """
+     REQUIRES ROOT PRIVILEGES
+     adds a virtual interface on device having type mode (iw phy <card.phy>
+      interface add <vnic> type <mode>
+     :param phy: physical index
+     :param vdev: device name of new interface
+     :param mode: 'name' of mode to operate in (must be one of in {'unspecified'|
+     'ibss'|'managed'|'AP'|'AP VLAN'|'wds'|'monitor'|'mesh'|'p2p'}
+     :param flags: list of monitor flags (can only be used if creating monitor
+     mode) oneof {'invalid'|'fcsfail'|'plcpfail'|'control'|'other bss'
+                  |'cook'|'active'}
+     :param argv: netlink socket at argv[0] (or empty)
+     :returns: the new Card
+     NOTE: due to a recent bug in kernel 4.4.0-x where x is APX 28, nl80211
+      commands to add interface are not "respected" by the kernel. Namely,
+      the vdev is not used and the kernel adds a card with a "predictable"
+      name and furthermore, the new card has a different hw address (1 up from
+      the original card)
+    """
+    if mode not in IFTYPES: raise pyric.error(pyric.EINVAL, 'Invalid mode')
+    if flags:
+        if mode != 'monitor':
+            raise pyric.error(pyric.EINVAL, 'Can only set flags in monitor mode')
+        for flag in flags:
+            if flag not in MNTRFLAGS:
+                raise pyric.error(pyric.EINVAL, 'Invalid flag: {0}'.format(flag))
+    else: flags = []
+
+    try:
+        nlsock = argv[0]
+    except IndexError:
+        return _nlstub_(phyadd, phy, vdev, mode, flags)
+
+    try:
+        msg = nl.nlmsg_new(nltype=_familyid_(nlsock),
+                           cmd=nl80211h.NL80211_CMD_NEW_INTERFACE,
+                           flags=nlh.NLM_F_REQUEST | nlh.NLM_F_ACK)
+        nl.nla_put_u32(msg, phy, nl80211h.NL80211_ATTR_WIPHY)
+        nl.nla_put_string(msg, vdev, nl80211h.NL80211_ATTR_IFNAME)
+        nl.nla_put_u32(msg, IFTYPES.index(mode), nl80211h.NL80211_ATTR_IFTYPE)
+        for flag in flags:
+            nl.nla_put_u32(msg,
+                           MNTRFLAGS.index(flag),
+                           nl80211h.NL80211_ATTR_MNTR_FLAGS)
+        nl.nl_sendmsg(nlsock, msg)
+        rmsg = nl.nl_recvmsg(nlsock) # success returns new device attributes
+    except AttributeError as e:
+        raise pyric.error(pyric.EINVAL, e)
+    except nl.error as e:
+        raise pyric.error(e.errno, e.strerror)
+
+    # get card & determine if we got a card with the specified name
+    card = Card(nl.nla_find(rmsg, nl80211h.NL80211_ATTR_WIPHY),
+                nl.nla_find(rmsg, nl80211h.NL80211_ATTR_IFNAME),
+                nl.nla_find(rmsg, nl80211h.NL80211_ATTR_IFINDEX))
+    if card.dev != vdev:
+        newcard = devadd(card,vdev,mode,flags)
+        devdel(card)
+        card = newcard
+    return card
+
 ################################################################################
 #### STA FUNCTIONS                                                          ####
 ################################################################################
@@ -2357,66 +2419,3 @@ def _fut_chset(card, ch, chw, *argv):
     nl.nla_put_u32(msg, channels.CHTYPES.index(chw), nl80211h.NL80211_ATTR_WIPHY_CHANNEL_TYPE)
     nl.nl_sendmsg(nlsock, msg)
     _ = nl.nl_recvmsg(nlsock)
-
-def _depr_phyadd(card, vdev, mode, flags=None, *argv):
-    """
-     REQUIRES ROOT PRIVILEGES
-     adds a virtual interface on device having type mode (iw phy <card.phy>
-      interface add <vnic> type <mode>
-     :param card: Card object or physical index
-     :param vdev: device name of new interface
-     :param mode: 'name' of mode to operate in (must be one of in {'unspecified'|
-     'ibss'|'managed'|'AP'|'AP VLAN'|'wds'|'monitor'|'mesh'|'p2p'}
-     :param flags: list of monitor flags (can only be used if creating monitor
-     mode) oneof {'invalid'|'fcsfail'|'plcpfail'|'control'|'other bss'
-                  |'cook'|'active'}
-     :param argv: netlink socket at argv[0] (or empty)
-     :returns: the new Card
-     NOTE: due to a recent bug in kernel 4.4.0-x where x is APX 28, nl80211
-      commands to add interface are not "respected" by the kernel. Namely,
-      the vdev is not used and the kernel adds a card with a "predictable"
-      name and furthermore, the new card has a different hw address (1 up from
-      the original card)
-    """
-    if mode not in IFTYPES: raise pyric.error(pyric.EINVAL, 'Invalid mode')
-    if flags:
-        if mode != 'monitor':
-            raise pyric.error(pyric.EINVAL, 'Can only set flags in monitor mode')
-        for flag in flags:
-            if flag not in MNTRFLAGS:
-                raise pyric.error(pyric.EINVAL, 'Invalid flag: {0}'.format(flag))
-    else: flags = []
-
-    try:
-        nlsock = argv[0]
-    except IndexError:
-        return _nlstub_(phyadd, card, vdev, mode, flags)
-
-    # if we have a Card, pull out phy index
-    try:
-        phy = card.phy
-    except AttributeError:
-        phy = card
-
-    try:
-        msg = nl.nlmsg_new(nltype=_familyid_(nlsock),
-                           cmd=nl80211h.NL80211_CMD_NEW_INTERFACE,
-                           flags=nlh.NLM_F_REQUEST | nlh.NLM_F_ACK)
-        nl.nla_put_u32(msg, phy, nl80211h.NL80211_ATTR_WIPHY)
-        nl.nla_put_string(msg, vdev, nl80211h.NL80211_ATTR_IFNAME)
-        nl.nla_put_u32(msg, IFTYPES.index(mode), nl80211h.NL80211_ATTR_IFTYPE)
-        for flag in flags:
-            nl.nla_put_u32(msg,
-                           MNTRFLAGS.index(flag),
-                           nl80211h.NL80211_ATTR_MNTR_FLAGS)
-        nl.nl_sendmsg(nlsock, msg)
-        rmsg = nl.nl_recvmsg(nlsock) # success returns new device attributes
-    except AttributeError as e:
-        raise pyric.error(pyric.EINVAL, e)
-    except nl.error as e:
-        raise pyric.error(e.errno, e.strerror)
-
-    # return the new Card with info from the results msg
-    return Card(nl.nla_find(rmsg, nl80211h.NL80211_ATTR_WIPHY),
-                nl.nla_find(rmsg, nl80211h.NL80211_ATTR_IFNAME),
-                nl.nla_find(rmsg, nl80211h.NL80211_ATTR_IFINDEX))

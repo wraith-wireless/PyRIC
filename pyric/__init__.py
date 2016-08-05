@@ -40,7 +40,7 @@ Requires:
 __name__ = 'pyric'
 __license__ = 'GPLv3'
 __version__ = '0.1.6'
-__date__ = 'June 2016'
+__date__ = 'August 2016'
 __author__ = 'Dale Patterson'
 __maintainer__ = 'Dale Patterson'
 __email__ = 'wraith.wireless@yandex.com'
