@@ -801,10 +801,12 @@ cards (w/ modes) of interfaces sharing the same phy as card
 netlink,sets the tx power to pwr (in dBm) with level setting lvl 
 \item txget(card,[iosock]): (iwconfig card.<dev> | grep Tx-Power card), type: 
 ioctl, get card's transmission power
-\item chget(card,[nlsock]): (iw dev <card.dev> info | grep channelS), type: 
-netlink, get card's current channel (only works for cards in mode managed)
+\item chget(card,[nlsock]): (iw dev <card.dev> info | grep channel), type: 
+netlink, get card's current channel 
 \item chset(card,ch,chw,[nlsock]): iw phy <card.phy> set channel <ch> <chw>), 
 type: netlink, set card's current channel to ch with width chw
+\item freqget(card,[nlsock]): (iw dev <card.dev> info | grep channel), type: 
+netlink, get card's current frequency
 \item freqset(card,rf,chw,[nlsock]): iw phy <card.phy> set freq <rf> <chw>), 
 type: netlink, set card's current frequency to rf with width chw
 \item devmodes(card,[iosock]): (iw phy card.<phy>), type: netlink, get modes 

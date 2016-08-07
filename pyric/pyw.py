@@ -254,6 +254,7 @@ def getcard(dev, *argv):
     """
      get the Card object from device name
      :param dev: device name
+     :param argv: netlink socket at argv[0] or empty
      :returns: a Card with device name dev
     """
     try:
@@ -1365,6 +1366,21 @@ def chset(card, ch, chw=None, *argv):
 
     return freqset(card, channels.ch2rf(ch), chw, nlsock)
 
+def freqget(card, *argv):
+    """
+     gets the current frequency for device (iw dev <card.dev> info | grep channel)
+     :param card: Card object
+     :param argv: netlink socket at argv[0] (or empty)
+     NOTE: will only work if dev is associated w/ AP or device is in monitor mode
+     and has had [ch|freq]set previously
+    """
+    try:
+        nlsock = argv[0]
+    except IndexError:
+        return _nlstub_(chget, card)
+
+    return devinfo(card, nlsock)['RF']
+
 def freqset(card, rf, chw=None, *argv):
     """
      REQUIRES ROOT PRIVILEGES
@@ -1495,7 +1511,7 @@ def devset(card, ndev, *argv):
         set a new dev.
       o this is not a true set name: it adds a new card with ndev as the dev then
         deletes the current card, returning the new card
-       - in effect, it will appear as if the card as a new name but, it will also
+       - in effect, it will appear as if the card has a new name but, it will also
          have a new ifindex
     """
     try:
