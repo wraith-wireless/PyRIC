@@ -69,7 +69,6 @@ class error(EnvironmentError): pass
 # no open files if attempt to create a virtual card with same name as orginal
 
 # for setup.py use
-
 # redefine version for easier access
 version = __version__
 
