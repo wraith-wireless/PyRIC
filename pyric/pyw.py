@@ -1546,8 +1546,7 @@ def devadd(card, vdev, mode, flags=None, *argv):
                   |'cook'|'active'}
      :param argv: netlink socket at argv[0] (or empty)
      :returns: the new Card
-     NOTE:
-      o the new Card will be 'down'
+     NOTE: the new Card will be 'down'
     """
     if mode not in IFTYPES: raise pyric.error(pyric.EINVAL, 'Invalid mode')
     if flags:

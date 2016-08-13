@@ -65,7 +65,6 @@ class error(EnvironmentError): pass
 #    elif errno == EINVAL: return "Invalid parameter"
 #    else:
 #        return os.strerror(errno)
-#
 # device busy if setting channel when card is down
 # no open files if attempt to create a virtual card with same name as orginal
 
