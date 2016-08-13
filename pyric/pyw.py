@@ -1547,12 +1547,7 @@ def devadd(card, vdev, mode, flags=None, *argv):
      :param argv: netlink socket at argv[0] (or empty)
      :returns: the new Card
      NOTE:
-      o the new Card will be 'down' 
-      o due to a recent bug in kernel 4.4.0-x where x is APX 28, nl80211
-      commands to add interface are not "respected" by the kernel. Namely,
-      the vdev is not used and the kernel adds a card with a "predictable"
-      name and furthermore, the new card has a different hw address (1 up from
-      the original card)
+      o the new Card will be 'down'
     """
     if mode not in IFTYPES: raise pyric.error(pyric.EINVAL, 'Invalid mode')
     if flags:
@@ -1637,13 +1632,7 @@ def phyadd(card, vdev, mode, flags=None, *argv):
                   |'cook'|'active'}
      :param argv: netlink socket at argv[0] (or empty)
      :returns: the new Card
-     NOTE:
-      o the new Card will be 'down' 
-      o due to a recent bug in kernel 4.4.0-x where x is APX 28, nl80211
-      commands to add interface are not "respected" by the kernel. Namely,
-      the vdev is not used and the kernel adds a card with a "predictable"
-      name and furthermore, the new card has a different hw address (1 up from
-      the original card)
+     NOTE: the new Card will be 'down'
     """
     if mode not in IFTYPES: raise pyric.error(pyric.EINVAL, 'Invalid mode')
     if flags:

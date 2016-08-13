@@ -2,7 +2,7 @@
  o ethtool. uses ioctl but does not follow same pattern as ifconfig seems
     to use
   - ethtool -i <dev> gives driver information including firmware-version
- and udevadm (does what hardware.py does)
+  and udevadm (does what hardware.py does)
  11) tried NL80211_CMD_GET_WIPHY, setting _WIPHY_TX_POWER_LEVEL but did
   not return the current power level - currently cannot find anything in nl80211.h
   that could be used to get tx power
@@ -30,4 +30,4 @@
  42) is there a simple way to set the format strings as constants keeping in
    mind that things like strings require a length in the format string
  46) max-tx for bands is showing 15 when iwconfig shows 30
- 51) with respect to phyadd, airmon-ng mentions something about udev changing then name
+ 47) add an explain() to errors? or hard-code additional error reporting?
