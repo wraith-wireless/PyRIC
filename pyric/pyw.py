@@ -1351,13 +1351,9 @@ def chset(card, ch, chw=None, *argv):
      :param ch: channel number
      :param chw: channel width oneof {[None|'HT20'|'HT40-'|'HT40+'}
      :param argv: netlink socket at argv[0] (or empty)
-     :returns: True on success
      NOTE:
-      o Can throw a device busy for several reason. Most likely due to
-       NetworkManager or wpa_supplicant
-      o On my system at least (Ubuntu), creating a new dev in monitor mode and
-        deleting all other existing managed interfaces allows for the new virtual
-        device's channels to be changed w/out interference from network manager
+      Can throw a device busy for several reason. Card should be "up" when
+      setting channel
     """
     try:
         nlsock = argv[0]
@@ -1389,6 +1385,9 @@ def freqset(card, rf, chw=None, *argv):
      :param rf: frequency
      :param chw: channel width oneof {[None|'HT20'|'HT40-'|'HT40+'}
      :param argv: netlink socket at argv[0] (or empty)
+     NOTE:
+      Can throw a device busy for several reason. Card should be "up" when
+      setting channel
     """
     try:
         nlsock = argv[0]
@@ -1547,6 +1546,13 @@ def devadd(card, vdev, mode, flags=None, *argv):
                   |'cook'|'active'}
      :param argv: netlink socket at argv[0] (or empty)
      :returns: the new Card
+     NOTE:
+      o the new Card will be 'down' 
+      o due to a recent bug in kernel 4.4.0-x where x is APX 28, nl80211
+      commands to add interface are not "respected" by the kernel. Namely,
+      the vdev is not used and the kernel adds a card with a "predictable"
+      name and furthermore, the new card has a different hw address (1 up from
+      the original card)
     """
     if mode not in IFTYPES: raise pyric.error(pyric.EINVAL, 'Invalid mode')
     if flags:
@@ -1562,7 +1568,7 @@ def devadd(card, vdev, mode, flags=None, *argv):
     except IndexError:
         return _nlstub_(devadd, card, vdev, mode, flags)
 
-    # if we have a Card, pull out phy index
+    # if we have a Card, pull out ifindex
     try:
         idx = card.idx
     except AttributeError:
@@ -1617,12 +1623,12 @@ def devdel(card, *argv):
     except nl.error as e:
         raise pyric.error(e.errno, e.strerror)
 
-def phyadd(phy, vdev, mode, flags=None, *argv):
+def phyadd(card, vdev, mode, flags=None, *argv):
     """
      REQUIRES ROOT PRIVILEGES
      adds a virtual interface on device having type mode (iw phy <card.phy>
       interface add <vnic> type <mode>
-     :param phy: physical index
+     :param card: Card object or physical index
      :param vdev: device name of new interface
      :param mode: 'name' of mode to operate in (must be one of in {'unspecified'|
      'ibss'|'managed'|'AP'|'AP VLAN'|'wds'|'monitor'|'mesh'|'p2p'}
@@ -1631,7 +1637,9 @@ def phyadd(phy, vdev, mode, flags=None, *argv):
                   |'cook'|'active'}
      :param argv: netlink socket at argv[0] (or empty)
      :returns: the new Card
-     NOTE: due to a recent bug in kernel 4.4.0-x where x is APX 28, nl80211
+     NOTE:
+      o the new Card will be 'down' 
+      o due to a recent bug in kernel 4.4.0-x where x is APX 28, nl80211
       commands to add interface are not "respected" by the kernel. Namely,
       the vdev is not used and the kernel adds a card with a "predictable"
       name and furthermore, the new card has a different hw address (1 up from
@@ -1649,7 +1657,13 @@ def phyadd(phy, vdev, mode, flags=None, *argv):
     try:
         nlsock = argv[0]
     except IndexError:
-        return _nlstub_(phyadd, phy, vdev, mode, flags)
+        return _nlstub_(phyadd, card, vdev, mode, flags)
+
+    # if we have a Card, pull out phy
+    try:
+        phy = card.phy
+    except AttributeError:
+        phy = card
 
     try:
         msg = nl.nlmsg_new(nltype=_familyid_(nlsock),
@@ -1670,14 +1684,9 @@ def phyadd(phy, vdev, mode, flags=None, *argv):
         raise pyric.error(e.errno, e.strerror)
 
     # get card & determine if we got a card with the specified name
-    card = Card(nl.nla_find(rmsg, nl80211h.NL80211_ATTR_WIPHY),
+    return Card(nl.nla_find(rmsg, nl80211h.NL80211_ATTR_WIPHY),
                 nl.nla_find(rmsg, nl80211h.NL80211_ATTR_IFNAME),
                 nl.nla_find(rmsg, nl80211h.NL80211_ATTR_IFINDEX))
-    if card.dev != vdev:
-        newcard = devadd(card,vdev,mode,flags)
-        devdel(card)
-        card = newcard
-    return card
 
 ################################################################################
 #### STA FUNCTIONS                                                          ####

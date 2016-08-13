@@ -174,6 +174,10 @@ v 0.1.6 Continue with STA functionality
    is no device currently present on the machine and one identifying when the
    specified dev's driver does not support nl80211
   o fixed TypeError resulting from raising pyric.error incorrectly
-  o made phyadd which accepts only the physical index and returns a card with
-   correct dev (w.r.t https://wraithwireless.wordpress.com/2016/07/24/linux-kernel-bug/)
+  o phyadd accepts either a card or a phy
   o added freqget
+  o Note: w.r.t https://wraithwireless.wordpress.com/2016/07/24/linux-kernel-bug/
+   have tested further, phyadd,devadd will work (i.e. not rename the card)
+   under the following conditions a) the type is not managed or b) there is no
+   other device currently associated with the new card's phy. Have also determined
+   that integrated cards are also suspect to this bug?

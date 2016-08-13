@@ -58,15 +58,17 @@ errorcode[EUNDEF] = "EUNDEF"  # add ours to errorcode dicts
 class error(EnvironmentError): pass
 
 # BELOW IS STILL A WORK IN PRGORESS
-def strerror(errno):
-    import os
-    if errno < 0: return "Undefined error"
-    elif errno == EPERM: return "Superuser privileges required"
-    elif errno == EINVAL: return "Invalid parameter"
-    else:
-        return os.strerror(errno)
+#def strerror(errno):
+#    import os
+#    if errno < 0: return "Undefined error"
+#    elif errno == EPERM: return "Superuser privileges required"
+#    elif errno == EINVAL: return "Invalid parameter"
+#    else:
+#        return os.strerror(errno)
+# device busy if setting channel when card is down
+# no open files if attempt to create a virtual card with same name as orginal
 
-# for us in setup.py
+# for setup.py use
 
 # redefine version for easier access
 version = __version__
