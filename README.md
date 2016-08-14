@@ -539,24 +539,134 @@ def pymon(card, start=True, ch=None):
         if pyw.modeget(card) == 'monitor':
             raise RuntimeError("Card is already in monitor mode")
         newcard = pyw.devset(card, card.dev + 'mon')
-        pyw.modeset(newcard, 'monitor')
-        if ch: pyw.chset(w1, ch, None)        
+        pyw.modeset(newcard, 'monitor')       
         pyw.up(newcard)
+        if ch: pyw.chset(w1, ch, None) 
     else:
         if pyw.modeget(card) == 'managed':
             raise RuntimeError("Card is not in monitor mode")
-        newcard = pyw.devset(card, card.dev[:-3)
+        newcard = pyw.devset(card, card.dev[:-3])
         pyw.modeset(newcard, 'managed')        
         pyw.up(newcard)
     return newcard
 ```
 
-NOTE: After a recent kernel upgrade (see my post at 
-https://wraithwireless.wordpress.com/2016/07/24/linux-kernel-bug/ for more details) 
-devadd became unusable. ATT, I have "fixed" devadd. Basically the original used
-the physical index (iw phy <phy> interface add ...). Now, it uses the ifindex. 
-The function phyadd which only accepts the physical index (phy)  is now implemented
-to allow users whose systems start with any devs.
+##### o Virtual Interfaces and Issues in Kernel 4.x 
+After recently upgrading my distro, my kernel was upgraded from 3.x to 4.x. I 
+noticed that in some situations, adding a virtual interface (VIF) did not have 
+the desired effect. Namely, new VIFs did not have the dev name I had specified.
+Furthermore, regardless of the naming convention I was currently using (old 
+school like wlan0, eth0 etc or the newer predictable names i.e. wlp3s0) the
+new VIF would have a predictable name and the MAC address would be one up from 
+that of the actual cards MAC address. For more details, check out my blog 
+at https://wraithwireless.wordpress.com/2016/07/24/linux-kernel-bug/. This is
+an issue at the kernel and nl80211 level and not a PyRIC bug.
+
+This situtation will only occur if you are attempting to (a) create a VIF with
+the same dev name as the original, (b) in managed mode and (c) there are currently
+other VIFs sharing the same phy. 
+
+```python
+>>> pyw.winterfaces()
+['alfa0']
+>>> card = pyw.getcard('alfa0')
+>>> card
+Card(phy=1,dev=alfa0,ifindex=5)
+>>> mcard
+Card(phy=1,dev=mon0,ifindex=6)
+>>> pyw.devdel(card)
+>>> pyw.winterfaces()
+['mon0']
+>>> pyw.devadd(mcard,'alfa0','managed')
+Card(phy=1,dev=alfa0,ifindex=7)
+>>> pyw.winterfaces()
+['mon0', 'wlx00c0ca59afa7']
+>>> pyw.devdel(pyw.getcard('wlx00c0ca59afa7'))
+>>> pyw.winterfaces()
+['wlan0mon', 'mon0']
+>>> pyw.phyadd(mcard,'alfa0','managed')
+Card(phy=1,dev=alfa0,ifindex=8)
+>>> pyw.winterfaces()
+['wlan0mon', 'mon0', 'wlx00c0ca59afa7']
+```
+
+All three of the above most be True for this to occur. So, for example:
+
+```python
+>>> pyw.winterfaces()
+['mon0']
+>>> pyw.devadd(mcard,'alfa0','monitor')
+Card(phy=1,dev=alfa0,ifindex=10)
+>>> pyw.winterfaces()
+['mon0', 'alfa0']
+```
+
+works because case (b) is false.
+
+Some things to note:
+* it does not matter if you are using devadd (creating a VIF via the ifindex) or
+phyadd (creating a VIF via the physical index)
+* nl80211 believes that new VIF has the name you specified so I believe this is
+something related to the kernel itself or possibly udev. If you look at the source
+code for phyadd or devadd, the returned card uses the indicators returned by the
+kernel.
+
+I had considered several options of rectifying this for PyRIC but, doing so would
+require either mutliple checks on kernel version or breaking backward compatibility
+for users with kernel 3.x and possibly breaking forward compatibility (if this 
+issue does get fixed at some future kernel version). Besides, being aware of 
+the state that must be true for this to happen, users can easily workaround it.
+
+One way, as we saw earlier, is to create a VIF in monitor mode and then set it 
+to managed.
+
+```python
+>>> pyw.winterfaces()
+['mon0']
+>>> pyw.devadd(mcard,'alfa0','monitor')
+Card(phy=1,dev=alfa0,ifindex=10)
+>>> pyw.winterfaces()
+['mon0', 'alfa0']
+>>> pyw.devdel(pyw.getcard('mon0'))
+>>> card = pyw.getcard('alfa0')
+>>> pyw.down(card)
+>>> pyw.modeset(card,'managed')
+>>> pyw.up
+<function up at 0x7f76339c99b0>
+>>> pyw.up()
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+TypeError: up() takes at least 1 argument (0 given)
+>>> pyw.up(card)
+>>> pyw.winterfaces()
+['wlan0mon', 'alfa0']
+>>> pyw.devinfo(card)
+{'wdev': 4294967302, 'RF': None, 'CF': None, 'mac': '00:c0:ca:59:af:a6', 
+'mode': 'managed', 'CHW': None, 'card': Card(phy=1,dev=alfa0,ifindex=10)}
+```
+
+But, I think this is sloppy. The better way is to use phyadd. Recall that 
+phyadd accepts either a Card or the phy and that even though a card is deleted,
+some of its reference values are still valid. In the case of deleting a card,
+the phy is still present. So, you could use a phy or a Card that was previously
+deleted because the phy is still valid. 
+
+```python
+>>> pyw.winterfaces()
+['mon0']
+>>> phy = mcard.phy
+>>> pyw.devdel(mcard)
+>>> pyw.winterfaces()
+[]
+>>> card = pyw.phyadd(phy,'alfa0','managed')
+>>> card
+Card(phy=1,dev=alfa0,ifindex=12)
+>>> pyw.winterfaces()
+['alfa0']
+```
+
+This works, but remember you have to delete all interfaces with the same phy
+as the one you are creating before creating it.
 
 #### vi. STA Related Functions
 I have recently begun adding STA functionality to PyRIC. These are not necessarily 
@@ -707,12 +817,13 @@ with (-) are not included in pip installs or PyPI downloads
   - \_\_init\_\_.py       initialize distrubution PyRIC module
   - examples              example folder
     + pentest.py          create wireless pentest environment example
-    + device_details.py   display device information
+    + info.py             display device information
   - tests (-)             test folder
     + pyw.unittest.py     unit test for pyw functions
   - docs                  User Guide resources
     + nlsend.png (-)      image for user guide
     + nlsock.png (-)      image for user guide
+    + logo.png (-)        pyric logo
     + PyRIC.tex (-)       User tex file
     + PyRIC.bib (-)       User Guide bibliography
     + PyRIC.pdf           User Guide
@@ -721,6 +832,7 @@ with (-) are not included in pip installs or PyPI downloads
   - MANIFEST.in           used by setup.py
   - README.md             this file
   - LICENSE               GPLv3 License
+  - CHANGES               revision file
   - TODO                  todos for PyRIC
   - pyric                 package directory
     + \_\_init\_\_.py     initialize pyric module
@@ -745,12 +857,13 @@ with (-) are not included in pip installs or PyPI downloads
         - nl80211_h.py    nl80211 constants
         - nl80211_c.py    nl80211 attribute policies
         - rfkill_h.py     rfkill header file
-        - ieee80211_h.py  ieee80211.h port (subset of)
+        - wlan.py         ieee80211.h port (subset of)
     + lib                 library subpackages
       * \_\_init\_\_.py   initialize lib subpackage
       * libnl.py          netlink helper functions
       * libio.py          sockios helper functions
     + nlhelp              netlinke documentation/help
+      * \_\_init\_\_.py   initialize nlhelp subpackage
       * nsearch.py        nl80211 search
       * commands.help     nl80211 commands help data
       * attributes.help   nl80211 attributes help data
