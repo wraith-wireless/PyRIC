@@ -249,10 +249,10 @@ def nl_recvmsg(sock):
             # on success, just return the orginal message
             if e.errno == nlh.NLE_SUCCESS: pass
             else: raise
-        if sock.seq != msg.seq: raise error(errno.EBADMSG,"seq. # out of order")
+        if sock.seq != msg.seq: raise error(errno.EBADMSG,"Seq. # out of order")
         return msg
     except socket.timeout:
-        raise error(-1,"socket timed out")
+        raise error(-1,"Socket timed out")
     #except socket.error as e: # this became in issue in python 3
     #    raise error(errno.ENOTSOCK,e)
     except error as e:
@@ -354,7 +354,7 @@ class GENLMsg(dict):
 
     @nltype.setter
     def nltype(self,v):
-        if v < 0: raise error(errno.ERANGE,"nltype {0} is invalid".format(v))
+        if v < 0: raise error(errno.ERANGE,"Netlink type {0} is invalid".format(v))
         self['type'] = v
 
     @property
@@ -368,7 +368,7 @@ class GENLMsg(dict):
 
     @seq.setter
     def seq(self,v):
-        if v < 1: raise error(errno.ERANGE,"invalid seq. number")
+        if v < 1: raise error(errno.ERANGE,"Invalid seq. number")
         self['seq'] = v
 
     @property
@@ -376,7 +376,7 @@ class GENLMsg(dict):
 
     @pid.setter
     def pid(self,v):
-        if v < 1: raise error(errno.ERANGE,"invalid port id")
+        if v < 1: raise error(errno.ERANGE,"Invalid port id")
         self['pid'] = v
 
     @property
@@ -384,7 +384,7 @@ class GENLMsg(dict):
 
     @cmd.setter
     def cmd(self,v):
-        if v < 0: raise error(errno.ERANGE,"invalid cmd")
+        if v < 0: raise error(errno.ERANGE,"Invalid cmd")
         self['cmd'] = v
 
     @property
@@ -444,7 +444,7 @@ def nlmsg_fromstream(stream,override=False):
             raise error(abs(e),strerror(abs(e)))
         c,_,_ = struct.unpack_from(genlh.genl_genlmsghdr,stream,nlh.NLMSGHDRLEN)
     except struct.error as e:
-        raise error(-1,"error parsing headers: {0}".format(e))
+        raise error(-1,"Error parsing headers: {0}".format(e))
 
     # create a new message with hdr values then parse the attributes
     msg = nlmsg_new(t,c,s,p,fs)
@@ -575,7 +575,7 @@ def nla_parse_set(aset,etype):
     elif etype == nlh.NLA_U32: fmt = "I"
     elif etype == nlh.NLA_U64: fmt = "Q"
     else:
-        raise error(errno.EINVAL,"set elements are not valid datatype")
+        raise error(errno.EINVAL,"Set elements are not valid datatype")
     esize = struct.calcsize(fmt)
 
     ss = []
@@ -588,7 +588,7 @@ def nla_parse_set(aset,etype):
             ss.append(s)
             idx += esize
         except struct.error:
-            raise error(errno.EINVAL,"set elements failed to unpack")
+            raise error(errno.EINVAL,"Set elements failed to unpack")
     return ss
 
 def nla_put(msg,v,a,d):
@@ -599,7 +599,7 @@ def nla_put(msg,v,a,d):
      :param a: attribute type
      :param d: attribute datatype
     """
-    if d > nlh.NLA_TYPE_MAX: raise error(errno.ERANGE,"value type is invalid")
+    if d > nlh.NLA_TYPE_MAX: raise error(errno.ERANGE,"Value type is invalid")
     msg['attrs'].append((a,v,d))
 
 # nla_put_* append data of specified datatype
@@ -626,7 +626,7 @@ def nla_putat(msg,i,v,a,d):
      :param a: attribute type
      :param d: attribute datatype
     """
-    if d > nlh.NLA_TYPE_MAX: raise error(errno.ERANGE,"invalid datatype")
+    if d > nlh.NLA_TYPE_MAX: raise error(errno.ERANGE,"Invalid datatype")
     msg['attrs'][i] = (a,v,d)
 
 def nla_pop(msg,i):

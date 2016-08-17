@@ -64,7 +64,7 @@ def io_transfer(iosock,flag,ifreq):
         return ioctl(iosock.fileno(),flag,ifreq)
     except (AttributeError,struct.error) as e:
         # either sock is not valid or a bad value passed to ifreq
-        if e.message.find('fileno'): raise error(errno.ENOTSOCK,"bad socket")
+        if e.message.find('fileno'): raise error(errno.ENOTSOCK,"Bad socket")
         else: raise error(errno.EINVAL,e)
     except IOError as e:
         # generally device cannot be found sort but can also be

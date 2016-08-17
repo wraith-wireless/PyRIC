@@ -181,3 +181,4 @@ v 0.1.6 Continue with STA functionality
    under the following conditions a) the type is not managed or b) there is no
    other device currently associated with the new card's phy. Have also determined
    that integrated cards are also suspect to this bug?
+  o made pyric error messages less ambiguous

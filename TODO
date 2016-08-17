@@ -19,15 +19,11 @@
  26) need to parse dumps (NLM_F_DUMP), for now we're good with link etc, so long
    as the card is connected but it may come up eventually especially if we want
    to add scan results
- 29) figure out how to parse the information element in pyw.link - there's some
-   good shit in it including sometimes the router os and type
+ 29) figure out how to parse the information element in pyw.link - sometimes
+     the router os and type are included
    o in link, NL80211_BSS_BEACON_IES vs NL80211_BSS_INFORMATION_ELEMENT
-     BEACON_IES may not always be presenet but appears to contain more
+     BEACON_IES may not always be present but appears to contain more
  31) add VHT processing to sta_info bitrate
  39) parsing wiphy_bands (should we add the below?)
    o _HT_MCS_SET: a 16-bit attr containing the MCS set as defined in 802.11n
    o _HT_CAPA: as in the HT information IE
- 42) is there a simple way to set the format strings as constants keeping in
-   mind that things like strings require a length in the format string
- 46) max-tx for bands is showing 15 when iwconfig shows 30
- 47) add an explain() to errors? or hard-code additional error reporting?

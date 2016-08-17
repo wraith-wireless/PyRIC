@@ -74,6 +74,7 @@ def rfkill_list():
         try:
             stream = fin.read(rfkh.RFKILLEVENTLEN)
             if _PY3_:
+                # noinspection PyArgumentList
                 stream = bytes(stream,'ascii')
                 if len(stream) < rfkh.RFKILLEVENTLEN: raise IOError('python 3')
             idx,t,op,s,h = struct.unpack(rfkh.rfk_rfkill_event,stream)

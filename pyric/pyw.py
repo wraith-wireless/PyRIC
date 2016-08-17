@@ -159,7 +159,7 @@ def iswireless(dev, *argv):
         return _iostub_(iswireless, dev)
 
     try:
-        # if the call succeeds, found to be wireless
+        # if the call succeeds, dev is found to be wireless
         _ = io.io_transfer(iosock, sioch.SIOCGIWNAME, ifh.ifreq(dev))
         return True
     except AttributeError as e:
@@ -167,7 +167,7 @@ def iswireless(dev, *argv):
     except io.error as e:
         # ENODEV or ENOTSUPP means not wireless, reraise any others
         if e.errno == pyric.ENODEV or e.errno == pyric.EOPNOTSUPP: return False
-        else: raise pyric.error(e.errno, e.strerror)
+        else: raise pyric.error(e.errno)
 
 def phylist():
     """ :returns: a list of tuples t = (physical indexe, physical name) """
@@ -636,7 +636,7 @@ def isblocked(card):
         idx = rfkill.getidx(card.phy)
         return rfkill.soft_blocked(idx), rfkill.hard_blocked(idx)
     except AttributeError:
-        raise pyric.error(pyric.ENODEV, "Card is no longer regsitered")
+        raise pyric.error(pyric.ENODEV, "Card is no longer registered")
 
 def block(card):
     """
@@ -658,7 +658,7 @@ def unblock(card):
         idx = rfkill.getidx(card.phy)
         rfkill.rfkill_unblock(idx)
     except AttributeError:
-        raise pyric.error(pyric.ENODEV, "Card no longer registered")
+        raise pyric.error(pyric.ENODEV, "Card is no longer registered")
 
 ################################################################################
 #### RADIO PROPERTIES                                                       ####
@@ -715,7 +715,7 @@ def pwrsaveset(card, on, *argv):
     except AttributeError:
         raise pyric.error(pyric.EINVAL, "Invalid Card")
     except ValueError:
-        raise pyric.error(pyric.EINVAL, "Invalid parameter on")
+        raise pyric.error(pyric.EINVAL, "Invalid parameter {0} for on".format(on))
     except nl.error as e:
         raise pyric.error(e.errno, e.strerror)
 
@@ -747,9 +747,9 @@ def covclassset(card, cc, *argv):
     if cc < wlan.COV_CLASS_MIN or cc > wlan.COV_CLASS_MAX:
         # this can work 'incorrectly' on non-int values but these will
         # be caught later during conversion
-        msg = "Cov class must be integer {0}-{1}".format(wlan.COV_CLASS_MIN,
-                                                         wlan.COV_CLASS_MAX)
-        raise pyric.error(pyric.EINVAL, msg)
+        emsg = "Cov class must be integer {0}-{1}".format(wlan.COV_CLASS_MIN,
+                                                          wlan.COV_CLASS_MAX)
+        raise pyric.error(pyric.EINVAL, emsg)
 
     try:
         nlsock = argv[0]
@@ -767,7 +767,7 @@ def covclassset(card, cc, *argv):
     except AttributeError:
         raise pyric.error(pyric.EINVAL, "Invalid Card")
     except ValueError:
-        raise pyric.error(pyric.EINVAL, "Invalid value for Cov. Class")
+        raise pyric.error(pyric.EINVAL, "Invalid value {0} for Cov. Class".format(cc))
     except nl.error as e:
         raise pyric.error(e.errno, e.strerror)
 
@@ -798,9 +798,9 @@ def retryshortset(card, lim, *argv):
     if lim < wlan.RETRY_MIN or lim > wlan.RETRY_MAX:
         # this can work 'incorrectly' on non-int values but these will
         # be caught later during conversion
-        msg = "Retry short must be integer {0}-{1}".format(wlan.RETRY_MIN,
-                                                           wlan.RETRY_MAX)
-        raise pyric.error(pyric.EINVAL, msg)
+        emsg = "Retry short must be integer {0}-{1}".format(wlan.RETRY_MIN,
+                                                            wlan.RETRY_MAX)
+        raise pyric.error(pyric.EINVAL, emsg)
 
     try:
         nlsock = argv[0]
@@ -818,7 +818,7 @@ def retryshortset(card, lim, *argv):
     except AttributeError:
         raise pyric.error(pyric.EINVAL, "Invalid Card")
     except ValueError:
-        raise pyric.error(pyric.EINVAL, "Invalid parameter value for lim")
+        raise pyric.error(pyric.EINVAL, "Invalid value {0} for lim".format(lim))
     except nl.error as e:
         raise pyric.error(e.errno, e.strerror)
 
@@ -849,9 +849,9 @@ def retrylongset(card, lim, *argv):
     if lim < wlan.RETRY_MIN or lim > wlan.RETRY_MAX:
         # this can work 'incorrectly' on non-int values but these will
         # be caught later during conversion
-        msg = "Retry long must be integer {0}-{1}".format(wlan.RETRY_MIN,
-                                                          wlan.RETRY_MAX)
-        raise pyric.error(pyric.EINVAL, msg)
+        emsg = "Retry long must be integer {0}-{1}".format(wlan.RETRY_MIN,
+                                                           wlan.RETRY_MAX)
+        raise pyric.error(pyric.EINVAL, emsg)
 
     try:
         nlsock = argv[0]
@@ -869,7 +869,7 @@ def retrylongset(card, lim, *argv):
     except AttributeError:
         raise pyric.error(pyric.EINVAL, "Invalid Card")
     except ValueError:
-        raise pyric.error(pyric.EINVAL, "Invalid parameter value for lim")
+        raise pyric.error(pyric.EINVAL, "Invalid value {0} for lim".format(lim))
     except nl.error as e:
         raise pyric.error(e.errno, e.strerror)
 
@@ -900,9 +900,9 @@ def rtsthreshset(card, thresh, *argv):
     if thresh == 'off': thresh = wlan.RTS_THRESH_OFF
     elif thresh == wlan.RTS_THRESH_OFF: pass
     elif thresh < wlan.RTS_THRESH_MIN or thresh > wlan.RTS_THRESH_MAX:
-        msg = "Thresh must be 'off' or integer {0}-{1}".format(wlan.RTS_THRESH_MIN,
-                                                               wlan.RTS_THRESH_MAX)
-        raise pyric.error(pyric.EINVAL, msg)
+        emsg = "Thresh must be 'off' or integer {0}-{1}".format(wlan.RTS_THRESH_MIN,
+                                                                wlan.RTS_THRESH_MAX)
+        raise pyric.error(pyric.EINVAL, emsg)
 
     try:
         nlsock = argv[0]
@@ -920,7 +920,7 @@ def rtsthreshset(card, thresh, *argv):
     except AttributeError:
         raise pyric.error(pyric.EINVAL, "Invalid Card")
     except ValueError:
-        raise pyric.error(pyric.EINVAL, "Invalid parameter value for thresh")
+        raise pyric.error(pyric.EINVAL, "Invalid value {0} for thresh".format(thresh))
     except nl.error as e:
         raise pyric.error(e.errno, e.strerror)
 
@@ -951,9 +951,9 @@ def fragthreshset(card, thresh, *argv):
     if thresh == 'off': thresh = wlan.FRAG_THRESH_OFF
     elif thresh == wlan.FRAG_THRESH_OFF: pass
     elif thresh < wlan.FRAG_THRESH_MIN or thresh > wlan.FRAG_THRESH_MAX:
-        msg = "Thresh must be 'off' or integer {0}-{1}".format(wlan.FRAG_THRESH_MIN,
-                                                               wlan.FRAG_THRESH_MAX)
-        raise pyric.error(pyric.EINVAL, msg)
+        emsg = "Thresh must be 'off' or integer {0}-{1}".format(wlan.FRAG_THRESH_MIN,
+                                                                wlan.FRAG_THRESH_MAX)
+        raise pyric.error(pyric.EINVAL, emsg)
 
     try:
         nlsock = argv[0]
@@ -1121,7 +1121,7 @@ def devinfo(card, *argv):
 
     dev = None # appease pycharm
     try:
-        # if we have a Card object, pull at dev,ifindex. otherwise get ifindex
+        # if we have a Card, pull out ifindex. otherwise get ifindex from dev
         try:
             dev = card.dev
             idx = card.idx
@@ -1138,13 +1138,16 @@ def devinfo(card, *argv):
         rmsg = nl.nl_recvmsg(nlsock)
     except io.error as e:
         # if we get a errno -19, it means ifindex failed & there is no device dev
-        if e.errno == pyric.ENODEV:
-            raise pyric.error(pyric.ENODEV, "No device {0} found".format(dev))
         raise pyric.error(e.errno, e.strerror)
     except nl.error as e:
-        # if we get a errno -19, it means ifindex succeeded but netlink failed
-        # most likely because the given device does not support nl80211
+        # if we get a errno -19, it is mostly likely because the card does
+        # not support nl80211. However check to ensure the card hasn't been
+        # unplugged.
         if e.errno == pyric.ENODEV:
+            try:
+                _ = _ifindex_(dev)
+            except io.error as e:
+                raise pyric.error(e.errno, "{0}. Check Card".format(e.strerror))
             raise pyric.error(pyric.EPROTONOSUPPORT, "Device does not support nl80211")
         raise pyric.error(e.errno, e.strerror)
 
@@ -1294,7 +1297,7 @@ def txset(card, setting, lvl, *argv):
         _ = nl.nl_recvmsg(nlsock)
     except ValueError:
         # converting to mBm
-        raise pyric.error(pyric.EINVAL, "Invalid txpwr {0}".format(lvl))
+        raise pyric.error(pyric.EINVAL, "Invalid value {0} for txpwr".format(lvl))
     except AttributeError:
         raise pyric.error(pyric.EINVAL, "Invalid Card")
     except nl.error as e:
@@ -1352,8 +1355,8 @@ def chset(card, ch, chw=None, *argv):
      :param chw: channel width oneof {[None|'HT20'|'HT40-'|'HT40+'}
      :param argv: netlink socket at argv[0] (or empty)
      NOTE:
-      Can throw a device busy for several reason. Card should be "up" when
-      setting channel
+      Can throw a device busy for several reason. 1) Card is down, 2) Another
+      device is sharing the phy and wpa_supplicant/Network Manage is using it
     """
     try:
         nlsock = argv[0]
@@ -1386,8 +1389,8 @@ def freqset(card, rf, chw=None, *argv):
      :param chw: channel width oneof {[None|'HT20'|'HT40-'|'HT40+'}
      :param argv: netlink socket at argv[0] (or empty)
      NOTE:
-      Can throw a device busy for several reason. Card should be "up" when
-      setting channel
+      Can throw a device busy for several reason. 1) Card is down, 2) Another
+      device is sharing the phy and wpa_supplicant/Network Manage is using it
     """
     try:
         nlsock = argv[0]
@@ -1405,10 +1408,11 @@ def freqset(card, rf, chw=None, *argv):
         nl.nl_sendmsg(nlsock, msg)
         _ = nl.nl_recvmsg(nlsock)
     except ValueError:
-        raise pyric.error(pyric.EINVAL, "Invalide channel width")
+        raise pyric.error(pyric.EINVAL, "Invalid channel width")
     except AttributeError:
         raise pyric.error(pyric.EINVAL, "Invalid Card")
     except nl.error as e:
+        if e.errno == pyric.EBUSY: raise pyric.error(e.errno,pyric.strerror(e.errno))
         raise pyric.error(e.errno, e.strerror)
 
 #### INTERFACE & MODE RELATED ####
@@ -1548,6 +1552,7 @@ def devadd(card, vdev, mode, flags=None, *argv):
      :returns: the new Card
      NOTE: the new Card will be 'down'
     """
+    if iswireless(vdev): raise pyric.error(pyric.ENOTUNIQ,"{0} already exists".format(vdev))
     if mode not in IFTYPES: raise pyric.error(pyric.EINVAL, 'Invalid mode')
     if flags:
         if mode != 'monitor':
@@ -1822,15 +1827,17 @@ def link(card, *argv):
             if idx == nl80211h.NL80211_BSS_SIGNAL_MBM:
                 info['rss'] = struct.unpack_from('i', attr, 0)[0] / 100
             if idx == nl80211h.NL80211_BSS_INFORMATION_ELEMENTS:
-                # hacking the proprietary info element attribute: (it should
-                # be a nested attribute itself, but I have currently no way of
-                # knowing what the individual indexes would mean
-                #    "\x06\x00\x00<l>SSID.....
-                # '\x06\x00' is the ie index & the ssid is the first element
-                # (from what I've seen). This is not nested. Not sure if the
-                # length is the first two bytes or just the second  Get the length
-                # of the ssid which is the 3rd,4th byte, then unpack the string
-                # starting at the fifth byte up to the specified length
+                """
+                  hack the proprietary info element attribute: (it should
+                  be a nested attribute itself, but I have currently no way of
+                  knowing what the individual indexes would mean
+                   \x06\x00\x00<l>SSID.....
+                  '\x06\x00' is the ie index & the ssid is the first element
+                  (from what I've seen). This is not nested. Not sure if the
+                  length is the first two bytes or just the second  Get the length
+                  of the ssid which is the 3rd,4th byte, then unpack the string
+                  starting at the fifth byte up to the specified length
+                """
                 try:
                     l = struct.unpack_from('>H', attr, 0)[0] # have to change the format
                     info['ssid'] = struct.unpack_from('{0}s'.format(l), attr, 2)[0]

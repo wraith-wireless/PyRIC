@@ -19,8 +19,11 @@ are permitted provided that the following conditions are met:
    contributors may be used to endorse or promote products derived from this
    software without specific prior written permission.
 
-Defines the Pyric error class and constants for some errors. All pyric errors
-will follow the 2-tuple form of EnvironmentError
+Defines the PyRIC error class and constants for some errors. All pyric errors
+will follow the 2-tuple form of EnvironmentError. Also defines constansts for
+PyPI packaging.
+
+WARNING: DO NOT import *
 
 Requires:
  linux (3.x or 4.x kernel)
@@ -32,9 +35,6 @@ Requires:
   includes: /nlhelp /lib /net /utils pyw.py
   changes:
    See CHANGES in top-level directory
-
- WARNING: DO NOT import *
-
 """
 
 __name__ = 'pyric'
@@ -46,27 +46,33 @@ __maintainer__ = 'Dale Patterson'
 __email__ = 'wraith.wireless@yandex.com'
 __status__ = 'Production'
 
-# define pyric exceptions
-#  all exceptions are tuples t=(error code,error message)
-#  we use error codes defined in errno, adding -1 to define the undefined error
-#  EUNDEF. I don't like importing all from errno but it provides conformity in
-#  error handling i.e modules using pyric.error do not need to call pyric.EUNDEF
-#  and errno.EINVAL but can call pyric.EUNDEF and pyric.EINVAL
+"""
+ define pyric exceptions
+  all exceptions are tuples t=(error code,error message)
+  we use error codes defined in errno, using EUNDEF = -1 to define an undefined
+  error I don't like importing all from errno but it provides conformity in
+  error handling i.e modules using pyric.error do not need to call pyric.EUNDEF
+  and errno.EINVAL but can call pyric.EUNDEF and pyric.EINVAL
+"""
 EUNDEF = -1                   # undefined error
 from errno import *           # make all errno errors pyric errors
 errorcode[EUNDEF] = "EUNDEF"  # add ours to errorcode dicts
-class error(EnvironmentError): pass
+class error(EnvironmentError):
+    def __init__(self,errno,errmsg=None):
+        if not errmsg: errmsg = strerror(errno)
+        EnvironmentError.__init__(self,errno,errmsg)
 
-# BELOW IS STILL A WORK IN PRGORESS
-#def strerror(errno):
-#    import os
-#    if errno < 0: return "Undefined error"
-#    elif errno == EPERM: return "Superuser privileges required"
-#    elif errno == EINVAL: return "Invalid parameter"
-#    else:
-#        return os.strerror(errno)
-# device busy if setting channel when card is down
-# no open files if attempt to create a virtual card with same name as orginal
+def strerror(errno):
+    import os
+    if errno < 0: return "Undefined error"
+    elif errno == EPERM: return "Superuser privileges required"
+    elif errno == EINVAL: return "Invalid parameter"
+    elif errno == EBUSY:
+        msg = "{0}. Make sure Card is up and no other devices share the same phy"
+        return msg.format(os.strerror(EBUSY))
+    elif errno == ENFILE: return "There are no available netlink sockets"
+    else:
+        return os.strerror(errno)
 
 # for setup.py use
 # redefine version for easier access
