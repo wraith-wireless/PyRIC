@@ -36,12 +36,18 @@ __status__ = 'Production'
 
 try:
     # load urllib related for python 2
+    # noinspection PyCompatibility
     from urllib2 import Request as url_request
+    # noinspection PyCompatibility
     from urllib2 import urlopen as url_open
+    # noinspection PyCompatibility
     from urllib2 import URLError as url_error
 except ImportError:
+    # noinspection PyCompatibility,PyUnresolvedReferences
     from urllib.request import Request as url_request
+    # noinspection PyCompatibility,PyUnresolvedReferences
     from urllib.request import urlopen as url_open
+    # noinspection PyUnresolvedReferences
     from urllib import error as url_error
 import os,sys,datetime,time
 import pyric

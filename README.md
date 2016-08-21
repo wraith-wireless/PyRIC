@@ -35,7 +35,8 @@ it's initial inception, PyRIC has grown. PyRIC puts iw, ifconfig, rfkill,
 udevadm, airmon-ng and macchanger in your hands (or your program).
 
 ### a. Additions to iw
-Several "extensions" have been added to iw:
+Several "extensions" have been added to iw (See docs/PyRIC.pdf for more
+information):
 * Persistent sockets: pyw provides the caller with functions & ability to pass
 their own netlink (or ioctl socket) to pyw functions;
 * One-time request for the nl80211 family id: pyw stores the family id in a

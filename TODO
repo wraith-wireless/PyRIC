@@ -1,8 +1,3 @@
- 8) Two commands that would add information of minor value
- o ethtool. uses ioctl but does not follow same pattern as ifconfig seems
-    to use
-  - ethtool -i <dev> gives driver information including firmware-version
-  and udevadm (does what hardware.py does)
  11) tried NL80211_CMD_GET_WIPHY, setting _WIPHY_TX_POWER_LEVEL but did
   not return the current power level - currently cannot find anything in nl80211.h
   that could be used to get tx power

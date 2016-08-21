@@ -32,6 +32,7 @@ Linux header ports for netlink et al.
   o changed policies from list to dict
   o removed nle_error related as we use python errno
   o added ip4 to sockaddr and set ip4 to ifreq
+  o commented out sockios flags that are not currently being used
 
 """
 

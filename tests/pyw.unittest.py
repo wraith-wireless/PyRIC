@@ -23,7 +23,6 @@ Ran 83 tests in 5.919s
 
 OK
 
-
 NOTE:
  1) functions disconnect and link require a connection, they are tested/confirmed
     manually
@@ -162,17 +161,17 @@ class MacSetTestCase(CardTestCase):
 #  broadcastset
 class InetGetSetTestCase(CardTestCase):
     def test_inetgetset(self):
-        self.assertEquals(None,pyw.inetset(self.card,pri['ip'],pri['mask'],pri['bcast']))
-        self.assertEqual(pri['ip'],pyw.inetget(self.card)[0])
+        self.assertEquals(None,pyw.ifaddrset(self.card,pri['ip'],pri['mask'],pri['bcast']))
+        self.assertEqual(pri['ip'],pyw.ifaddrget(self.card)[0])
     def test_invalidcardarg(self):
-        self.assertRaises(error,pyw.inetget,'bad0')
-        self.assertRaises(error,pyw.inetset,'bad0',pri['ip'],pri['mask'],pri['bcast'])
+        self.assertRaises(error,pyw.ifaddrget,'bad0')
+        self.assertRaises(error,pyw.ifaddrset,'bad0',pri['ip'],pri['mask'],pri['bcast'])
     def test_invalidiparg(self):
-        self.assertRaises(error,pyw.inetset,self.card,'192.168',pri['mask'],pri['bcast'])
+        self.assertRaises(error,pyw.ifaddrset,self.card,'192.168',pri['mask'],pri['bcast'])
     def test_invalidmaskarg(self):
-        self.assertRaises(error,pyw.inetset,self.card,pri['ip'],'255.255',pri['bcast'])
+        self.assertRaises(error,pyw.ifaddrset,self.card,pri['ip'],'255.255',pri['bcast'])
     def test_invalidbcastarg(self):
-        self.assertRaises(error,pyw.inetset,self.card,pri['ip'],pri['mask'],'192.168')
+        self.assertRaises(error,pyw.ifaddrset,self.card,pri['ip'],pri['mask'],'192.168')
 
 # isup, test only card check
 class IsUpTestCase(CardTestCase):

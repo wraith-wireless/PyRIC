@@ -22,7 +22,6 @@ are permitted provided that the following conditions are met:
 Definition of constants et al found in IEEE Std 802.11-2012
 
 Std will refer to IEEE Std 802.11-2012
-
 """
 
 __name__ = 'wlan'

@@ -242,6 +242,8 @@ IFFLAGLEN = struct.calcsize(ifr_flags)
 IFIFINDEXLEN = struct.calcsize(ifr_ifindex)
 IWNAMELEN = struct.calcsize(ifr_iwname)
 IWTXPWRLEN = struct.calcsize(ifr_iwtxpwr)
+
+# noinspection PyArgumentList
 def ifreq(ifrn,ifru=None,param=None):
     """
      creates a 'packed' struct cooresponding loosely to the ifreq struct. Padded

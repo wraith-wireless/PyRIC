@@ -24,6 +24,7 @@ are permitted provided that the following conditions are met:
  changes:
   o added nl80211_c to handle attribute policies
    - added nl80211_parse_freqs to parse out supported frequencies
+
 """
 
 __name__ = 'wireless'

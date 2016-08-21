@@ -63,6 +63,10 @@ class error(EnvironmentError):
         EnvironmentError.__init__(self,errno,errmsg)
 
 def strerror(errno):
+    """
+    :param errno: error code
+    :returns: error message
+    """
     import os
     if errno < 0: return "Undefined error"
     elif errno == EPERM: return "Superuser privileges required"

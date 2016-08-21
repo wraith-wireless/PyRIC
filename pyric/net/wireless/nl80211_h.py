@@ -3869,7 +3869,6 @@ NL80211_CRIT_PROTO_UNSPEC = 0
 NL80211_CRIT_PROTO_DHCP   = 1
 NL80211_CRIT_PROTO_EAPOL  = 2
 NL80211_CRIT_PROTO_APIPA  = 3
-# add other protocols before this one
 NUM_NL80211_CRIT_PROTO    = 4
 
 # maximum duration for critical protocol measures

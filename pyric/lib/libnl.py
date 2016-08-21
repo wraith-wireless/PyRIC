@@ -182,7 +182,7 @@ def nl_socket_alloc(pid=None,grps=0,seq=None,rx=None,tx=None,timeout=None):
     tx = tx or BUFSZ
     if tx < 128 or tx > _maxbufsz_(): raise error(errno.EINVAL,"Invalid tx size")
 
-    # create the socket and rturn it
+    # create the socket and return it
     try:
         s = socket.socket(socket.AF_NETLINK,socket.SOCK_RAW,nlh.NETLINK_GENERIC)
         s.setsockopt(socket.SOL_SOCKET,socket.SO_SNDBUF,tx)
@@ -696,7 +696,9 @@ def _attrpack_(a,v,d):
     elif d == nlh.NLA_U32: attr = struct.pack("I",v)
     elif d == nlh.NLA_U64: attr = struct.pack("Q",v)
     elif d == nlh.NLA_STRING:
-        if _PY3_: v = bytes(v,'ascii')
+        if _PY3_:
+            # noinspection PyArgumentList
+            v = bytes(v,'ascii')
         attr = struct.pack("{0}sx".format(len(v)),v)
     elif d == nlh.NLA_FLAG: attr = '' # a 0 sized attribute
     elif d == nlh.NLA_MSECS: attr = struct.pack("Q",v)

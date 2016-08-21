@@ -75,15 +75,6 @@ NETLINK_INET_DIAG = NETLINK_SOCK_DIAG
 MAX_LINKS = 32
 
 """
-struct sockaddr_nl {
-	__kernel_sa_family_t	nl_family;	/* AF_NETLINK	*/
-	unsigned short	nl_pad;		/* zero		*/
-	__u32		nl_pid;		/* port ID	*/
-       	__u32		nl_groups;	/* multicast groups mask */
-};
-"""
-
-"""
 struct nlmsghdr {
 	__u32		nlmsg_len;	 /* Length of message including header */
 	__u16		nlmsg_type;	 /* Message content */
@@ -152,14 +143,6 @@ def NLMSG_ALIGN(l): return (l+NLMSG_ALIGNTO-1) & ~(NLMSG_ALIGNTO-1)
 def NLMSG_LENGTH(l): return l+NLMSGHDRLEN
 def NLMSG_SPACE(l): return NLMSG_ALIGN(NLMSG_LENGTH(l))
 def NLMSG_ALIGNBY(l): return NLMSG_ALIGN(l) - l
-# still working the below out
-#NLMSG_DATA(nlh)  ((void*)(((char*)nlh) + NLMSGHDRLEN))
-#NLMSG_NEXT(hl,len)	 ((len) -= NLMSG_ALIGN((nlh)->nlmsg_len), \
-#				  (struct nlmsghdr*)(((char*)(nlh)) + NLMSG_ALIGN((nlh)->nlmsg_len)))
-#NLMSG_OK(nlh,len) ((len) >= (int)sizeof(struct nlmsghdr) && \
-#			   (nlh)->nlmsg_len >= sizeof(struct nlmsghdr) && \
-#			   (nlh)->nlmsg_len <= (len))
-#NLMSG_PAYLOAD(nlh,len) ((nlh)->nlmsg_len - NLMSG_SPACE((len)))
 
 NLMSG_NOOP     = 0x1 # Nothing.
 NLMSG_ERROR    = 0x2 # Error
@@ -200,43 +183,12 @@ NETLINK_NO_ENOBUFS      = 5
 NETLINK_RX_RING         = 6
 NETLINK_TX_RING         = 7
 
-"""
-struct nl_pktinfo {
-	__u32	group;
-};
-"""
-
-"""
-struct nl_mmap_req {
-	unsigned int	nm_block_size;
-	unsigned int	nm_block_nr;
-	unsigned int	nm_frame_size;
-	unsigned int	nm_frame_nr;
-};
-"""
-
-"""
-struct nl_mmap_hdr {
-	unsigned int	nm_status;
-	unsigned int	nm_len;
-	__u32		nm_group;
-	/* credentials */
-	__u32		nm_pid;
-	__u32		nm_uid;
-	__u32		nm_gid;
-};
-"""
-
 # nume nl_nmap_status
 NL_MMAP_STATUS_UNUSED   = 0
 NL_MMAP_STATUS_RESERVED = 1
 NL_MMAP_STATUS_VALID    = 2
 NL_MMAP_STATUS_COPY     = 3
 NL_MMAP_STATUS_SKIP     = 4
-
-#NL_MMAP_MSG_ALIGNMENT		NLMSG_ALIGNTO
-#NL_MMAP_MSG_ALIGN(sz)		__ALIGN_KERNEL(sz, NL_MMAP_MSG_ALIGNMENT)
-#NL_MMAP_HDRLEN			NL_MMAP_MSG_ALIGN(sizeof(struct nl_mmap_hdr))
 
 NET_MAJOR = 36 # Major 36 is reserved for networking
 
@@ -263,7 +215,6 @@ NETLINK_CONNECTED   = 1
  */
 """
 
-# Attribute Datatypes
 """
  I add two datatypes to the netlink definition:
  NLA_ERROR: designates an attribute that failed during unpacking
@@ -321,10 +272,6 @@ def nlattrhdr(alen,atype):
 NLA_F_NESTED		= (1 << 15)
 NLA_F_NET_BYTEORDER	= (1 << 14)
 NLA_TYPE_MASK		= ~(NLA_F_NESTED | NLA_F_NET_BYTEORDER)
-
-#NLA_ALIGNTO    = 4
-#NLA_ALIGN(len)	= (((len) + NLA_ALIGNTO - 1) & ~(NLA_ALIGNTO - 1))
-#NLA_HDRLEN		= ((int) NLA_ALIGN(sizeof(struct nlattr)))
 
 # defined error codes
 # only use success and failure -> using errno for other error numbers

@@ -26,6 +26,7 @@ are permitted provided that the following conditions are met:
    o added mac address related to hardware.py
    o randhw does not force an ouis dict, if not present, randomly generates the
     oui and the ulm
+
 """
 
 __name__ = 'utils'

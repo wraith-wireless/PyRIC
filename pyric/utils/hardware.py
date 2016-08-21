@@ -80,6 +80,7 @@ def randhw(ouis=None):
 
 def ifcard(dev):
     """
+     get driver and chipset for dev
      :param dev: device name
      :returns: tuple t = (driver,chipset)
     """
@@ -88,6 +89,7 @@ def ifcard(dev):
 
 def ifdriver(dev):
     """
+     get driver for dev
      :param dev: device name
      :returns: driver (or unknown)
     """

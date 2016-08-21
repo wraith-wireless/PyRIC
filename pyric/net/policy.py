@@ -81,12 +81,3 @@ nla_dts['ctrl_attr_mcast'] = {genlh.CTRL_ATTR_MCAST_GRP_UNSPEC:nlh.NLA_UNSPEC,
                               genlh.CTRL_ATTR_MCAST_GRP_ID:nlh.NLA_U32}
 
 nla_dts['nl80211_attr'] = nl80211c.nl80211_policy
-
-# ATT we do include the below as defined in nl80211_c
-#nla_dts['nl80211_key'] = nl80211c.nl80211_key_policy
-#nla_dts['nl80211_wowlan_trig'] = nl80211_wowlan_trig_policy
-#nla_dts['nl80211_wowlan_tcp'] = nl80211_wowlan_tcp_policy
-#nla_dts['nl80211_coalesce'] = nl80211_coalesce_policy
-#nla_dts['nl80211_rekey'] = nl80211_rekey_policy
-#nla_dts['nl80211_match'] = nl80211_match_policy
-#nla_dts['nl80211_plan'] = nl80211_plan_policy

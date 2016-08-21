@@ -417,23 +417,19 @@ of any better naming convention}, Listing \ref{lst:template} and stubs Listing
 \begin{lstlisting}[caption={A Basic Netlink Function Template},
                    label={lst:template},
                    language=Python]
-def fcttemplate(arg0,arg1,..,argn,*argv):
+def fcttemplate(arg0,arg1,..,argn,nlsock=None):
     # put parameter validation (if any) here
-    try:
-        nlsock = argv[0]
-    except IndexError:
-        return _nlstub_(fcttemplate,arg0,arg1,...,argn)
-        
+	if nlsock is None: _nlstub_(fcttemplate,arg0,arg1,...,argn)     
+
     # command execution
     ...
     return results
 \end{lstlisting}
 
-The template function in Listing \ref{lst:template} checks if argv has a netlink
-socket\footnote{ioctl calls operate in the same manner} at index 0. If so, it
-proceeds to execution. If there is no socket, the stub is executed which creates 
-one. If something other than a netlink socket is at argv[0], an error will be 
-raised during execution. \\
+The template function in Listing \ref{lst:template} checks if nlsock is instantiatd
+\footnote{ioctl calls operate in the same manner}. If so, it proceeds to execution.
+If there is no socket, the stub is executed which creates one. If something other
+than a netlink socket is at argv[0], an error will be raised during execution. \\
 
 \begin{lstlisting}[caption={Function \_nlstub\_},
                    label={lst:stub},
@@ -442,7 +438,7 @@ def _nlstub_(fct,*argv):
     nlsock = None
     try:
         nlsock = nlsock = nl.nl_socket_alloc()
-        argv = list(argv) + [nlsock]
+        argv = list(argv) + nlsock=None
         return fct(*argv)
     except pyric.error: 
         raise # catch & release
@@ -716,128 +712,131 @@ disconnects which results in a new phy and ifindex.
 
 \subsection{Functions}
 \begin{itemize}
-\item interfaces(): (ifconfig), type: filesystem, returns list of all network dev
-\item isinterface(dev): (ifconfig <dev>) type: filesystem, check dev is an interface
-\item winterfaces([iosock]): (iwconfig), type: ioctl, list wireless interfaces
-\item iswireless(dev,[iosock]): (iwconfig <dev>), type: ioctl, check dev is a 
+\item interfaces(): (ifconfig), type: filesystem, returns list of all network 
+device names
+\item isinterface(dev): (ifconfig <dev>) type: filesystem, checks that dev is a
+device name
+\item winterfaces(iosock=None): (iwconfig), type: ioctl, list wireless device 
+names
+\item iswireless(dev,iosock=None): (iwconfig <dev>), type: ioctl, check dev is a 
 wireless interface
 \item phylist(): (iw phy | grep wiphy) type: N/A, list phy indexes and phy names 
 present on system
-\item regget([nlsock]: (iw reg get), type: netlink, get regulatory domain
-\item regset(rd,[nlsock]): (iw reg set <rd>), type: netlink, set regulatory domain 
+\item regget(nlsock=None: (iw reg get), type: netlink, get regulatory domain
+\item regset(rd,nlsock=None): (iw reg set <rd>), type: netlink, set regulatory domain 
 to rd
-\item getcard(dev,[nlsock]) (N/A), type: hybrid netlink and ioctl: get a Card 
+\item getcard(dev,nlsock=None) (N/A), type: hybrid netlink and ioctl: get a Card 
 object for dev
-\item validcard(card,[nlsock]): (N/A), type: (hyrbrid netlink and ioctl), verify
+\item validcard(card,nlsock=None): (N/A), type: (hyrbrid netlink and ioctl), verify
 card is still valid
-\item macget(card,[iosock]): (ifconfig), type: ioctl, determine if card is up
+\item macget(card,iosock=None): (ifconfig), type: ioctl, determine if card is up
 or down
-\item macset(card,mac,[iosock]): (ifconfig card.<dev> hw ether <mac>), type: 
+\item macset(card,mac,iosock=None): (ifconfig card.<dev> hw ether <mac>), type: 
 ioctl, set card's hw address to mac
-\item isup(card,[iosock]): (ifconfig card.<dev>) 
-\item up(card,[iosock]) (ifconfig card.<dev> up), type: ioctl, bring card up
-\item down(card,[iosock]): (ifconfig card.<dev> down), type: ioctl, bring card 
+\item isup(card,iosock=None): (ifconfig card.<dev>) 
+\item up(card,iosock=None) (ifconfig card.<dev> up), type: ioctl, bring card up
+\item down(card,iosock=None): (ifconfig card.<dev> down), type: ioctl, bring card 
 down
 \item isblocked(card): (rfkill list <rfkill\_idx>): type N/A returns tuple 
 (Soft Block State, Hard Block State) 
 \item block(card): (rfkill block <rfkill\_idx>) type: N/A, soft blocks card
 \item unblock(card): (rfkill unblock <rfkill\_idx>) type: N/A, removes the soft 
 block on card
-\item pwrsaveget(card,[nlsock]) (iw dev card.<dev> get power\_save) type: netlink
+\item pwrsaveget(card,nlsock=None) (iw dev card.<dev> get power\_save) type: netlink
 get card's power save state True = on, False = off
-\item pwrsaveset(card,on,[nlsock]) (iw dev card.<dev> set power\_save <on>) type:
-netlink set card's power save state True = on, False = off
-\item covclassget(card,[nlsock]) (iw phy card.<phy> get coverage <cc>) type:
+\item pwrsaveset(card,on,nlsock=None) (iw dev card.<dev> set power\_save <on>) type:
+netlink, set card's power save state True = on, False = off
+\item covclassget(card,nlsock=None) (iw phy card.<phy> get coverage <cc>) type:
 netlink get card's coverage class
-\item covclassset(card,cc,[nlsock]) (iw phy card.<phy> set coverage <cc>) type:
+\item covclassset(card,cc,nlsock=None) (iw phy card.<phy> set coverage <cc>) type:
 netlink set card's coverage class
-\item retryshortget(card,[nlsock]) (iw phy card.<phy> info | grep 'retry short')
+\item retryshortget(card,nlsock=None) (iw phy card.<phy> info | grep 'retry short')
 type:netlink get card's retry short limit
-\item retryshortset(card,lim,[nlsock]) (iw phy card.<phy> set retry short <lim>)
+\item retryshortset(card,lim,nlsock=None) (iw phy card.<phy> set retry short <lim>)
 type:netlink set card's retry short limit. NOTE: although 255 is specified as the
 max limit for this and the long retry, kernel v4 will not allow it.
-\item retrylongget(card,[nlsock]) (iw phy card.<phy> info | grep 'retry long')
+\item retrylongget(card,nlsock=None) (iw phy card.<phy> info | grep 'retry long')
 type:netlink get card's retry long limit
-\item retrylongset(card,lim,[nlsock]) (iw phy card.<phy> set retry long <lim>)
+\item retrylongset(card,lim,nlsock=None) (iw phy card.<phy> set retry long <lim>)
 type:netlink set card's retry long limit
-\item rtsthreshget(card,[nlsock]) (iw phy card.<phy> info | grep rts) type: 
+\item rtsthreshget(card,nlsock=None) (iw phy card.<phy> info | grep rts) type: 
 netlink set card's RTS threshold
-\item rtsthreshset(card,thresh,[nlsock]) (iw phy card.<phy> set rts <thresh>) type: 
+\item rtsthreshset(card,thresh,nlsock=None) (iw phy card.<phy> set rts <thresh>) type: 
 netlink set card's RTS threshold
-\item fragthreshget(card,[nlsock]) (iw phy card.<phy> info | grep frag) type: 
+\item fragthreshget(card,nlsock=None) (iw phy card.<phy> info | grep frag) type: 
 netlink get card's fragmentation threshold
-\item fragthreshset(card,thresh,[nlsock]) (iw phy card.<phy> set frag <thresh>) type: 
+\item fragthreshset(card,thresh,nlsock=None) (iw phy card.<phy> set frag <thresh>) type: 
 netlink set card's fragmentation threshold
-\item inetget(card,[iosock]): (ifconfig card.<dev>), type: ioctl, get ip4 address,
+\item ifaddrget(card,iosock=None): (ifconfig card.<dev>), type: ioctl, get ip4 address,
 netmask and broadcast address of card
-\item inetset(card,ipaddr,netmask,broadcast,[iosock]): (ifconfig card/<dev> <ipaddr>
-netmask <netmask> broadcast <broadcast>), type: ioctl, set the interface addresses
-of the card
-\item ip4set(card,ipaddr,[iosock]): (ifconfig card.<dev> <ipaddr>), type: ioctl,
+\item ifaddrset(card,ipaddr,netmask,broadcast,iosock=None): (ifconfig card/<dev> 
+<ipaddr> netmask <netmask> broadcast <broadcast>), type: ioctl, set the interface 
+addresses of the card
+\item inetset(card,ipaddr,iosock=None): (ifconfig card.<dev> <ipaddr>), type: ioctl,
 set the card's ip4 address
-\item netmaskset(card,netmask,[iosock]): (ifconfig card.<dev> netmask <netmask>), 
+\item maskset(card,netmask,iosock=None): (ifconfig card.<dev> netmask <netmask>), 
 type: ioctl, set the card's netmask
-\item broadcastset(card,broadcast,[iosock]): (ifconfig card.<dev> broadcast 
+\item bcastset(card,broadcast,iosock=None): (ifconfig card.<dev> broadcast 
 <broadcast>), type: ioctl, set the card's broadcast address
-\item devfreqs(card,[nlsock]): (iw phy card.phy info), type: netlink, get card's 
+\item devfreqs(card,nlsock=None): (iw phy card.phy info), type: netlink, get card's 
 supported frequencies
-\item devchs(card,[nlsock]): (iw phy card.phy info), type: netlink, get card's 
+\item devchs(card,nlsock=None): (iw phy card.phy info), type: netlink, get card's 
 supported channels
-\item devstds(card,[nlsock]): (iwconfig card.<dev> | grep IEEE), type: nlsock, 
+\item devstds(card,nlsock=None): (iwconfig card.<dev> | grep IEEE), type: nlsock, 
 returns a list of card's 802.11 supported standards by letter designator
-\item devmodes(card,[nlsock]): (iw phy card.phy info | grep interface), type:
+\item devmodes(card,nlsock=None): (iw phy card.phy info | grep interface), type:
 netlink, get card's supported modes
-\item devcmds(card,[nlsock]): (iw phy card.phy info | grep commands), type:
+\item devcmds(card,nlsock=None): (iw phy card.phy info | grep commands), type:
 netlink, get card's supported commands
-\item ifinfo(card,[iosock]): (ifconfig card.<dev>), type: ioctl, get hardware 
+\item ifinfo(card,iosock=None): (ifconfig card.<dev>), type: ioctl, get hardware 
 related info for card 
-\item devinfo(card,[nlsock]): (iw dev card.<dev> info), type: netlink, get info 
+\item devinfo(card,nlsock=None): (iw dev card.<dev> info), type: netlink, get info 
 for dev 
-\item phyinfo(card,[nlsock]): (iw phy card.<phy> info), type: netlink, get info
+\item phyinfo(card,nlsock=None): (iw phy card.<phy> info), type: netlink, get info
 for phy
-\item ifaces(card,[nlsock]): (APX iw card.dev | grep phy\#), type: netlink, get all
+\item ifaces(card,nlsock=None): (APX iw card.dev | grep phy\#), type: netlink, get all
 cards (w/ modes) of interfaces sharing the same phy as card
-\item txset(card,pwr,lvl,[nlsock]) (iw phy phy0 set txpower <lvl> <pwr>), type: 
+\item txset(card,pwr,lvl,nlsock=None) (iw phy phy0 set txpower <lvl> <pwr>), type: 
 netlink,sets the tx power to pwr (in dBm) with level setting lvl 
-\item txget(card,[iosock]): (iwconfig card.<dev> | grep Tx-Power card), type: 
+\item txget(card,iosock=None): (iwconfig card.<dev> | grep Tx-Power card), type: 
 ioctl, get card's transmission power
-\item chget(card,[nlsock]): (iw dev <card.dev> info | grep channel), type: 
+\item chget(card,nlsock=None): (iw dev <card.dev> info | grep channel), type: 
 netlink, get card's current channel 
-\item chset(card,ch,chw,[nlsock]): iw phy <card.phy> set channel <ch> <chw>), 
+\item chset(card,ch,chw=None,nlsock=None): iw phy <card.phy> set channel <ch> <chw>), 
 type: netlink, set card's current channel to ch with width chw
-\item freqget(card,[nlsock]): (iw dev <card.dev> info | grep channel), type: 
+\item freqget(card,nlsock=None): (iw dev <card.dev> info | grep channel), type: 
 netlink, get card's current frequency
-\item freqset(card,rf,chw,[nlsock]): iw phy <card.phy> set freq <rf> <chw>), 
+\item freqset(card,rf,chw=None,nlsock=None): iw phy <card.phy> set freq <rf> <chw>), 
 type: netlink, set card's current frequency to rf with width chw
-\item devmodes(card,[iosock]): (iw phy card.<phy>), type: netlink, get modes 
+\item devmodes(card,iosock=None): (iw phy card.<phy>), type: netlink, get modes 
 supported by card
-\item modeset(card,mode,[flags],[nlsock]): (iw dev card.<dev> set type <mode> 
+\item modeset(card,mode,flags=None,nlsock=None): (iw dev card.<dev> set type <mode> 
 [flags]), type: netlink, set card's mode to mode with flags (if mode is monitor)
-\item modeget(card[nlsock]): (iw dev card.<dev> info | grep mode), type: netlink,
+\item modeget(card,nlsock=None): (iw dev card.<dev> info | grep mode), type: netlink,
 get card's mode
-\item devset(card,ndev,[nlsock]): (N/A) sets the dev (name) of card to ndev 
-\item phyadd(phy,vnic,mode,[flags],[nlsock]): (iw phy <phy> interface add <vnic>
+\item devset(card,ndev,nlsock=None): (N/A) sets the dev (name) of card to ndev 
+\item phyadd(phy,vnic,mode,flags=None,nlsock=None): (iw phy <phy> interface add <vnic>
 type <mode> flags <flags>)\footnote{There is a bug in some kernel v4.4.0-x 
 where the given dev name is ignored and a system chosen one is used instead. See 
 https://wraithwireless.wordpress.com. Whenever possible, use devadd to create 
 interfaces instead.}, type: netlink, creates a new virtual interface with dev vdev, 
 in mode and using flags. Note: flags are only supported when creating a monitor mode
-\item devadd(card (or ifindex),vnic,mode,[flags],[nlsock]): (iw phy card.<dev> 
+\item devadd(card (or ifindex),vnic,mode,[flags],nlsock=None): (iw phy card.<dev> 
 interface add <vnic> type <mode> flags <flags>), type: netlink, creates a new virtual 
 interface with dev vdev, in mode and using flags. Note: flags are only supported
 when creating a monitor mode. This function accepts either a Card object or a 
 ifindex.
-\item devdel(card,[nlsock]): (iw card.<dev> del), type: netlink, deletes card
+\item devdel(card,nlsock=None): (iw card.<dev> del), type: netlink, deletes card
 \begin{itemize}
-\item isconnected(card, [nlsock]): (iw dev card.<dev> info | grep channel), type: 
+\item isconnected(card,nlsock=None): (iw dev card.<dev> info | grep channel), type: 
 netlink, determines if card is connected
-\item connect(card, ssid, bssid, rf, [nlsock]): (iw dev card.<dev> connect <ssid>
+\item connect(card,ssid,bssid=None,rf=None,nlsock=None): (iw dev card.<dev> connect <ssid>
 <rf> <bssid>) connects to AP SSID with BSSID
-\item disconnect(card, [nlsock]): (iw dev card.<dev> disconnect), type: netlink,
+\item disconnect(card, nlsock=None): (iw dev card.<dev> disconnect), type: netlink,
 disconnects card from AP 
-\item link(card, [nlsock]): (iw dev card.<dev> link), type: netlink, displays
+\item link(card, nlsock=None): (iw dev card.<dev> link), type: netlink, displays
 link specific details, i.e. AP details that card is connected to
-\item stainfo(card, mac, [nlsock]): (iw dev card.<dev> link) type: netlink, displays
+\item stainfo(card, mac, nlsock=None): (iw dev card.<dev> link) type: netlink, displays
 tx, rx metrics of the AP that card is connected to
 \item \_hex2mac\_(v): returns a ':' separated mac address from byte stream v
 \item \_mac2hex\_(v): returns a hex string corresponding to mac address v
@@ -849,9 +848,9 @@ tx, rx metrics of the AP that card is connected to
 \item \_unsetf\_(flags,flag): set flag in flags to off
 \item \_familyid\_(nlsock): returns and sets the Netlink family id for nl80211, 
 only called once per module import
-\item \_ifindex\_(dev,[iosock]): returns dev's ifindex
-\item \_flagsget\_(dev,[iosock]): get's the dev's interface flags
-\item \_flagsset\_(dev,flags,[iosock]): set's the dev's interface flags
+\item \_ifindex\_(dev,iosock=None): returns dev's ifindex
+\item \_flagsget\_(dev,iosock=None): get's the dev's interface flags
+\item \_flagsset\_(dev,flags,iosock=None): set's the dev's interface flags
 \item \_iftypes\_(i): returns the mode corresponding to i
 \item \_bands\_(band): futher parses band attribute returns dict of bands 
 containting rf information and rate information

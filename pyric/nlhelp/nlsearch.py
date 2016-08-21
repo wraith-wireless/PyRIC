@@ -39,7 +39,7 @@ import json
 import pyric
 import pyric.net.wireless.nl80211_h as nl80211h
 
-# where are we?
+# get current working directory
 fpath = os.path.dirname(os.path.realpath(__file__))
 
 # read in the files here

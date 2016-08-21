@@ -19,8 +19,8 @@ are permitted provided that the following conditions are met:
    contributors may be used to endorse or promote products derived from this
    software without specific prior written permission.
 
-Basic wrappers providing functionality for socket creation/deletion and send/recv
-w.r.t ioctl calls
+Basic wrappers providing functionality for socket creation/deletion and transfer
+i.e. send/recv w.r.t ioctl calls
 
 """
 

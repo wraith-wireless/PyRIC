@@ -182,3 +182,16 @@ v 0.1.6 Continue with STA functionality
    other device currently associated with the new card's phy. Have also determined
    that integrated cards are also suspect to this bug?
   o made pyric error messages less ambiguous
+  o changed template and stub so that all pyw functions can now use named parameters
+   if desired
+    - i.e. pyw.freqset(card=<Card>,rf=2412,nlsock=<nlsocket>) or
+           pyw.freqset(<Card>,2412,None,<nlsocket>)
+  o renamed the following functions:
+   - inetget to ifaddrget
+   - inetset to ifaddrset
+   - ip4set to inetset
+   - netmaskset to maskset
+   - broadcastset to bcastset
+  o adddres related functions mac and ifaddr return True on success, False otherwise
+  o commented out constants in sockios_h that are not being used
+   - no significant change but will reduce bytecode size

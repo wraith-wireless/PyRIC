@@ -47,6 +47,7 @@ NOTE:
   - this may be due to bug in ubuntu and not present in other distros
  o rfkill does not do sanity checks on the index, rfkill.py will through error
   if the index does not exist
+  
 """
 
 __name__ = 'rfkill_h'

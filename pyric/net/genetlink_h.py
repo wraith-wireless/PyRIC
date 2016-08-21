@@ -44,7 +44,6 @@ __status__ = 'Production'
 import struct
 
 GENL_NAMSIZ	= 16 # length of family name
-
 GENL_MIN_ID	= 0x10 # hardcoded from netlink_h
 GENL_MAX_ID	= 1023
 
