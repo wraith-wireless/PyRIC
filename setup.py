@@ -21,7 +21,6 @@ are permitted provided that the following conditions are met:
    software without specific prior written permission.
 
 sudo pip install PyRIC
-
 """
 
 #__name__ = 'setup'

@@ -67,6 +67,7 @@ NOTE:
      devadd which will accept a Card or a phy
  2) All functions allow pyric errors to pass through. Callers must catch these
     if they desire
+
 """
 
 __name__ = 'pyw'

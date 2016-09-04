@@ -40,7 +40,7 @@ Requires:
 __name__ = 'pyric'
 __license__ = 'GPLv3'
 __version__ = '0.1.6.1'
-__date__ = 'August 2016'
+__date__ = 'September 2016'
 __author__ = 'Dale Patterson'
 __maintainer__ = 'Dale Patterson'
 __email__ = 'wraith.wireless@yandex.com'
@@ -92,9 +92,9 @@ PyRIC (is a Linux only) library providing wireless developers and pentesters the
 ability to identify, enumerate and manipulate their system's wireless cards
 programmatically in Python. Pentesting applications and scripts written in Python
 have increased dramatically in recent years. However, these tools still rely on
-Linux command lines tools to setup and prepare and restore the system for use.
-Until now. Why use subprocess.Popen, regular expressions and str.find to interact
-with your wireless cards? PyRIC is:
+Linux command lines tools for setup/preparation and restoration of the system for
+use. Until now. Why use subprocess.Popen, regular expressions and str.find to
+interact with your wireless cards? PyRIC is:
 
 1. Pythonic: no ctypes, SWIG etc. PyRIC redefines C header files as Python and
 uses sockets to communicate with the kernel.

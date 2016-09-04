@@ -195,4 +195,4 @@ v 0.1.6 Continue with STA functionality
   o adddres related functions mac and ifaddr return True on success, False otherwise
   o commented out constants in sockios_h that are not being used
    - no significant change but will reduce bytecode size
-  o fixed error in iswireless
+  o fixed error in iswireless (referenced in wifiphisher #329)
