@@ -153,7 +153,7 @@ def iswireless(dev, iosock=None):
      :param iosock: ioctl socket
      :returns: {True:device is wireless|False:device is not wireless/not present}
     """
-    if iosock is None: _iostub_(iswireless, dev)
+    if iosock is None: return _iostub_(iswireless, dev)
 
     try:
         # if the call succeeds, dev is found to be wireless

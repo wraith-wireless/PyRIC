@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-""" setup.py: install PyRIC v 0.1.6
+""" setup.py: install PyRIC v 0.1.6.1
 
 Copyright (C) 2016  Dale V. Patterson (wraith.wireless@yandex.com)
 
