@@ -163,9 +163,7 @@ def iswireless(dev, iosock=None):
     except AttributeError as e:
         raise pyric.error(pyric.EINVAL, e)
     except io.error as e:
-        # ENODEV or ENOTSUPP means not wireless, reraise any others
-        if e.errno == pyric.ENODEV or e.errno == pyric.EOPNOTSUPP: return False
-        else: raise pyric.error(e.errno)
+        return False
 
 def phylist():
     """
