@@ -208,7 +208,7 @@ False
 ['wlan0']
 >>> pyw.isinterface('eth0') # check eth0 for wireless
 False
->>> pyw.iswinterface('wlan0')
+>>> pyw.iswireless('wlan0')
 True
 >>> pyw.phylist() # list all current phys (Note device ASW phy1)
 [(1,'phy1), (0, 'phy0')]

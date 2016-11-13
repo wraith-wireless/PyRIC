@@ -162,7 +162,7 @@ def iswireless(dev, iosock=None):
         return True
     except AttributeError as e:
         raise pyric.error(pyric.EINVAL, e)
-    except io.error as e:
+    except io.error:
         return False
 
 def phylist():
