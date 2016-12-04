@@ -61,6 +61,7 @@ RFKILL_STATE = [False,True] # Unblocked = 0, Blocked = 1
 """
 dpath = '/dev/rfkill'
 spath = '/sys/class/rfkill'
+ipath = 'sys/class/ieee80211' # directory contains phy<n>
 
 def rfkill_list():
     """

@@ -183,7 +183,7 @@ def phylist():
                 phys.append((int(rfk.split('phy')[1]), rfk))
     except IOError as e:
         if e.errno != 2: raise pyric.error(e.errno, e.strerror)
-        rfdevs = os.listdir("/sys/class/ieee80211")
+        rfdevs = os.listdir(rfkill.ipath)
         for rfk in rfdevs:
             phys.append((int(rfk.split('phy')[1]), rfk))
     return phys
