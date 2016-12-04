@@ -72,8 +72,8 @@ NOTE:
 
 __name__ = 'pyw'
 __license__ = 'GPLv3'
-__version__ = '0.2.0'
-__date__ = 'August 2016'
+__version__ = '0.2.1'
+__date__ = 'December 2016'
 __author__ = 'Dale Patterson'
 __maintainer__ = 'Dale Patterson'
 __email__ = 'wraith.wireless@yandex.com'
@@ -171,23 +171,29 @@ def phylist():
      uses rfkill to return all phys of wireless devices
      :returns: a list of tuples t = (physical index, physical name)
     """
-    # we could walk the directory /sys/class/ieee80211 as well but we'll
-    # let rfkill do it (just in case the above path differs across distros or
-    # in future upgrades)
+    # these are stroed in /sys/class/ieee80211 but we let rfkill do it (just in
+    # case the above path differs across distros or in future upgrades). However,
+    # in some cases like OpenWRT which does not support rfkill we have to walk the
+    # directory
     phys = []
     try:
         rfdevs = rfkill.rfkill_list()
         for rfk in rfdevs:
             if rfdevs[rfk]['type'] == 'wlan':
                 phys.append((int(rfk.split('phy')[1]),rfk))
-    except IOError as error:
-        #catch 'No such file or directory' errors, caused by
-        #missing rfkill
-        if error.errno != 2:
-	        raise
-        rfdevs = os.listdir("/sys/class/ieee80211")
-        for rfk in rfdevs:
-            phys.append((int(rfk.split('phy')[1]),rfk))
+    except IOError as e:
+        #catch 'No such file or directory' errors when rfkill is not supported
+        if e.errno == pyric.ENOENT:
+            try:
+                rfdevs = os.listdir(rfkill.ipath)
+            except OSError:
+                emsg = "{} is not a directory & rfkill is not supported".format(rfkill.ipath)
+                raise pyric.error(pyric.ENOTDIR,emsg)
+            else:
+                for rfk in rfdevs: phys.append((int(rfk.split('phy')[1]),rfk))
+        else:
+            raise pyric.error(pyric.EUNDEF,
+                              "PHY listing failed: {}-{}".format(e.errno,e.strerror))
     return phys
 
 def regget(nlsock=None):

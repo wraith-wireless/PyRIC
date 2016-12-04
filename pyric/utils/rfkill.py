@@ -61,7 +61,7 @@ RFKILL_STATE = [False,True] # Unblocked = 0, Blocked = 1
 """
 dpath = '/dev/rfkill'
 spath = '/sys/class/rfkill'
-ipath = 'sys/class/ieee80211' # directory contains phy<n>
+ipath = 'sys/class/ieee80211' # directory of physical indexes
 
 def rfkill_list():
     """
@@ -69,7 +69,7 @@ def rfkill_list():
      :returns: a dict of dicts name -> {idx,type,soft,hard}
     """
     rfks = {}
-    fin = open(dpath,'r')
+    fin = open(dpath,'r') # this will raise an IOError if rfkill is not supported
     flags = fcntl.fcntl(fin.fileno(),fcntl.F_GETFL)
     fcntl.fcntl(fin.fileno(),fcntl.F_SETFL,flags|os.O_NONBLOCK)
     while True:
