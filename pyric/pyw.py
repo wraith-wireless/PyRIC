@@ -95,6 +95,7 @@ import pyric.net.wireless.wlan as wlan          # IEEE 802.11 Std definition
 import pyric.net.sockios_h as sioch             # sockios constants
 import pyric.net.if_h as ifh                    # ifreq structure
 import pyric.lib.libio as io                    # ioctl (library) functions
+import os
 
 _FAM80211ID_ = None
 
@@ -174,9 +175,18 @@ def phylist():
     # let rfkill do it (just in case the above path differs across distros or
     # in future upgrades)
     phys = []
-    rfdevs = rfkill.rfkill_list()
-    for rfk in rfdevs:
-        if rfdevs[rfk]['type'] == 'wlan':
+    try:
+        rfdevs = rfkill.rfkill_list()
+        for rfk in rfdevs:
+            if rfdevs[rfk]['type'] == 'wlan':
+                phys.append((int(rfk.split('phy')[1]),rfk))
+    except IOError as error:
+        #catch 'No such file or directory' errors, caused by
+        #missing rfkill
+        if error.errno != 2:
+	        raise
+        rfdevs = os.listdir("/sys/class/ieee80211")
+        for rfk in rfdevs:
             phys.append((int(rfk.split('phy')[1]),rfk))
     return phys
 
