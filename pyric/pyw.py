@@ -80,7 +80,6 @@ __email__ = 'wraith.wireless@yandex.com'
 __status__ = 'Production'
 
 import struct                                   # ioctl unpacking
-import os                                       # for listdir
 import re                                       # check addr validity
 import pyric                                    # pyric exception
 from pyric.nlhelp.nlsearch import cmdbynum      # get command name
@@ -96,6 +95,7 @@ import pyric.net.wireless.wlan as wlan          # IEEE 802.11 Std definition
 import pyric.net.sockios_h as sioch             # sockios constants
 import pyric.net.if_h as ifh                    # ifreq structure
 import pyric.lib.libio as io                    # ioctl (library) functions
+import os
 
 _FAM80211ID_ = None
 
@@ -171,8 +171,7 @@ def phylist():
      uses rfkill to return all phys of wireless devices
      :returns: a list of tuples t = (physical index, physical name)
     """
-    # Some devices like OpenWRT do not have rfkill support - in the event of
-    # a rfkill error, fall back to reading the /sys/class/ieee80211 dir otherwise
+    # we could walk the directory /sys/class/ieee80211 as well but we'll
     # let rfkill do it (just in case the above path differs across distros or
     # in future upgrades)
     phys = []
@@ -180,12 +179,15 @@ def phylist():
         rfdevs = rfkill.rfkill_list()
         for rfk in rfdevs:
             if rfdevs[rfk]['type'] == 'wlan':
-                phys.append((int(rfk.split('phy')[1]), rfk))
-    except IOError as e:
-        if e.errno != 2: raise pyric.error(e.errno, e.strerror)
-        rfdevs = os.listdir(rfkill.ipath)
+                phys.append((int(rfk.split('phy')[1]),rfk))
+    except IOError as error:
+        #catch 'No such file or directory' errors, caused by
+        #missing rfkill
+        if error.errno != 2:
+	        raise
+        rfdevs = os.listdir("/sys/class/ieee80211")
         for rfk in rfdevs:
-            phys.append((int(rfk.split('phy')[1]), rfk))
+            phys.append((int(rfk.split('phy')[1]),rfk))
     return phys
 
 def regget(nlsock=None):
