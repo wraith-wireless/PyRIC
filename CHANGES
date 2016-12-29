@@ -163,7 +163,7 @@ v 0.1.5 Begin STA associated functionality
 
 v 0.1.6 Continue with STA functionality
   o Issue #21 resolved. openconnect (renamed to connect) now works. (had to fix
-   how the ssid was being passed. as a string with a affixed null byte, it would
+   how the ssid was being passed. as a string with an affixed null byte, it would
    fail but as unspec, it succeeded)
     - issue 1: wpa_supplicant must be turned off
     - issue 2: caller/user must configure dhcp request or inet themselves
@@ -197,3 +197,4 @@ v 0.1.6 Continue with STA functionality
    - no significant change but will reduce bytecode size
   o fixed error in iswireless (referenced in wifiphisher #329)
   o fixed phylist failure for OpenWRT as pointed out by sarom5
+  o Corrected README.md (Issue #27)

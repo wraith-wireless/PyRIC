@@ -6,7 +6,6 @@
 [![PyPI Version](https://img.shields.io/pypi/v/PyRIC.svg)](https://pypi.python.org/pypi/PyRIC)
 ![Supported Python Versions](https://img.shields.io/pypi/pyversions/PyRIC.svg)
 ![Software status](https://img.shields.io/pypi/status/PyRIC.svg)
-[![Documentation Status](https://readthedocs.org/projects/pyric/badge/?version=latest)](http://pyric.readthedocs.io/en/latest/?badge=latest)
 
 ## 1 DESCRIPTION:
 PyRIC (is a Linux only) library providing wireless developers and pentesters the
