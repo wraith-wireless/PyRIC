@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-""" ouifetch.py: get ouis data from IEEE
+""" ouifetch.py: IEEE oui helper
 
 Copyright (C) 2016  Dale V. Patterson (wraith.wireless@yandex.com)
 
@@ -20,7 +20,7 @@ are permitted provided that the following conditions are met:
    contributors may be used to endorse or promote products derived from this
    software without specific prior written permission.
 
-Fetchs and stores oui data from IEEE
+oui dict as determined by IEEE oui.txt
 
 """
 from __future__ import print_function  # python 2to3 compability
@@ -79,7 +79,6 @@ def load(opath=None):
     finally:
         if fin and not fin.closed: fin.close()
     return ouis
-
 
 def fetch(opath=None,verbose=False):
     """

@@ -22,4 +22,6 @@
  39) parsing wiphy_bands (should we add the below?)
    o _HT_MCS_SET: a 16-bit attr containing the MCS set as defined in 802.11n
    o _HT_CAPA: as in the HT information IE
+ 40) add IEEE update (should we modify to use pickle or keep as?)
+ 41) add command line versions as scripts? i.e. up, down, macchanger etc
 

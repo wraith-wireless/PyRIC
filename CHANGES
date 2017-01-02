@@ -198,3 +198,5 @@ v 0.1.6 Continue with STA functionality
   o fixed error in iswireless (referenced in wifiphisher #329)
   o fixed phylist failure for OpenWRT as pointed out by sarom5
   o Corrected README.md (Issue #27)
+  o Added scripts directory
+   - added ouiupdate.py to scripts directory

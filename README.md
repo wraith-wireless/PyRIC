@@ -1,4 +1,4 @@
-# PyRIC 0.1.6.3: Python Radio Interface Controller
+# PyRIC 0.1.6.4: Python Radio Interface Controller
 ## Linux wireless library for the Python Wireless Developer and Pentester
 ![](docs/logo.png?raw=true)
 
@@ -187,11 +187,10 @@ form t = (error code,error message).
 ...     #handle the error
 ```
 
-Work is ongoing to help clarify some of the error messages returned by default
-by os.strerror for example. 
-
 Read the user guide, or type dir(pyw) in your console to get a full listing
 of all pyw functions.
+
+The examples below can also be run with named arguments.
 
 ### a. System/Wireless Core Functionality
 These functions do not work with a specific device rather with the system.
@@ -867,3 +866,5 @@ with (-) are not included in pip installs or PyPI downloads
       * nsearch.py        nl80211 search
       * commands.help     nl80211 commands help data
       * attributes.help   nl80211 attributes help data
+    + scripts             script subpackage
+      * ouiupdate         fetch oui.txt & update oui dict

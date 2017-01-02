@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-""" setup.py: install PyRIC v 0.1.6.3
+""" setup.py: install PyRIC v 0.1.6.4
 
 Copyright (C) 2016  Dale V. Patterson (wraith.wireless@yandex.com)
 
@@ -26,7 +26,7 @@ sudo pip install PyRIC
 #__name__ = 'setup'
 __license__ = 'GPLv3'
 __version__ = '0.0.3'
-__date__ = 'June 2016'
+__date__ = 'January 2017'
 __author__ = 'Dale Patterson'
 __maintainer__ = 'Dale Patterson'
 __email__ = 'wraith.wireless@yandex.com'
