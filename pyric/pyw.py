@@ -2087,6 +2087,8 @@ def _band_rfs_(rs):
                 rfd['enabled'] = False
             elif rfi == nl80211h.NL80211_FREQUENCY_ATTR_MAX_TX_POWER: # in mBm
                 rfd['max-tx'] = struct.unpack_from('I', rfattr, 0)[0] / 100
+            elif rfi == nl80211h.NL80211_FREQUENCY_ATTR_RADAR:
+                rfd['radar'] = True
             elif rfi == nl80211h.NL80211_FREQUENCY_ATTR_NO_HT40_MINUS:
                 rfd['not-permitted'].append('HT40-')
             elif rfi == nl80211h.NL80211_FREQUENCY_ATTR_NO_HT40_PLUS:
