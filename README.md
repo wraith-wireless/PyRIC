@@ -752,7 +752,7 @@ hw.randhw(ouis) # generate a random mac address
 hw.manufacturer(ouis,'00:03:f0:5a:a1:fc')
 => 'Redfern Broadband Networks'
 
-hw.ifcard('wlan0') # get driver & chipset
+hw.ifcard(dev) # get driver & chipset
 => ('iwlwifi', 'Intel 4965/5xxx/6xxx/1xxx')
 ```
 
