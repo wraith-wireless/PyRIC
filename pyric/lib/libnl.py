@@ -549,7 +549,7 @@ def nla_parse_nested(nested):
       Header
     """
     ns = []
-    idx =  0
+    idx = 0
     l = len(nested)
     while idx < l:
         # first two bytes define length, including these bytes, length does not

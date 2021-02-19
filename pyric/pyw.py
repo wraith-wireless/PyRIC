@@ -1154,7 +1154,8 @@ def phyinfo(card, nlsock=None):
         'modes':[],
         'swmodes':[],
         'commands':[],
-        'ciphers':[]
+        'ciphers':[],
+        'combinations':[]
     }
 
     # modify frag_thresh and rts_thresh as necessary
@@ -1180,6 +1181,10 @@ def phyinfo(card, nlsock=None):
     # get supported commands
     _, cs, d = nl.nla_find(rmsg, nl80211h.NL80211_ATTR_SUPPORTED_COMMANDS, False)
     if d != nlh.NLA_ERROR: info['commands'] = _commands_(cs)
+
+    # get valid interface combinations
+    _, cs, d = nl.nla_find(rmsg, nl80211h.NL80211_ATTR_INTERFACE_COMBINATIONS, False)
+    if d != nlh.NLA_ERROR: info['combinations'] = _combinations_(cs)
 
     return info
 
@@ -2195,6 +2200,23 @@ def _rateinfo_(ri):
 
     return bitrate
 
+def _combinations_(cs):
+    ic = cs.encode()
+    data = {
+        'interfaces': [],
+        'total': 0,
+        'channels': 0
+    }
+    for i, attr in nl.nla_parse_nested(ic):
+        for x, xttr in nl.nla_parse_nested(attr):
+            if x == 1:
+                data['interfaces'] = [_iftypes_(i[0]) for i in
+                 nl.nla_parse_nested(nl.nla_parse_nested(nl.nla_parse_nested(xttr)[0][1])[1][1])]
+            if x == 2:
+                data['total'] = struct.unpack_from('I', xttr, 0)[0]
+            if x == 4:
+                data['channels'] = struct.unpack_from('I', xttr, 0)[0]
+    return data
 #### NETLINK/IOCTL PARAMETERS ####
 
 def _ifindex_(dev, iosock=None):

@@ -23,17 +23,18 @@ Example for displaying device details
 """
 
 from __future__ import print_function  # python 2to3 compability
-import argparse as ap                  # cli arg parsing
-import sys                             # cli exiting
-import pyric                           # pyric error (and ecode EUNDEF)
-import pyric.pyw as pyw                # for iw functionality
-from pyric.utils.channels import rf2ch # rf to channel conversion
+import argparse as ap  # cli arg parsing
+import sys  # cli exiting
+import pyric  # pyric error (and ecode EUNDEF)
+import pyric.pyw as pyw  # for iw functionality
+from pyric.utils.channels import rf2ch  # rf to channel conversion
 
-def execute(dev,itype):
+
+def execute(dev, itype):
     # ensure dev is a wireless interfaces
     wifaces = pyw.winterfaces()
     if dev not in wifaces:
-        print("Device {0} is not wireless, use one of {1}".format(dev,wifaces))
+        print("Device {0} is not wireless, use one of {1}".format(dev, wifaces))
 
     # get info dicts
     dinfo = pyw.devinfo(dev)
@@ -43,7 +44,7 @@ def execute(dev,itype):
 
     if itype == 'all' or itype == 'if':
         msg = "Interface {0}\n".format(card.idx)
-        msg += "\tDriver: {0} Chipset: {1}\n".format(iinfo['driver'],iinfo['chipset'])
+        msg += "\tDriver: {0} Chipset: {1}\n".format(iinfo['driver'], iinfo['chipset'])
         msg += "\tHW Addr: {0} Manufacturer: {1}\n".format(iinfo['hwaddr'],
                                                            iinfo['manufacturer'])
         msg += "\tInet: {0} Bcast: {1} Mask: {2}\n".format(iinfo['inet'],
@@ -58,7 +59,8 @@ def execute(dev,itype):
         msg += "\taddr: {0}\n".format(dinfo['mac'])
         msg += "\tmode: {0}\n".format(dinfo['mode'])
         msg += "\twiphy: {0}\n".format(card.phy)
-        if dinfo['mode'] != 'managed': msg += "\tDevice not associated\n"
+        if dinfo['mode'] != 'managed':
+            msg += "\tDevice not associated\n"
         else:
             msg += "\tchannel: {0} ({1} MHz), width: {2}, CF: {3} MHz\n".format(rf2ch(dinfo['RF']),
                                                                                 dinfo['RF'],
@@ -89,21 +91,30 @@ def execute(dev,itype):
             for rate in pinfo['bands'][band]['rates']:
                 msg += "\t    * {0} Mbps\n".format(rate)
             msg += "\t   Frequencies:\n"
-            for i,rf in enumerate(pinfo['bands'][band]['rfs']):
+            for i, rf in enumerate(pinfo['bands'][band]['rfs']):
                 dbm = pinfo['bands'][band]['rf-data'][i]['max-tx']
-                msg += "\t    * {0} MHz ({1} dBm)".format(rf,dbm)
+                msg += "\t    * {0} MHz ({1} dBm)".format(rf, dbm)
                 if not pinfo['bands'][band]['rf-data'][i]['enabled']:
                     msg += " (disabled)\n"
                 else:
                     msg += "\n"
+
+        msg += "\tvalid interface combinations::\n"
+        msg += "\t\t* #{"
+        for c in pinfo['combinations']['interfaces']:
+            msg += " {},".format(c)
+        msg += " }"
+        msg += " total <= {}, #channels <= {}".format(pinfo['combinations']['total'], pinfo['combinations']['channels'])
+
         print(msg)
+
 
 if __name__ == '__main__':
     # create arg parser and parse command line args
     print("Wireless Device Info Display using PyRIC v{0}".format(pyric.version))
     argp = ap.ArgumentParser(description="Wireless Device Data")
-    argp.add_argument('-d','--dev',help="Wireless Device")
-    argp.add_argument('-t','--type',help="Info type one of {all|if|dev|phy}")
+    argp.add_argument('-d', '--dev', help="Wireless Device")
+    argp.add_argument('-t', '--type', help="Info type one of {all|if|dev|phy}")
     args = argp.parse_args()
     usage = "usage: python info.py -d <dev> [-t one of {all|if|dev|phy}]"
     try:
@@ -113,9 +124,9 @@ if __name__ == '__main__':
             print(usage)
             sys.exit(0)
         if infotype is None: infotype = 'all'
-        if infotype not in ['all','if','dev','phy']:
+        if infotype not in ['all', 'if', 'dev', 'phy']:
             print(usage)
             sys.exit(0)
-        execute(dname,infotype)
+        execute(dname, infotype)
     except pyric.error as e:
         print(e)
