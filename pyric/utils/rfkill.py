@@ -131,6 +131,7 @@ def rfkill_unblock(idx):
     fout = None
     try:
         rfke = rfkh.rfkill_event(idx,rfkh.RFKILL_TYPE_ALL,rfkh.RFKILL_OP_CHANGE,0,0)
+        if _PY3_: rfke = rfke.decode('ascii')
         fout = open(dpath, 'w')
         fout.write(rfke)
     except struct.error as e:
