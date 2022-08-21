@@ -25,7 +25,7 @@ sudo pip install PyRIC
 
 #__name__ = 'setup'
 __license__ = 'GPLv3'
-__version__ = '0.0.3'
+__version__ = '0.1.6.4'
 __date__ = 'January 2017'
 __author__ = 'Dale Patterson'
 __maintainer__ = 'Dale Patterson'
